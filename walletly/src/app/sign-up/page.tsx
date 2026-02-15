@@ -1,10 +1,56 @@
 /* eslint-disable @next/next/no-img-element */
+"use client";
 
-import { FaEye, FaRegCircle } from "react-icons/fa";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import { MultipleFieldErrors, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { PasswordListItem } from "@/components/PasswordStrengthListItem";
+import { passwordCriteria } from "@/data";
+import { SignupFormType, signupSchema } from "@/types";
+import { submitSignupForm } from "@/actions";
 
 export default function Signup() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isTouched, setIsTouched] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    trigger,
+    formState: { errors, isSubmitted },
+  } = useForm<SignupFormType>({
+    resolver: zodResolver(signupSchema),
+    criteriaMode: "all",
+  });
+
+  const passwordMeetsCriteria = (criteria: string) => {
+    if (!isTouched) return false;
+
+    const errorTypesArray: MultipleFieldErrors | undefined =
+      errors?.password?.types;
+    const errorType: string = errors?.password?.type || "";
+    return !(
+      (Array.isArray(errorTypesArray?.invalid_format) &&
+        errorTypesArray?.invalid_format?.includes(criteria)) ||
+      errorTypesArray?.invalid_format === criteria ||
+      errorTypesArray?.[errorType] === criteria ||
+      (Array.isArray(errorTypesArray?.[errorType]) &&
+        (errorTypesArray?.[errorType] as string[]).includes(criteria))
+    );
+  };
+
+  const onSubmit = (data: SignupFormType) => {
+    submitSignupForm(data);
+  };
+  console.log(errors);
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center pt-20">
+    <div
+      className="flex min-h-screen flex-col items-center justify-center pt-20"
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <img src="/images/logo.png" alt="" className="mb-4 md:w-50 w-40" />
       <h1 className="md:text-4xl text-3xl font-semibold mb-2 text-center">
         Take{" "}
@@ -28,47 +74,56 @@ export default function Signup() {
           <input
             type="email"
             id="email"
-            className="form-input"
+            className={`form-input ${errors.email ? "ring-red-500! ring-2!" : ""}`}
             placeholder="Enter email address"
+            {...register("email")}
           />
+          {errors.email && (
+            <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+          )}
         </div>
 
-        <div className="input-container">
+        <div className={`input-container`}>
           <label htmlFor="password" className="input-label">
             Password
           </label>
           <div className="relative">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               id="password"
-              className="form-input"
+              className={`form-input ${!passwordMeetsCriteria("REQUIRED") && isSubmitted ? "ring-red-500! ring-2!" : ""}`}
               placeholder="Enter your password"
+              {...register("password", {
+                onChange: () => {
+                  if (!isTouched) setIsTouched(true);
+                  trigger("password");
+                },
+              })}
             />
 
-            <FaEye className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" />
+            <button
+              onClick={() => setShowPassword((prev) => !prev)}
+              type="button"
+            >
+              {showPassword ? (
+                <FaEyeSlash className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" />
+              ) : (
+                <FaEye className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" />
+              )}
+            </button>
           </div>
 
-          <div className="grid md:grid-cols-2 md:gap-4 gap-2 mt-2 text-sm text-gray-500">
-            <p className="flex gap-2 items-center">
-              <FaRegCircle className="text-xs" />
-              Must be at least 8 characters long
-            </p>
-            <p className="flex gap-2 items-center">
-              <FaRegCircle className="text-xs" />
-              Must include at least 1 uppercase
-            </p>
-            <p className="flex gap-2 items-center">
-              <FaRegCircle className="text-xs" />
-              Must include at least 1 lowercase
-            </p>
-            <p className="flex gap-2 items-center">
-              <FaRegCircle className="text-xs" />
-              Must include at least 1 number
-            </p>
-            <p className="flex gap-2 items-center">
-              <FaRegCircle className="text-xs" />
-              Must include at least 1 special character
-            </p>
+          {!passwordMeetsCriteria("REQUIRED") && isSubmitted && (
+            <p className="text-red-500 text-sm mt-1">Password is Required</p>
+          )}
+          <div className="grid md:grid-cols-2 md:gap-4 gap-2 mt-2 text-sm">
+            {passwordCriteria.map((criteria) => (
+              <PasswordListItem
+                key={criteria.id}
+                criteria={criteria}
+                isValid={passwordMeetsCriteria(criteria.id)}
+              />
+            ))}
           </div>
         </div>
 
@@ -78,13 +133,29 @@ export default function Signup() {
           </label>
           <div className="relative">
             <input
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               id="confirm password"
-              className="form-input"
+              className={`form-input ${errors.confirmPassword ? "ring-red-500! ring-2!" : ""}`}
               placeholder="Confirm your password"
+              {...register("confirmPassword")}
             />
 
-            <FaEye className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" />
+            <button
+              onClick={() => setShowConfirmPassword((prev) => !prev)}
+              type="button"
+            >
+              {showConfirmPassword ? (
+                <FaEyeSlash className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" />
+              ) : (
+                <FaEye className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" />
+              )}
+            </button>
+
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.confirmPassword.message}
+              </p>
+            )}
           </div>
         </div>
 
@@ -96,9 +167,16 @@ export default function Signup() {
             <input
               type="text"
               id="first name"
-              className="form-input"
+              className={`form-input ${errors.firstName ? "ring-red-500! ring-2!" : ""}`}
               placeholder="Enter your first name"
+              {...register("firstName")}
             />
+
+            {errors.firstName && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.firstName.message}
+              </p>
+            )}
           </div>
 
           <div className="input-container w-full">
@@ -108,9 +186,16 @@ export default function Signup() {
             <input
               type="text"
               id="last name"
-              className="form-input"
+              className={`form-input ${errors.lastName ? "ring-red-500! ring-2!" : ""}`}
               placeholder="Enter your last name"
+              {...register("lastName")}
             />
+
+            {errors.lastName && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.lastName.message}
+              </p>
+            )}
           </div>
         </div>
 

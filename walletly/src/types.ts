@@ -1,0 +1,25 @@
+import z from "zod";
+
+export const signupSchema = z
+  .object({
+    email: z.email().min(1, { message: "Email is required" }),
+    password: z
+      .string()
+      .min(1, { message: "REQUIRED" })
+      .min(8, "MIN_LENGTH")
+      .regex(/[A-Z]/, "UPPERCASE")
+      .regex(/[a-z]/, "LOWERCASE")
+      .regex(/[0-9]/, "NUMBER")
+      .regex(/[^A-Za-z0-9]/, "SPECIAL_CHARACTER"),
+    confirmPassword: z
+      .string()
+      .min(1, { message: "Confirm password is required" }),
+    firstName: z.string().min(1, { message: "First name is required" }),
+    lastName: z.string().min(1, { message: "Last name is required" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+export type SignupFormType = z.infer<typeof signupSchema>;
