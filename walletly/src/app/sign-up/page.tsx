@@ -9,6 +9,7 @@ import { PasswordListItem } from "@/components/PasswordStrengthListItem";
 import { passwordCriteria } from "@/data";
 import { SignupFormType, signupSchema } from "@/types";
 import { submitSignupForm } from "@/actions";
+import { FaShieldHeart } from "react-icons/fa6";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -42,19 +43,23 @@ export default function Signup() {
   };
 
   const onSubmit = (data: SignupFormType) => {
+    sessionStorage.setItem("pendingEmail", JSON.stringify(data.email));
     submitSignupForm(data);
+    console.log(
+      sessionStorage.getItem("pendingEmail"),
+      "pending email in session storage",
+    );
   };
-  console.log(errors);
 
   return (
     <div
       className="flex min-h-screen flex-col items-center justify-center pt-20"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <img src="/images/logo.png" alt="" className="mb-4 md:w-50 w-40" />
+      <img src="/images/logo.png" alt="" className="md:w-20 w-40 mb-10" />
       <h1 className="md:text-4xl text-3xl font-semibold mb-2 text-center">
         Take{" "}
-        <span className="text-[#9B4BC2] text-shadow-[0_0_8px_#9B4BC2]">
+        <span className="text-primary text-shadow-[0_0_8px_var(--primary-color)]">
           Control
         </span>{" "}
         Of Your Finance
@@ -202,7 +207,7 @@ export default function Signup() {
         <div>
           <button
             type="submit"
-            className="w-full rounded-xl bg-[#9B4BC2] p-4 text-white font-medium hover:bg-[#9B4BC2]/90 transition duration-200 cursor-pointer"
+            className="w-full rounded-xl bg-primary p-4 text-white font-medium hover:bg-primary/90 transition duration-200 cursor-pointer shadow-[0_10px_20px_2px_color-mix(in_srgb,var(--primary-color)_30%,transparent)]"
           >
             Sign Up
           </button>
@@ -211,8 +216,8 @@ export default function Signup() {
 
       <p className="mt-10 text-center text-sm text-gray-500">
         Already have an account?{" "}
-        <a href="/login" className="text-[#9B4BC2] font-medium underline">
-          Log in
+        <a href="/login" className="text-primary font-medium underline">
+          Login
         </a>
       </p>
     </div>
