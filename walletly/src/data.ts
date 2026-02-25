@@ -1,10 +1,10 @@
 export const passwordCriteria = [
-  { id: "MIN_LENGTH", label: "Must be at least 8 characters long" },
-  { id: "UPPERCASE", label: "Must include at least 1 uppercase" },
-  { id: "LOWERCASE", label: "Must include at least 1 lowercase" },
-  { id: "NUMBER", label: "Must include at least 1 number" },
+  { id: "MIN_LENGTH", label: "At least 8 characters" },
+  { id: "UPPERCASE", label: "At least one uppercase letter" },
+  { id: "LOWERCASE", label: "At least one lowercase letter" },
+  { id: "NUMBER", label: "At least one number" },
   {
     id: "SPECIAL_CHARACTER",
-    label: "Must include at least 1 special character",
+    label: "At least one special character",
   },
 ];

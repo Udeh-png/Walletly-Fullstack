@@ -1,10 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #000000;
+  --background: #080811;
   --foreground: #ffffff;
   --primary-color: #9b4bc2;
   --secondary-color: #0b0812;
+  --border-color: rgba(128, 128, 128, 0.5);
+  --slide-in-offset: 100%;
+}
+
+@media (width < 48rem /* 768px */) {
+  :root {
+    --slide-in-offset: 0;
+  }
 }
 
 @theme inline {
@@ -12,23 +20,56 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary-color);
   --color-secondary: var(--secondary-color);
+  --color-border: var(--border-color);
   --font-inter: var(--font-inter);
 }
 
 .input-label {
-  @apply text-lg font-medium;
+  @apply text-sm font-medium;
 }
 
 .input-container {
-  @apply flex flex-col gap-1;
+  @apply flex flex-col gap-2;
 }
 
 .form-input {
-  @apply w-full rounded-xl p-4 outline-0 bg-gray-400/20 focus:ring-2 focus:ring-[#9B4BC2] transition duration-200;
+  @apply w-full rounded-xl p-4 outline-0 bg-black/20 ring-1 ring-border focus:ring-1 focus:ring-[#9B4BC2] transition duration-200;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: inter, Arial, Helvetica, sans-serif;
+}
+
+.form-wrapper {
+  @apply md:rounded-4xl md:border border-border overflow-clip relative;
+}
+
+.form-wrapper::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 4px;
+  background: var(--primary-color);
+  animation: grow 2s forwards;
+  animation-delay: 3400ms;
+}
+
+@media (width < 48rem /* 768px */) {
+  .form-wrapper::after {
+    content: none;
+  }
+}
+
+@keyframes grow {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
 }

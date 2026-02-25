@@ -24,7 +24,10 @@ public class SignUpService {
 	
 	@Scheduled(fixedRate = 15000)
 	public void clearStaleUsers () {
-		tempUsers.entrySet().removeIf((e) -> System.currentTimeMillis() - e.getValue().getTimestamp() >= 60 * 60000);
+		tempUsers.entrySet().removeIf(
+				(e) ->
+						System.currentTimeMillis() - e.getValue().getTimestamp() >= 60000 // 1 min
+		);
 	}
 	
 	public OtpResponse sendSignUpOtp (TempUser user) {
@@ -59,7 +62,7 @@ public class SignUpService {
 		return new OtpResponse(otpSession.getSessionId(), otpSession.getGenerateTimestamp());
 	}
 	
-	public void authorizeOtpPageAccess (String userId) {
+	public Boolean authorizeOtpPageAccess (String userId) {
 		boolean exists = tempUsers
 				.values()
 				.stream()
@@ -68,5 +71,7 @@ public class SignUpService {
 				);
 		
 		if (!exists) throw new NotAuthorized();
+		
+		return true;
 	}
 }
