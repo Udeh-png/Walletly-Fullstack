@@ -119,7 +119,7 @@ export default function Signup() {
       >
         <form
           action=""
-          className="flex flex-col md:gap-7 gap-5 md:bg-gray-600/10 md:px-10 px-5 md:py-12 py-5"
+          className="flex flex-col md:gap-7 gap-5"
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="mb-3">
@@ -205,12 +205,9 @@ export default function Signup() {
               <button
                 onClick={() => setShowPassword((prev) => !prev)}
                 type="button"
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
               >
-                {showPassword ? (
-                  <FaEyeSlash className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" />
-                ) : (
-                  <FaEye className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" />
-                )}
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
 
@@ -244,27 +241,21 @@ export default function Signup() {
               <button
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
                 type="button"
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
               >
-                {showConfirmPassword ? (
-                  <FaEyeSlash className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" />
-                ) : (
-                  <FaEye className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer" />
-                )}
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
-
-              {errors.confirmPassword && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.confirmPassword.message}
-                </p>
-              )}
             </div>
+
+            {errors.confirmPassword && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.confirmPassword.message}
+              </p>
+            )}
           </div>
 
           <div>
-            <button
-              type="submit"
-              className="w-full rounded-xl bg-primary p-4 text-white font-medium hover:bg-primary/90 transition duration-200 cursor-pointer shadow-[0_10px_20px_2px_color-mix(in_srgb,var(--primary-color)_20%,transparent)]"
-            >
+            <button type="submit" className="button-primary">
               Sign Up
             </button>
           </div>
@@ -277,8 +268,6 @@ export default function Signup() {
           </p>
         </form>
       </motion.div>
-
-      <div className="fixed size-120 blur-3xl rounded-full md:-bottom-50 -bottom-100 -right-10 bg-primary -z-10 opacity-10" />
     </div>
   );
 }

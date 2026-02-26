@@ -7,6 +7,7 @@
   --secondary-color: #0b0812;
   --border-color: rgba(128, 128, 128, 0.5);
   --slide-in-offset: 100%;
+  --gradient-primary: linear-gradient(to right, #080811, #9b4bc2);
 }
 
 @media (width < 48rem /* 768px */) {
@@ -21,6 +22,7 @@
   --color-primary: var(--primary-color);
   --color-secondary: var(--secondary-color);
   --color-border: var(--border-color);
+  --color-primary-gradient: var(--gradient-primary);
   --font-inter: var(--font-inter);
 }
 
@@ -42,25 +44,46 @@ body {
   font-family: inter, Arial, Helvetica, sans-serif;
 }
 
-.form-wrapper {
-  @apply md:rounded-4xl md:border border-border overflow-clip relative;
+.form-wrapper,
+.form-wrapper2 {
+  @apply md:rounded-4xl md:border border-border overflow-clip relative md:bg-gray-700/10 md:px-10 md:py-12 p-0;
 }
 
 .form-wrapper::after {
+  background: var(--primary-color);
+  animation-delay: 3400ms !important;
+  height: 4px;
+}
+
+.form-wrapper2::after {
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--primary-color) 50%, transparent),
+    transparent
+  );
+  height: 2px;
+}
+
+.form-wrapper::after,
+.form-wrapper2::after {
   content: "";
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
-  height: 4px;
-  background: var(--primary-color);
   animation: grow 2s forwards;
-  animation-delay: 3400ms;
 }
 
 @media (width < 48rem /* 768px */) {
   .form-wrapper::after {
+    content: none;
+  }
+}
+
+@media (width < 48rem /* 768px */) {
+  .form-wrapper2::after {
     content: none;
   }
 }
@@ -72,4 +95,8 @@ body {
   100% {
     width: 100%;
   }
+}
+
+.button-primary {
+  @apply w-full rounded-xl bg-primary p-4 text-white font-medium hover:bg-primary/90 transition duration-200 cursor-pointer shadow-[0_10px_20px_2px_color-mix(in_srgb,var(--primary-color)_20%,transparent)];
 }
