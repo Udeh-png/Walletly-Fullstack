@@ -100,3 +100,11 @@ body {
 .button-primary {
   @apply w-full rounded-xl bg-primary p-4 text-white font-medium hover:bg-primary/90 transition duration-200 cursor-pointer shadow-[0_10px_20px_2px_color-mix(in_srgb,var(--primary-color)_20%,transparent)];
 }
+
+.otp-input {
+  @apply border-2 border-border rounded-lg md:size-13 size-12 text-center text-xl font-bold focus:border-primary outline-0 transition-colors duration-300 caret-transparent;
+}
+
+.input-error-text {
+  @apply text-red-500 text-sm mt-1;
+}

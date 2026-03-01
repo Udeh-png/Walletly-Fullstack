@@ -140,9 +140,7 @@ export default function Signup() {
               />
 
               {errors.firstName && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.firstName.message}
-                </p>
+                <p className="input-error-text">{errors.firstName.message}</p>
               )}
             </div>
 
@@ -159,9 +157,7 @@ export default function Signup() {
               />
 
               {errors.lastName && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.lastName.message}
-                </p>
+                <p className="input-error-text">{errors.lastName.message}</p>
               )}
             </div>
           </div>
@@ -178,9 +174,7 @@ export default function Signup() {
               {...register("email")}
             />
             {errors.email && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.email.message}
-              </p>
+              <p className="input-error-text">{errors.email.message}</p>
             )}
           </div>
 
@@ -212,7 +206,7 @@ export default function Signup() {
             </div>
 
             {!passwordMeetsCriteria("REQUIRED") && isSubmitted && (
-              <p className="text-red-500 text-sm mt-1">Password is Required</p>
+              <p className="input-error-text">Password is Required</p>
             )}
             <div className="grid md:grid-cols-2 md:gap-2.5 gap-2 mt-2 text-sm">
               {passwordCriteria.map((criteria) => (
@@ -248,7 +242,7 @@ export default function Signup() {
             </div>
 
             {errors.confirmPassword && (
-              <p className="text-red-500 text-sm mt-1">
+              <p className="input-error-text">
                 {errors.confirmPassword.message}
               </p>
             )}

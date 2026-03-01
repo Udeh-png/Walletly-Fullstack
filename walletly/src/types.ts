@@ -23,3 +23,14 @@ export const signupSchema = z
   });
 
 export type SignupFormType = z.infer<typeof signupSchema>;
+
+export const otpInputSchema = z.object({
+  otpInput1: z.string().min(1).regex(/\d/),
+  otpInput2: z.string().min(1).regex(/\d/),
+  otpInput3: z.string().min(1).regex(/\d/),
+  otpInput4: z.string().min(1).regex(/\d/),
+  otpInput5: z.string().min(1).regex(/\d/),
+  otpInput6: z.string().min(1).regex(/\d/),
+});
+
+export type OtpInputType = z.infer<typeof otpInputSchema>;
