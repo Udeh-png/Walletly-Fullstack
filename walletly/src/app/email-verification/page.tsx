@@ -2,11 +2,12 @@
 
 import { otpInputSchema, OtpInputType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaStopwatch } from "react-icons/fa6";
 import { IoIosMailUnread } from "react-icons/io";
 import { motion } from "framer-motion";
+import { getCookie } from "@/utilities";
 
 const fields = [
   "otpInput1",
@@ -19,6 +20,20 @@ const fields = [
 
 export default function EmailVerificationPage() {
   const inputContainerRef = useRef<HTMLDivElement>(null);
+  const expiryDateObj = useMemo(() => {
+    const otpGenerationTime =
+      getCookie("OtpGenerationTime") || new Date().getTime();
+    const generationTimeDate = new Date(otpGenerationTime);
+    const expiryDate = new Date();
+    const expiresIn = 5; // mins
+    expiryDate.setMinutes(generationTimeDate.getMinutes() + expiresIn);
+    return expiryDate;
+  }, []);
+
+  const [pageHasMounted, setPageHasMounted] = useState(false);
+  const [mins, setMins] = useState("05");
+  const [secs, setSecs] = useState("00");
+  const [expired, setExpired] = useState(false);
   const {
     register,
     handleSubmit,
@@ -28,7 +43,68 @@ export default function EmailVerificationPage() {
     resolver: zodResolver(otpInputSchema),
   });
 
-  const hasErrors = Object.keys(errors).length > 0;
+  useEffect(() => {
+    const change = () => {
+      setPageHasMounted(true);
+    };
+    change();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const gap = (expiryDateObj.getTime() - new Date().getTime()) / 1000;
+
+      setMins(() =>
+        Math.floor(gap / 60)
+          .toString()
+          .padStart(2, "0"),
+      );
+      setSecs(() =>
+        Math.floor(gap % 60)
+          .toString()
+          .padStart(2, "0"),
+      );
+
+      if (gap <= 1) {
+        clearInterval(interval);
+        setExpired(true);
+      }
+    }, 1000);
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [expiryDateObj]);
+
+  useEffect(() => {
+    const container = inputContainerRef.current;
+    (container?.firstElementChild as HTMLElement)?.focus();
+
+    const handlePaste = (e: ClipboardEvent) => {
+      e.preventDefault();
+      const data = e.clipboardData?.getData("text");
+      const containerChildren: Element[] = [
+        ...(e.currentTarget as HTMLElement)?.children,
+      ];
+      if (!data) return;
+
+      if (!/^\d+$/.test(data)) return;
+
+      const splitData = data?.split("");
+
+      containerChildren.forEach((child, idx) => {
+        (child as HTMLInputElement).value = splitData[idx];
+      });
+    };
+
+    container?.addEventListener("paste", handlePaste);
+
+    return () => {
+      container?.removeEventListener("paste", handlePaste);
+    };
+  }, [inputContainerRef]);
+
+  useEffect(() => {}, [isValid]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, "");
@@ -67,40 +143,11 @@ export default function EmailVerificationPage() {
     console.log("Submitted");
   };
 
-  useEffect(() => {
-    const container = inputContainerRef.current;
-    (container?.firstElementChild as HTMLElement)?.focus();
-
-    const handlePaste = (e: ClipboardEvent) => {
-      e.preventDefault();
-      const data = e.clipboardData?.getData("text");
-      const containerChildren: Element[] = [
-        ...(e.currentTarget as HTMLElement)?.children,
-      ];
-      if (!data) return;
-
-      if (!/^\d+$/.test(data)) return;
-
-      const splitData = data?.split("");
-
-      containerChildren.forEach((child, idx) => {
-        (child as HTMLInputElement).value = splitData[idx];
-      });
-    };
-
-    container?.addEventListener("paste", handlePaste);
-
-    return () => {
-      container?.removeEventListener("paste", handlePaste);
-    };
-  }, [inputContainerRef]);
-
-  useEffect(() => {}, [isValid]);
   return (
     <div className="flex items-center justify-center">
       <div className="form-wrapper2 md:p-10 md:w-fit w-full">
         <form
-          action=""
+          action="javascript:void(0)"
           className="space-y-7"
           onSubmit={handleSubmit(handleOnSubmit)}
         >
@@ -128,7 +175,9 @@ export default function EmailVerificationPage() {
                 return (
                   <motion.input
                     animate={errors[field] ? { translateX: [0, 5, -5, 0] } : {}}
-                    transition={{ type: "tween" }}
+                    transition={{
+                      type: "tween",
+                    }}
                     key={i}
                     autoComplete={i === 0 ? "one-time-code" : "off"}
                     inputMode="numeric"
@@ -146,25 +195,27 @@ export default function EmailVerificationPage() {
                 );
               })}
             </div>
-            {hasErrors && (
-              <p className="input-error-text">Field can&apos;t be empty</p>
-            )}
           </div>
 
           <div className="flex items-center gap-1 justify-center text-white/70 text-sm -mt-5">
             <FaStopwatch />
-            <p>01:59</p>
+            <p>{`${mins}:${secs}`}</p>
           </div>
 
           <div className="">
-            <input type="submit" className="button-primary" value={"Verify"} />
+            <input
+              type="submit"
+              className="button-primary"
+              value={"Verify"}
+              disabled={!pageHasMounted}
+            />
           </div>
 
           <p className="text-center text-white/70 md:font-light font-normal">
             Didn&apos;t recieve the code?{" "}
             <button
-              className="text-primary font-semibold disabled:cursor-not-allowed disabled:line-through disabled:text-gray-600"
-              disabled
+              className="text-primary font-semibold disabled:cursor-not-allowed disabled:line-through disabled:text-gray-600 transition-all"
+              disabled={!expired}
             >
               Resend Code
             </button>

@@ -102,7 +102,7 @@ body {
 }
 
 .otp-input {
-  @apply border-2 border-border rounded-lg md:size-13 size-12 text-center text-xl font-bold focus:border-primary outline-0 transition-colors duration-300 caret-transparent;
+  @apply border-2 border-border rounded-lg md:size-13 size-12 text-center text-xl font-bold focus:border-primary outline-0 transition-colors duration-300;
 }
 
 .input-error-text {
