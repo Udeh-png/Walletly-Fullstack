@@ -22,16 +22,16 @@ export default function EmailVerificationPage() {
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const expiryDateObj = useMemo(() => {
     const otpGenerationTime =
-      getCookie("OtpGenerationTime") || new Date().getTime();
-    const generationTimeDate = new Date(otpGenerationTime);
-    const expiryDate = new Date();
-    const expiresIn = 5; // mins
-    expiryDate.setMinutes(generationTimeDate.getMinutes() + expiresIn);
-    return expiryDate;
+      Number(getCookie("otpGenerationTimestamp")) || new Date().getTime();
+    const generationTimeDate = new Date();
+    generationTimeDate.setTime(otpGenerationTime);
+
+    const expiresIn = 5 * 60 * 1000; // 5 mins in ms
+    return new Date(otpGenerationTime + expiresIn);
   }, []);
 
   const [pageHasMounted, setPageHasMounted] = useState(false);
-  const [mins, setMins] = useState("05");
+  const [mins, setMins] = useState("00");
   const [secs, setSecs] = useState("00");
   const [expired, setExpired] = useState(false);
   const {
@@ -54,6 +54,11 @@ export default function EmailVerificationPage() {
     const interval = setInterval(() => {
       const gap = (expiryDateObj.getTime() - new Date().getTime()) / 1000;
 
+      if (gap <= 1) {
+        clearInterval(interval);
+        setExpired(true);
+      }
+
       setMins(() =>
         Math.floor(gap / 60)
           .toString()
@@ -64,12 +69,7 @@ export default function EmailVerificationPage() {
           .toString()
           .padStart(2, "0"),
       );
-
-      if (gap <= 1) {
-        clearInterval(interval);
-        setExpired(true);
-      }
-    }, 1000);
+    }, 100);
 
     return () => {
       clearInterval(interval);

@@ -22,12 +22,15 @@ public class OtpManager {
 	@Autowired
 	private Resend resend;
 	
+	final int OTP_EXPIRATION_TIME = 5 * 60000;
+	final Long SUSPENSION_TIME = 60000L;
+	
 	public OtpSession generate (String sessionId, String email) {
 		int otpInt = secureRandom.nextInt(900000) + 100000; //generate the otp
-		OtpSession otpSession = new OtpSession(sessionId, String.valueOf(otpInt), System.currentTimeMillis()); // create a new otp session object
+		OtpSession otpSession;
 		String message =
 				"<p>Your OTP is: <strong style='font-size: 15px; color: #2563eb;'>"
-						+ otpSession.getOtp() +
+						+ otpInt +
 						"</strong> Do not share this code with anyone</p>"; // html message
 		
 		CreateEmailOptions emailOptions = CreateEmailOptions.builder()
@@ -36,9 +39,9 @@ public class OtpManager {
 								.subject("Email Verification")
 										.html(message)
 												.build(); // build the message to send with resend api
-		
 		try {
-			CreateEmailResponse emailResponse = resend.emails().send(emailOptions);
+			resend.emails().send(emailOptions);
+			otpSession = new OtpSession(sessionId, String.valueOf(otpInt), System.currentTimeMillis()); // create a new otp session object
 		} catch (ResendException e) {
 			throw new RuntimeException(e);
 		}
@@ -57,9 +60,6 @@ public class OtpManager {
 	}
 	
 	public OtpSession generateAndValidate(String email, String sessionId) {
-		final int OTP_EXPIRATION_TIME = 30000;
-		final Long SUSPENSION_TIME = 60000L;
-		
 		if (suspendedEmails.containsKey(email)) { // check if the email has been suspended b4 validating
 			SuspendedAccount account = suspendedEmails.get(email);
 			throw new AccountSuspendedException(account.getReason()); // throw an error if it has
@@ -77,7 +77,6 @@ public class OtpManager {
 		  boolean hasExpired = System.currentTimeMillis() - lastSession.getGenerateTimestamp() >= OTP_EXPIRATION_TIME;
 			
 			if (otpSessions.size() >= 3 && hasExpired) { // check if user has made up to 3 otp requests and the last request has expires
-				System.out.println("Email suspended for too many requests");
 				SuspendedAccount suspendedAccount = new SuspendedAccount(
 						email,
 						System.currentTimeMillis(),
@@ -89,7 +88,6 @@ public class OtpManager {
 				otpSessions.clear();
 				throw new TooManyOtpRequestsException(timeLeft); // throw an error for too many requests
 			}
-			
 			if (!hasExpired) {
 				return lastSession; // if the otp has not expired DO NOT generate a new otp session just resend the las session to the frontend
 			} else {

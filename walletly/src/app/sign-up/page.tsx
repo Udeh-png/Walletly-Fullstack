@@ -4,12 +4,13 @@
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { MultipleFieldErrors, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PasswordListItem } from "@/components/PasswordStrengthListItem";
 import { passwordCriteria } from "@/data";
 import { SignupFormType, signupSchema } from "@/types";
 import { submitSignupForm } from "@/actions";
 import { motion } from "framer-motion";
+import { FaSpinner } from "react-icons/fa6";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -20,11 +21,15 @@ export default function Signup() {
     register,
     handleSubmit,
     trigger,
-    formState: { errors, isSubmitted },
+    formState: { errors, isSubmitted, isSubmitting },
   } = useForm<SignupFormType>({
     resolver: zodResolver(signupSchema),
     criteriaMode: "all",
   });
+
+  useEffect(() => {
+    console.log(isSubmitting);
+  }, [isSubmitting]);
 
   const passwordMeetsCriteria = (criteria: string) => {
     if (!isTouched) return false;
@@ -42,9 +47,9 @@ export default function Signup() {
     );
   };
 
-  const onSubmit = (data: SignupFormType) => {
+  const onSubmit = async (data: SignupFormType) => {
     sessionStorage.setItem("pendingEmail", JSON.stringify(data.email));
-    submitSignupForm(data);
+    await submitSignupForm(data);
     console.log(
       sessionStorage.getItem("pendingEmail"),
       "pending email in session storage",
@@ -132,6 +137,7 @@ export default function Signup() {
                 First Name
               </label>
               <input
+                autoComplete=""
                 type="text"
                 id="first name"
                 className={`form-input ${errors.firstName ? "ring-red-500! ring-2!" : ""}`}
@@ -149,6 +155,7 @@ export default function Signup() {
                 Last Name
               </label>
               <input
+                autoComplete=""
                 type="text"
                 id="last name"
                 className={`form-input ${errors.lastName ? "ring-red-500! ring-2!" : ""}`}
@@ -167,6 +174,7 @@ export default function Signup() {
               Email
             </label>
             <input
+              autoComplete="email"
               type="email"
               id="email"
               className={`form-input ${errors.email ? "ring-red-500! ring-2!" : ""}`}
@@ -184,6 +192,7 @@ export default function Signup() {
             </label>
             <div className="relative">
               <input
+                autoComplete="new-password"
                 type={showPassword ? "text" : "password"}
                 id="password"
                 className={`form-input ${!passwordMeetsCriteria("REQUIRED") && isSubmitted ? "ring-red-500! ring-2!" : ""}`}
@@ -225,6 +234,7 @@ export default function Signup() {
             </label>
             <div className="relative">
               <input
+                autoComplete="new-password"
                 type={showConfirmPassword ? "text" : "password"}
                 id="confirm password"
                 className={`form-input ${errors.confirmPassword ? "ring-red-500! ring-2!" : ""}`}
@@ -249,7 +259,11 @@ export default function Signup() {
           </div>
 
           <div>
-            <button type="submit" className="button-primary">
+            <button
+              type="submit"
+              className="button-primary"
+              disabled={isSubmitting}
+            >
               Sign Up
             </button>
           </div>
@@ -262,6 +276,12 @@ export default function Signup() {
           </p>
         </form>
       </motion.div>
+
+      {isSubmitting && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-10">
+          <FaSpinner className="animate-spin text-primary text-5xl" />
+        </div>
+      )}
     </div>
   );
 }

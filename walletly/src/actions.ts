@@ -25,7 +25,7 @@ export const submitSignupForm = async (data: SignupFormType) => {
     httpOnly: true,
     secure: true,
     sameSite: "strict",
-    maxAge: 60 * 60 * 24, // 1 day
+    maxAge: 60 * 5, // 5 min
   };
 
   if (tempUserId) {
@@ -34,7 +34,9 @@ export const submitSignupForm = async (data: SignupFormType) => {
     cookieStore.set(
       "otpGenerationTimestamp",
       otpGenerationTimestamp.toString(),
-      cookieOption,
+      {
+        maxAge: 60 * 5, // 5 min
+      },
     );
   }
 
