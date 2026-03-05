@@ -46,18 +46,24 @@ public class SignUpService {
 			throw new UserEmailAlreadyExists(user.getEmail());
 		}
 		
-		TempUser userInTempUsers = tempUsers.get(user.getEmail());
+		TempUser userFromTempUsers = tempUsers.get(user.getEmail());
 		
-		if (userInTempUsers == null) {
+		if (userFromTempUsers == null) {
 			user.setId(UUID.randomUUID().toString());
 			tempUsers.put(user.getEmail(), user);
 			
-			OtpSession otpSession = otpManager.generateAndValidate(user.getEmail(),user.getId());
+			OtpSession otpSession = otpManager.validateAndGenerate(user.getEmail(),user.getId());
 			
-			return new OtpResponse(user.getId(), otpSession.getGenerateTimestamp());
+			return new OtpResponse(otpSession.getSessionId(), otpSession.getGenerateTimestamp());
 		}
 		
-		OtpSession otpSession = otpManager.generateAndValidate(userInTempUsers.getEmail(),userInTempUsers.getId());
+		OtpSession otpSession = otpManager.validateAndGenerate(userFromTempUsers.getEmail(),null);
+		
+		return new OtpResponse(otpSession.getSessionId(), otpSession.getGenerateTimestamp());
+	}
+	
+	public OtpResponse resendOtp(String email) {
+		OtpSession otpSession = otpManager.validateAndGenerate(email, null);
 		
 		return new OtpResponse(otpSession.getSessionId(), otpSession.getGenerateTimestamp());
 	}

@@ -5,7 +5,7 @@ export function getCookie(name: string): string | undefined {
   const cookies = cookie.split(";");
 
   for (const cookie of cookies) {
-    const [key, val] = cookie.split("=");
+    const [key, val] = cookie.trim().split("=");
     if (name === key) return val;
   }
   return;

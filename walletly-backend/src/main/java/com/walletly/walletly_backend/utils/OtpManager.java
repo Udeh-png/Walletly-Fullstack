@@ -59,16 +59,13 @@ public class OtpManager {
 		suspendedEmails.remove(email);
 	}
 	
-	public OtpSession generateAndValidate(String email, String sessionId) {
+	public OtpSession validateAndGenerate(String email, String sessionId) {
 		if (suspendedEmails.containsKey(email)) { // check if the email has been suspended b4 validating
 			SuspendedAccount account = suspendedEmails.get(email);
 			throw new AccountSuspendedException(account.getReason()); // throw an error if it has
 		}
 		
-		boolean hasPendingSessions = otpSessionsMap.containsKey(email) && !otpSessionsMap
-				.get(email)
-				.isEmpty(); // to know if the user has previously tried to sign in by checking if the email exists in the map
-		
+		boolean hasPendingSessions = otpSessionsMap.containsKey(email);
 		
 		if (hasPendingSessions) {
 			List<OtpSession> otpSessions = otpSessionsMap.get(email);
@@ -90,9 +87,9 @@ public class OtpManager {
 			}
 			if (!hasExpired) {
 				return lastSession; // if the otp has not expired DO NOT generate a new otp session just resend the las session to the frontend
-			} else {
-				return generate(lastSession.getSessionId(), email); //if the otp has expired generate a new otp session and send it
 			}
+			
+			return generate(lastSession.getSessionId(), email); //if the otp has expired generate a new otp session and send it
 		}
 		
 		return generate(sessionId, email);

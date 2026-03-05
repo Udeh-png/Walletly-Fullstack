@@ -205,13 +205,14 @@ export default function Signup() {
                 })}
               />
 
-              <button
+              <label
+                htmlFor="password"
+                tabIndex={-1}
                 onClick={() => setShowPassword((prev) => !prev)}
-                type="button"
                 className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
+              </label>
             </div>
 
             {!passwordMeetsCriteria("REQUIRED") && isSubmitted && (
@@ -242,13 +243,14 @@ export default function Signup() {
                 {...register("confirmPassword")}
               />
 
-              <button
+              <label
+                htmlFor="confirm password"
+                tabIndex={-1}
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
-                type="button"
                 className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
               >
                 {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
+              </label>
             </div>
 
             {errors.confirmPassword && (

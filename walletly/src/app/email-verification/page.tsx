@@ -8,6 +8,7 @@ import { FaStopwatch } from "react-icons/fa6";
 import { IoIosMailUnread } from "react-icons/io";
 import { motion } from "framer-motion";
 import { getCookie } from "@/utilities";
+import { resendOtp } from "@/actions";
 
 const fields = [
   "otpInput1",
@@ -20,15 +21,16 @@ const fields = [
 
 export default function EmailVerificationPage() {
   const inputContainerRef = useRef<HTMLDivElement>(null);
-  const expiryDateObj = useMemo(() => {
-    const otpGenerationTime =
-      Number(getCookie("otpGenerationTimestamp")) || new Date().getTime();
-    const generationTimeDate = new Date();
-    generationTimeDate.setTime(otpGenerationTime);
+  const userEmail = decodeURIComponent(getCookie("email") || "");
+  const otpGenerationTime =
+    Number(getCookie("otpGenerationTimestamp")) || new Date().getTime();
 
+  const [otpTimestampState, setOtpTimestamp] = useState(otpGenerationTime);
+
+  const expiryDateObj = useMemo(() => {
     const expiresIn = 5 * 60 * 1000; // 5 mins in ms
-    return new Date(otpGenerationTime + expiresIn);
-  }, []);
+    return new Date(otpTimestampState + expiresIn);
+  }, [otpTimestampState]);
 
   const [pageHasMounted, setPageHasMounted] = useState(false);
   const [mins, setMins] = useState("00");
@@ -55,17 +57,19 @@ export default function EmailVerificationPage() {
       const gap = (expiryDateObj.getTime() - new Date().getTime()) / 1000;
 
       if (gap <= 1) {
+        setMins("00");
+        setSecs("00");
         clearInterval(interval);
         setExpired(true);
       }
 
       setMins(() =>
-        Math.floor(gap / 60)
+        Math.max(Math.floor(gap / 60))
           .toString()
           .padStart(2, "0"),
       );
       setSecs(() =>
-        Math.floor(gap % 60)
+        Math.max(Math.floor(gap % 60))
           .toString()
           .padStart(2, "0"),
       );
@@ -119,11 +123,10 @@ export default function EmailVerificationPage() {
   };
 
   const handleKeyPress = async (e: React.KeyboardEvent) => {
-    const prevElem = (e.target as HTMLElement)
-      .previousElementSibling as HTMLElement;
+    const inputElem = e.target as HTMLInputElement;
+    const prevElem = inputElem.previousElementSibling as HTMLElement;
+    const nextElem = inputElem.nextElementSibling as HTMLElement;
 
-    const nextElem = (e.target as HTMLElement)
-      .nextElementSibling as HTMLElement;
     if ((e.key === "Backspace" || e.key === "ArrowLeft") && prevElem) {
       await new Promise(() => {
         setTimeout(() => {
@@ -141,6 +144,13 @@ export default function EmailVerificationPage() {
 
   const handleOnSubmit = () => {
     console.log("Submitted");
+  };
+
+  const handleResendOtp = async () => {
+    await resendOtp(userEmail);
+    const otpTimestamp =
+      Number(getCookie("otpGenerationTimestamp")) || new Date().getTime();
+    setOtpTimestamp(otpTimestamp);
   };
 
   return (
@@ -161,7 +171,7 @@ export default function EmailVerificationPage() {
               <p className="text-white/70 md:font-light font-normal">
                 We&apos;ve sent a 6-digit verification code to
               </p>
-              <span className="font-medium">chineduikechukwu@gmail.com</span>
+              <span className="font-medium">{userEmail}</span>
             </div>
           </div>
 
@@ -185,6 +195,11 @@ export default function EmailVerificationPage() {
                     maxLength={1}
                     placeholder="•"
                     className={`otp-input ${errors[field] ? "border-red-500!" : ""}`}
+                    onFocus={(e) => {
+                      const inputElem = e.target as HTMLInputElement;
+                      const end = inputElem.value.length;
+                      inputElem.setSelectionRange(end, end);
+                    }}
                     onKeyDown={handleKeyPress}
                     {...rest}
                     onChange={(e) => {
@@ -216,6 +231,7 @@ export default function EmailVerificationPage() {
             <button
               className="text-primary font-semibold disabled:cursor-not-allowed disabled:line-through disabled:text-gray-600 transition-all"
               disabled={!expired}
+              onClick={handleResendOtp}
             >
               Resend Code
             </button>

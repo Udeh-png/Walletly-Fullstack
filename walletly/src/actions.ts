@@ -2,16 +2,42 @@
 
 import { SignupFormType } from "./types";
 import { cookies } from "next/headers";
-import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { redirect } from "next/navigation";
+
+const route = "http://localhost:8080/auth";
+
+export const setOtpCookies = async (
+  cookieStore: ReturnType<typeof import("next/headers").cookies>,
+  tempUserId: string,
+  otpGenerationTimestamp: number,
+  email?: string,
+) => {
+  const cookie = await cookieStore;
+  cookie.set("tempUserId", tempUserId, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+    maxAge: 60 * 5, // 6 min
+  });
+
+  cookie.set("otpGenerationTimestamp", otpGenerationTimestamp.toString(), {
+    maxAge: 60 * 5, // 5 min
+  });
+
+  if (email) {
+    cookie.set("email", email, {
+      secure: true,
+      sameSite: "strict",
+      maxAge: 60 * 60, // 1hr
+    });
+  }
+};
 
 export const submitSignupForm = async (data: SignupFormType) => {
   console.log("Submitting Form data");
-
-  const cookieStore = await cookies();
-
+  const cookieStore = cookies();
   const { tempUserId, otpGenerationTimestamp } = await fetch(
-    "http://localhost:8080/auth/register",
+    `${route}/register`,
     {
       method: "POST",
       headers: {
@@ -21,24 +47,27 @@ export const submitSignupForm = async (data: SignupFormType) => {
     },
   ).then((res) => res.json());
 
-  const cookieOption: Partial<ResponseCookie> = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
-    maxAge: 60 * 5, // 5 min
-  };
-
   if (tempUserId) {
-    cookieStore.set("tempUserId", tempUserId, cookieOption);
-    cookieStore.set("email", data.email, cookieOption);
-    cookieStore.set(
-      "otpGenerationTimestamp",
-      otpGenerationTimestamp.toString(),
-      {
-        maxAge: 60 * 5, // 5 min
-      },
-    );
+    setOtpCookies(cookieStore, tempUserId, otpGenerationTimestamp, data.email);
   }
 
   redirect("/email-verification");
 };
+
+export const resendOtp = async (email: string) => {
+  const cookieStore = cookies();
+  const { tempUserId, otpGenerationTimestamp } = await fetch(
+    `${route}/resend-otp`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: email,
+    },
+  ).then((res) => res.json());
+
+  setOtpCookies(cookieStore, tempUserId, otpGenerationTimestamp);
+};
+
+export const verifyOtp = async (email: string) => {};
