@@ -207,11 +207,10 @@ export default function Signup() {
 
               <label
                 htmlFor="password"
-                tabIndex={-1}
                 onClick={() => setShowPassword((prev) => !prev)}
                 className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
               >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
+                <button>{showPassword ? <FaEyeSlash /> : <FaEye />}</button>
               </label>
             </div>
 
@@ -245,11 +244,12 @@ export default function Signup() {
 
               <label
                 htmlFor="confirm password"
-                tabIndex={-1}
                 onClick={() => setShowConfirmPassword((prev) => !prev)}
                 className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
               >
-                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                <button>
+                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
               </label>
             </div>
 
@@ -289,3 +289,7 @@ export default function Signup() {
 }
 
 // shadow-[0_10px_30px_color-mix(in_srgb,var(--primary-color)_20%,transparent)]
+
+{
+  /* Adse123. */
+}

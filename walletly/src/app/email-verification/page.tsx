@@ -21,14 +21,14 @@ const fields = [
 
 export default function EmailVerificationPage() {
   const inputContainerRef = useRef<HTMLDivElement>(null);
-  const userEmail = decodeURIComponent(getCookie("email") || "");
+  const [userEmail, setUserEmail] = useState("");
   const otpGenerationTime =
     Number(getCookie("otpGenerationTimestamp")) || new Date().getTime();
 
   const [otpTimestampState, setOtpTimestamp] = useState(otpGenerationTime);
 
   const expiryDateObj = useMemo(() => {
-    const expiresIn = 5 * 60 * 1000; // 5 mins in ms
+    const expiresIn = 5 * 60000; // 5 mins in ms
     return new Date(otpTimestampState + expiresIn);
   }, [otpTimestampState]);
 
@@ -110,6 +110,11 @@ export default function EmailVerificationPage() {
 
   useEffect(() => {}, [isValid]);
 
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUserEmail(decodeURIComponent(getCookie("email") || ""));
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, "");
     const nextElem = e.target.nextElementSibling as HTMLElement;
@@ -151,6 +156,7 @@ export default function EmailVerificationPage() {
     const otpTimestamp =
       Number(getCookie("otpGenerationTimestamp")) || new Date().getTime();
     setOtpTimestamp(otpTimestamp);
+    setExpired(false);
   };
 
   return (
@@ -171,7 +177,7 @@ export default function EmailVerificationPage() {
               <p className="text-white/70 md:font-light font-normal">
                 We&apos;ve sent a 6-digit verification code to
               </p>
-              <span className="font-medium">{userEmail}</span>
+              <span className="font-medium block h-6.5">{userEmail}</span>
             </div>
           </div>
 
@@ -225,18 +231,18 @@ export default function EmailVerificationPage() {
               disabled={!pageHasMounted}
             />
           </div>
-
-          <p className="text-center text-white/70 md:font-light font-normal">
-            Didn&apos;t recieve the code?{" "}
-            <button
-              className="text-primary font-semibold disabled:cursor-not-allowed disabled:line-through disabled:text-gray-600 transition-all"
-              disabled={!expired}
-              onClick={handleResendOtp}
-            >
-              Resend Code
-            </button>
-          </p>
         </form>
+
+        <p className="text-center text-white/70 md:font-light font-normal mt-7">
+          Didn&apos;t recieve the code?{" "}
+          <button
+            className="text-primary font-semibold disabled:cursor-not-allowed disabled:line-through disabled:text-gray-600 transition-all cursor-pointer"
+            disabled={!expired}
+            onClick={handleResendOtp}
+          >
+            Resend Code
+          </button>
+        </p>
       </div>
     </div>
   );

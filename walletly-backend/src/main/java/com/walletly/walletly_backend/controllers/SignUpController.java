@@ -20,16 +20,17 @@ public class SignUpController {
 		return ResponseEntity.ok(otpResponse);
 	}
 	
-	@PostMapping("/resend-otp")
-	public ResponseEntity<@NonNull OtpResponse> resendOtp (@RequestBody String email) {
-		return ResponseEntity.ok(signUpService.resendOtp(email));
+	@GetMapping("/resend-otp/{email}")
+	public ResponseEntity<@NonNull OtpResponse> resendOtp (@PathVariable String email) {
+		OtpResponse response = signUpService.resendOtp(email);
+		return ResponseEntity.ok(response);
 	}
 	
-	@GetMapping("/validate")
-	public ResponseEntity<@NonNull String> validate (@RequestBody String tempUserId) {
+	@GetMapping("/authorize-otp-page-access/{tempUserId}")
+	public ResponseEntity<@NonNull String> authorizeOtpPageAccess (@PathVariable String tempUserId) {
 		Boolean exists = signUpService.authorizeOtpPageAccess(tempUserId);
 		
-		if (exists) return ResponseEntity.ok().build();
+		if (exists) return ResponseEntity.status(HttpStatus.OK).build();
 		
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 	}

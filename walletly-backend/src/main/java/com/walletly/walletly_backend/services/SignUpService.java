@@ -16,34 +16,37 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SignUpService {
 	private final ConcurrentHashMap<String, TempUser> tempUsers = new ConcurrentHashMap<>();
 	
+	final Long SUSPENSION_TIME = 10 * 60000L;
+	
 	@Autowired
 	private UserRepo repo;
 	
 	@Autowired
 	private OtpManager otpManager;
 	
+	@Autowired
+	private ConcurrentHashMap<String, SuspendedAccount> suspendedAccountMap;
+	
 	@Scheduled(fixedRate = 15000)
 	public void clearStaleUsers () {
 		tempUsers.entrySet().removeIf(
-				(e) ->
-						System.currentTimeMillis() - e.getValue().getTimestamp() >= 60000 // 1 min
+				(tempUser) ->
+						System.currentTimeMillis() - tempUser.getValue().getTimestamp() >= 60000 * 25 // 1 min
 		);
 	}
 	
 	public OtpResponse sendSignUpOtp (TempUser user) {
-		SuspendedAccount suspended = otpManager.getSuspendedAccount(user.getEmail());
-		if (suspended != null) {
-			if (suspended.suspensionExpired()) {
-				otpManager.removeSuspension(user.getEmail());
-				System.out.println("Removed from suspended");
-			} else {
-				System.out.println("Email already suspended for too many requests");
-				throw new AccountSuspendedException(suspended.getReason());
-			}
-		}
-		
 		if (!repo.findAll().isEmpty() && repo.existsByEmail(user.getEmail())) {
 			throw new UserEmailAlreadyExists(user.getEmail());
+		}
+		
+		SuspendedAccount suspended = suspendedAccountMap.get(user.getEmail());
+		if (suspended != null) {
+			if (suspended.suspensionExpired()) {
+				suspendedAccountMap.remove(user.getEmail());
+			} else {
+				throw new AccountSuspendedException(suspended.getReason());
+			}
 		}
 		
 		TempUser userFromTempUsers = tempUsers.get(user.getEmail());
@@ -54,28 +57,45 @@ public class SignUpService {
 			
 			OtpSession otpSession = otpManager.validateAndGenerate(user.getEmail(),user.getId());
 			
-			return new OtpResponse(otpSession.getSessionId(), otpSession.getGenerateTimestamp());
+			return new OtpResponse(user.getId(), otpSession.getGenerateTimestamp());
 		}
 		
-		OtpSession otpSession = otpManager.validateAndGenerate(userFromTempUsers.getEmail(),null);
-		
-		return new OtpResponse(otpSession.getSessionId(), otpSession.getGenerateTimestamp());
+		try{
+			OtpSession otpSession = otpManager.validateAndGenerate(userFromTempUsers.getEmail(), userFromTempUsers.getId());
+			return new OtpResponse(otpSession.getSessionId(), otpSession.getGenerateTimestamp());
+			
+		} catch (TooManyOtpRequestsException e) {
+			SuspendedAccount suspendedAccount = new SuspendedAccount(
+					userFromTempUsers.getEmail(),
+					System.currentTimeMillis(),
+					SUSPENSION_TIME,
+					"Too many OTP requests"
+			);
+			suspendedAccountMap.put(userFromTempUsers.getEmail(), suspendedAccount); // add the user to the suspended email map
+			otpManager.removeEmailFromMap(userFromTempUsers.getEmail());
+			tempUsers.remove(userFromTempUsers.getEmail());
+			
+			throw new AccountSuspendedException(suspendedAccount.getReason());
+		}
 	}
 	
 	public OtpResponse resendOtp(String email) {
-		OtpSession otpSession = otpManager.validateAndGenerate(email, null);
+		String userId = tempUsers.get(email).getId();
+		OtpSession otpSession = otpManager.validateAndGenerate(email, userId);
 		
-		return new OtpResponse(otpSession.getSessionId(), otpSession.getGenerateTimestamp());
+		return new OtpResponse(userId, otpSession.getGenerateTimestamp());
 	}
 	
 	public Boolean authorizeOtpPageAccess (String userId) {
+		System.out.println("Authorize Otp Page Access");
 		boolean exists = tempUsers
 				.values()
 				.stream()
 				.anyMatch(
 						(user) -> user.getId().equals(userId)
 				);
-		
+		System.out.println(userId);
+		System.out.println("User with id exists?: " + exists);
 		if (!exists) throw new NotAuthorized();
 		
 		return true;

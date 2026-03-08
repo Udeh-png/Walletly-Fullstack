@@ -5,22 +5,19 @@ export const proxy = async (req: NextRequest) => {
   const pathName = req.nextUrl.pathname;
   if (pathName === "/email-verification") {
     const tempUserId = (await cookies()).get("tempUserId")?.value;
+
     if (!tempUserId) {
-      return NextResponse.redirect(new URL("/sign-up", req.url));
+      return NextResponse.redirect(
+        new URL("/sign-up?No-Temp-user-id", req.url),
+      );
     }
-    const tempUserExists = await fetch(
-      "http://localhost:8080/auth/check-temp-user",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ tempUserId }),
-      },
+    
+    const checkForTempUser = await fetch(
+      `http://localhost:8080/auth/authorize-otp-page-access/${tempUserId}`,
     );
 
-    if (!tempUserExists) {
-      return NextResponse.redirect(new URL("/sign-up", req.url));
+    if (!checkForTempUser.ok) {
+      return NextResponse.redirect(new URL("/sign-up?Check-not-ok", req.url));
     }
   }
 

@@ -17,18 +17,18 @@ export const setOtpCookies = async (
     httpOnly: true,
     secure: true,
     sameSite: "strict",
-    maxAge: 60 * 5, // 6 min
+    maxAge: 60 * 10, // 6 min
   });
 
   cookie.set("otpGenerationTimestamp", otpGenerationTimestamp.toString(), {
-    maxAge: 60 * 5, // 5 min
+    maxAge: 60 * 10, // 5 min
   });
 
   if (email) {
     cookie.set("email", email, {
       secure: true,
       sameSite: "strict",
-      maxAge: 60 * 60, // 1hr
+      maxAge: 60 * 30, // 1hr
     });
   }
 };
@@ -57,16 +57,10 @@ export const submitSignupForm = async (data: SignupFormType) => {
 export const resendOtp = async (email: string) => {
   const cookieStore = cookies();
   const { tempUserId, otpGenerationTimestamp } = await fetch(
-    `${route}/resend-otp`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: email,
-    },
+    `${route}/resend-otp/${email}`,
   ).then((res) => res.json());
 
+  console.log(tempUserId, otpGenerationTimestamp);
   setOtpCookies(cookieStore, tempUserId, otpGenerationTimestamp);
 };
 
