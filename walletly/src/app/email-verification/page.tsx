@@ -28,7 +28,7 @@ export default function EmailVerificationPage() {
   const [otpTimestampState, setOtpTimestamp] = useState(otpGenerationTime);
 
   const expiryDateObj = useMemo(() => {
-    const expiresIn = 5 * 60000; // 5 mins in ms
+    const expiresIn = 60000; // 5 mins in ms
     return new Date(otpTimestampState + expiresIn);
   }, [otpTimestampState]);
 
@@ -40,6 +40,7 @@ export default function EmailVerificationPage() {
     register,
     handleSubmit,
     trigger,
+    setError,
     formState: { isValid, errors, isSubmitted },
   } = useForm<OtpInputType>({
     resolver: zodResolver(otpInputSchema),
@@ -152,7 +153,13 @@ export default function EmailVerificationPage() {
   };
 
   const handleResendOtp = async () => {
-    await resendOtp(userEmail);
+    const response = await resendOtp(userEmail);
+
+    if (response?.message) {
+      setError("root", response.message);
+      return;
+    }
+
     const otpTimestamp =
       Number(getCookie("otpGenerationTimestamp")) || new Date().getTime();
     setOtpTimestamp(otpTimestamp);
@@ -243,6 +250,8 @@ export default function EmailVerificationPage() {
             Resend Code
           </button>
         </p>
+
+        {errors.root && <p>{errors.root.message}</p>}
       </div>
     </div>
   );

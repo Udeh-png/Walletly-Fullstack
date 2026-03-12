@@ -21,6 +21,7 @@ export default function Signup() {
     register,
     handleSubmit,
     trigger,
+    setError,
     formState: { errors, isSubmitted, isSubmitting },
   } = useForm<SignupFormType>({
     resolver: zodResolver(signupSchema),
@@ -48,12 +49,12 @@ export default function Signup() {
   };
 
   const onSubmit = async (data: SignupFormType) => {
-    sessionStorage.setItem("pendingEmail", JSON.stringify(data.email));
-    await submitSignupForm(data);
-    console.log(
-      sessionStorage.getItem("pendingEmail"),
-      "pending email in session storage",
-    );
+    const error = await submitSignupForm(data);
+    if (error) {
+      setError("root", {
+        message: error.message,
+      });
+    }
   };
 
   return (
@@ -205,13 +206,16 @@ export default function Signup() {
                 })}
               />
 
-              <label
-                htmlFor="password"
-                onClick={() => setShowPassword((prev) => !prev)}
+              <button
+                onClick={() => {
+                  setShowPassword((prev) => !prev);
+                  document.getElementById("password")?.focus();
+                }}
+                type="button"
                 className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
               >
-                <button>{showPassword ? <FaEyeSlash /> : <FaEye />}</button>
-              </label>
+                {showPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
             </div>
 
             {!passwordMeetsCriteria("REQUIRED") && isSubmitted && (
@@ -229,28 +233,29 @@ export default function Signup() {
           </div>
 
           <div className="input-container">
-            <label htmlFor="confirm password" className="input-label">
+            <label htmlFor="confirm-password" className="input-label">
               Confirm Password
             </label>
             <div className="relative">
               <input
                 autoComplete="new-password"
                 type={showConfirmPassword ? "text" : "password"}
-                id="confirm password"
+                id="confirm-password"
                 className={`form-input ${errors.confirmPassword ? "ring-red-500! ring-2!" : ""}`}
                 placeholder="•••••••••••"
                 {...register("confirmPassword")}
               />
 
-              <label
-                htmlFor="confirm password"
-                onClick={() => setShowConfirmPassword((prev) => !prev)}
+              <button
+                onClick={() => {
+                  setShowConfirmPassword((prev) => !prev);
+                  document.getElementById("confirm-password")?.focus();
+                }}
+                type="button"
                 className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
               >
-                <button>
-                  {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                </button>
-              </label>
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
             </div>
 
             {errors.confirmPassword && (
@@ -277,6 +282,11 @@ export default function Signup() {
             </a>
           </p>
         </form>
+        {errors.root && (
+          <p className="input-error-type border border-red-500">
+            {errors.root.message}
+          </p>
+        )}
       </motion.div>
 
       {isSubmitting && (
@@ -286,10 +296,4 @@ export default function Signup() {
       )}
     </div>
   );
-}
-
-// shadow-[0_10px_30px_color-mix(in_srgb,var(--primary-color)_20%,transparent)]
-
-{
-  /* Adse123. */
 }

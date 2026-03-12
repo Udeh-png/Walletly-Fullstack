@@ -1,5 +1,6 @@
 package com.walletly.walletly_backend.services;
 
+import com.resend.core.exception.ResendException;
 import com.walletly.walletly_backend.exceptions.*;
 import com.walletly.walletly_backend.repos.UserRepo;
 import com.walletly.walletly_backend.utils.*;
@@ -35,7 +36,7 @@ public class SignUpService {
 		);
 	}
 	
-	public OtpResponse sendSignUpOtp (TempUser user) {
+	public OtpResponse sendSignUpOtp (TempUser user) throws ResendException {
 		if (!repo.findAll().isEmpty() && repo.existsByEmail(user.getEmail())) {
 			throw new UserEmailAlreadyExists(user.getEmail());
 		}
@@ -45,7 +46,7 @@ public class SignUpService {
 			if (suspended.suspensionExpired()) {
 				suspendedAccountMap.remove(user.getEmail());
 			} else {
-				throw new AccountSuspendedException(suspended.getReason());
+				throw new AccountSuspendedException(suspended.getMessage(), suspended.getReason());
 			}
 		}
 		
@@ -69,21 +70,26 @@ public class SignUpService {
 					userFromTempUsers.getEmail(),
 					System.currentTimeMillis(),
 					SUSPENSION_TIME,
-					"Too many OTP requests"
+					"You have been suspended for too many otp requests",
+					e
 			);
 			suspendedAccountMap.put(userFromTempUsers.getEmail(), suspendedAccount); // add the user to the suspended email map
 			otpManager.removeEmailFromMap(userFromTempUsers.getEmail());
 			tempUsers.remove(userFromTempUsers.getEmail());
 			
-			throw new AccountSuspendedException(suspendedAccount.getReason());
+			throw new AccountSuspendedException(suspendedAccount.getMessage(), suspendedAccount.getReason());
 		}
 	}
 	
-	public OtpResponse resendOtp(String email) {
+	public OtpResponse resendOtp(String email) throws ResendException {
 		String userId = tempUsers.get(email).getId();
-		OtpSession otpSession = otpManager.validateAndGenerate(email, userId);
 		
-		return new OtpResponse(userId, otpSession.getGenerateTimestamp());
+		try {
+			OtpSession otpSession = otpManager.validateAndGenerate(email, userId);
+			return new OtpResponse(userId, otpSession.getGenerateTimestamp());
+		} catch (TooManyOtpRequestsException tmor) {
+			throw new AccountSuspendedException("", tmor);
+		}
 	}
 	
 	public Boolean authorizeOtpPageAccess (String userId) {
@@ -94,9 +100,7 @@ public class SignUpService {
 				.anyMatch(
 						(user) -> user.getId().equals(userId)
 				);
-		System.out.println(userId);
-		System.out.println("User with id exists?: " + exists);
-		if (!exists) throw new NotAuthorized();
+		if (!exists) throw new NotAuthorizedException("");
 		
 		return true;
 	}

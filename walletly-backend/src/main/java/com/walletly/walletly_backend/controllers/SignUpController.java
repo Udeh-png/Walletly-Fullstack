@@ -1,5 +1,6 @@
 package com.walletly.walletly_backend.controllers;
 
+import com.resend.core.exception.ResendException;
 import com.walletly.walletly_backend.utils.*;
 import com.walletly.walletly_backend.services.*;
 import lombok.NonNull;
@@ -15,13 +16,13 @@ public class SignUpController {
 	SignUpService signUpService;
 	
 	@PostMapping("/register")
-	public ResponseEntity<@NonNull OtpResponse> register (@RequestBody TempUser user) {
+	public ResponseEntity<@NonNull OtpResponse> register (@RequestBody TempUser user) throws ResendException {
 		OtpResponse otpResponse = signUpService.sendSignUpOtp(user);
 		return ResponseEntity.ok(otpResponse);
 	}
 	
 	@GetMapping("/resend-otp/{email}")
-	public ResponseEntity<@NonNull OtpResponse> resendOtp (@PathVariable String email) {
+	public ResponseEntity<@NonNull OtpResponse> resendOtp (@PathVariable String email) throws ResendException {
 		OtpResponse response = signUpService.resendOtp(email);
 		return ResponseEntity.ok(response);
 	}

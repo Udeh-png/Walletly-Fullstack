@@ -10,7 +10,8 @@ public class SuspendedAccount {
 	@NonNull private String email;
 	@NonNull private Long suspensionTimestamp;
 	@NonNull private Long suspensionDuration;
-	@NonNull private String reason;
+	@NonNull private String message;
+	@NonNull private Throwable reason;
 	private Long suspendedUntil;
 	
 	public Boolean suspensionExpired () {

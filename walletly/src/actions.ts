@@ -36,19 +36,27 @@ export const setOtpCookies = async (
 export const submitSignupForm = async (data: SignupFormType) => {
   console.log("Submitting Form data");
   const cookieStore = cookies();
-  const { tempUserId, otpGenerationTimestamp } = await fetch(
-    `${route}/register`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
+  const fetchData = await fetch(`${route}/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
-  ).then((res) => res.json());
+    body: JSON.stringify(data),
+  });
 
-  if (tempUserId) {
-    setOtpCookies(cookieStore, tempUserId, otpGenerationTimestamp, data.email);
+  const resData = await fetchData.json();
+
+  if (!fetchData.ok) {
+    return resData;
+  }
+
+  if (resData.tempUserId && resData.otpGenerationTimestamp) {
+    setOtpCookies(
+      cookieStore,
+      resData.tempUserId,
+      resData.otpGenerationTimestamp,
+      data.email,
+    );
   }
 
   redirect("/email-verification");
@@ -56,12 +64,21 @@ export const submitSignupForm = async (data: SignupFormType) => {
 
 export const resendOtp = async (email: string) => {
   const cookieStore = cookies();
-  const { tempUserId, otpGenerationTimestamp } = await fetch(
-    `${route}/resend-otp/${email}`,
-  ).then((res) => res.json());
+  const response = await fetch(`${route}/resend-otp/${email}`);
+  const resData = await response.json();
 
-  console.log(tempUserId, otpGenerationTimestamp);
-  setOtpCookies(cookieStore, tempUserId, otpGenerationTimestamp);
+  if (resData.type === "SUSPENDED") {
+    redirect("/sign-up?error=suspended");
+  }
+
+  if (!response.ok) return resData;
+
+  if (resData.tempUserId && resData.otpGenerationTimestamp)
+    setOtpCookies(
+      cookieStore,
+      resData.tempUserId,
+      resData.otpGenerationTimestamp,
+    );
 };
 
 export const verifyOtp = async (email: string) => {};
