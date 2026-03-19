@@ -1,10 +1,10 @@
-package com.walletly.walletly_backend.utils;
+package com.walletly.walletly_backend.dtos;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
+@AllArgsConstructor
 public class ErrorResponse {
 	private String message;
 	private String type;

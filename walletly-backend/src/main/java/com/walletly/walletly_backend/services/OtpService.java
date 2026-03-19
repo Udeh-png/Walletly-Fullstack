@@ -1,9 +1,10 @@
-package com.walletly.walletly_backend.utils;
+package com.walletly.walletly_backend.services;
 
 import com.resend.Resend;
 import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.*;
-import com.walletly.walletly_backend.exceptions.TooManyOtpRequestsException;
+import com.walletly.walletly_backend.exceptions.*;
+import com.walletly.walletly_backend.utils.OtpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,14 +14,12 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-public class OtpManager {
+public class OtpService {
 	private final ConcurrentHashMap<String, List<OtpSession>> otpSessionsMap = new ConcurrentHashMap<>();
 	SecureRandom secureRandom = new SecureRandom();
 	
 	@Autowired
 	private Resend resend;
-	
-	final int OTP_EXPIRATION_TIME = 60000;
 	
 	public void removeEmailFromMap (String email) {
 		otpSessionsMap.remove(email);
@@ -28,7 +27,6 @@ public class OtpManager {
 	
 	public OtpSession generate (String tempUserId, String email) throws ResendException {
 		int otpInt = secureRandom.nextInt(900000) + 100000; //generate the otp
-		OtpSession otpSession;
 		String message =
 				"<p>Your OTP is: <strong style='font-size: 15px; color: #2563eb;'>"
 						+ otpInt +
@@ -41,7 +39,7 @@ public class OtpManager {
 										.html(message)
 												.build(); // build the message to send with resend api
 		resend.emails().send(emailOptions);
-		otpSession = new OtpSession(tempUserId, String.valueOf(otpInt), System.currentTimeMillis()); // create a new otp session object
+		OtpSession otpSession = new OtpSession(tempUserId, String.valueOf(otpInt), System.currentTimeMillis()); // create a new otp session object
 		
 		otpSessionsMap.computeIfAbsent(email, (k) -> new ArrayList<>()).add(otpSession);
 		
@@ -55,13 +53,12 @@ public class OtpManager {
 			List<OtpSession> otpSessions = otpSessionsMap.get(email);
 			
 			OtpSession lastSession = otpSessions.getLast();
-		  boolean hasExpired = System.currentTimeMillis() - lastSession.getGenerateTimestamp() >= OTP_EXPIRATION_TIME;
 			
-			if (otpSessions.size() >= 3 && hasExpired) { // check if user has made up to 3 otp requests and the last request has expires
+			if (otpSessions.size() >= 3 && lastSession.hasExpired()) { // check if user has made up to 3 otp requests and the last request has expires
 				throw new TooManyOtpRequestsException(); // throw an error for too many requests
 			}
 			
-			if (!hasExpired) {
+			if (!lastSession.hasExpired()) {
 				return lastSession; // if the otp has not expired DO NOT generate a new otp session just resend the las session to the frontend
 			}
 		}
@@ -70,10 +67,21 @@ public class OtpManager {
 	}
 	
 	public void verifyOtp (String email, String otp) {
-		OtpSession otpSession = otpSessionsMap.get(email).getLast();
-		if (!otp.equals(otpSession.getOtp())) {
-			throw new RuntimeException();
+		List<OtpSession> sessions = otpSessionsMap.get(email);
+		
+		if (sessions == null || sessions.isEmpty()) throw new UserSessionNotFoundException();
+		
+		OtpSession currentSession = sessions.getLast();
+		
+		if (currentSession.hasExceededAttemptLimit()) {
+			throw new TooManyOtpAttemptsException();
 		}
 		
+		if (currentSession.hasExpired()) throw new OtpHasExpiredException();
+		
+		if (!currentSession.getOtp().equals(otp)) {
+			currentSession.incrementAttempts();
+			throw new OtpMissMatchException();
+		}
 	}
 }

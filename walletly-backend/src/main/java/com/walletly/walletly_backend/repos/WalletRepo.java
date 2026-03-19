@@ -1,14 +1,11 @@
 package com.walletly.walletly_backend.repos;
 
-import com.walletly.walletly_backend.modals.User;
+import com.walletly.walletly_backend.modals.Wallet;
 import lombok.NonNull;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-
-public interface UserRepo extends MongoRepository<@NonNull User, @NonNull ObjectId> {
-
-	Boolean existsByEmail(String email);
+public interface WalletRepo extends MongoRepository<@NonNull  Wallet, @NonNull ObjectId> {
 }

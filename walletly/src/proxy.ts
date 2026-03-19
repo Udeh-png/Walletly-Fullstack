@@ -11,7 +11,7 @@ export const proxy = async (req: NextRequest) => {
         new URL("/sign-up?No-Temp-user-id", req.url),
       );
     }
-    
+
     const checkForTempUser = await fetch(
       `http://localhost:8080/auth/authorize-otp-page-access/${tempUserId}`,
     );

@@ -141,13 +141,13 @@ export default function Signup() {
                 autoComplete=""
                 type="text"
                 id="first name"
-                className={`form-input ${errors.firstName ? "ring-red-500! ring-2!" : ""}`}
+                className={`form-input ${errors.firstname ? "ring-red-500! ring-2!" : ""}`}
                 placeholder="John"
-                {...register("firstName")}
+                {...register("firstname")}
               />
 
-              {errors.firstName && (
-                <p className="input-error-text">{errors.firstName.message}</p>
+              {errors.firstname && (
+                <p className="input-error-text">{errors.firstname.message}</p>
               )}
             </div>
 
@@ -159,13 +159,13 @@ export default function Signup() {
                 autoComplete=""
                 type="text"
                 id="last name"
-                className={`form-input ${errors.lastName ? "ring-red-500! ring-2!" : ""}`}
+                className={`form-input ${errors.lastname ? "ring-red-500! ring-2!" : ""}`}
                 placeholder="Doe"
-                {...register("lastName")}
+                {...register("lastname")}
               />
 
-              {errors.lastName && (
-                <p className="input-error-text">{errors.lastName.message}</p>
+              {errors.lastname && (
+                <p className="input-error-text">{errors.lastname.message}</p>
               )}
             </div>
           </div>

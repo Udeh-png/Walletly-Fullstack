@@ -1,24 +1,23 @@
 package com.walletly.walletly_backend.exceptions;
 
 import com.resend.core.exception.ResendException;
-import com.walletly.walletly_backend.utils.ErrorResponse;
+import com.walletly.walletly_backend.dtos.ErrorResponse;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 	
 	@ExceptionHandler(UserEmailAlreadyExists.class)
 	public ResponseEntity<@NonNull ErrorResponse> handleEmailExist (UserEmailAlreadyExists eae) {
-		ErrorResponse er = new ErrorResponse();
+		ErrorResponse er = new ErrorResponse(eae.getMessage(),"EMAIL_EXISTS");
 		er.setMessage(eae.getMessage());
 		er.setType("EMAIL_EXISTS");
 		return ResponseEntity
@@ -28,17 +27,15 @@ public class GlobalExceptionHandler {
 	
 	@ExceptionHandler(NotAuthorizedException.class)
 	public ResponseEntity<@NonNull ErrorResponse> handleUnauthorized (NotAuthorizedException nae) {
-		ErrorResponse er = new ErrorResponse();
-		er.setMessage(nae.getMessage());
-		er.setType("SUSPENDED");
+		ErrorResponse er = new ErrorResponse(nae.getMessage(), "AUTHORIZED");
 		return ResponseEntity
 				.status(HttpStatus.UNAUTHORIZED)
 				.body(er);
 	}
 	
 	@ExceptionHandler(AccountSuspendedException.class)
-	public ResponseEntity<@NonNull ErrorResponse> handleUnauthorized (AccountSuspendedException ase) {
-		ErrorResponse er = new ErrorResponse();
+	public ResponseEntity<@NonNull ErrorResponse> suspendedHandler (AccountSuspendedException ase) {
+		ErrorResponse er = new ErrorResponse(ase.getMessage(), "SUSPENDED");
 		er.setMessage(ase.getMessage());
 		er.setType("SUSPENDED");
 		return ResponseEntity
@@ -48,9 +45,7 @@ public class GlobalExceptionHandler {
 	
 	@ExceptionHandler(SocketTimeoutException.class)
 	public ResponseEntity<@NonNull ErrorResponse> handleSocketTimeout (ResendException e) {
-		ErrorResponse er = new ErrorResponse();
-		er.setMessage("Network unreachable. Check your internet connection Nigger");
-		er.setType("TIMEOUT");
+		ErrorResponse er = new ErrorResponse("Network unreachable. Check your internet connection Nigger", "TIMEOUT");
 		return ResponseEntity
 				.status(HttpStatus.GATEWAY_TIMEOUT)
 				.body(er);
@@ -58,9 +53,7 @@ public class GlobalExceptionHandler {
 	
 	@ExceptionHandler(UnknownHostException.class)
 	public ResponseEntity<@NonNull ErrorResponse> unknownHostHandler (UnknownHostException uhe) {
-		ErrorResponse er = new ErrorResponse();
-		er.setMessage("The connection is taking too long. Please check your internet and try again.");
-		er.setType("UNKNOWN");
+		ErrorResponse er = new ErrorResponse("The connection is taking too long. Please check your internet and try again.", "UNKNOWN");
 		return ResponseEntity
 				.status(HttpStatus.SERVICE_UNAVAILABLE)
 				.body(er);
@@ -68,10 +61,43 @@ public class GlobalExceptionHandler {
 	
 	@ExceptionHandler(ResendException.class)
 	public ResponseEntity<@NonNull ErrorResponse> resendExceptionHandler (ResendException re) {
-		ErrorResponse er = new ErrorResponse();
-		er.setMessage(re.getMessage());
+		ErrorResponse er = new ErrorResponse(re.getMessage(), null);
 		return ResponseEntity
 				.internalServerError()
 				.body(er);
+	}
+	
+	@ExceptionHandler(OtpMissMatchException.class)
+	public ResponseEntity<@NonNull ErrorResponse> wrongOtpHandler (OtpMissMatchException ome) {
+		ErrorResponse er = new ErrorResponse(ome.getMessage(), "OTP_MISMATCH");
+		return ResponseEntity.badRequest().body(er);
+	}
+	
+	@ExceptionHandler(OtpHasExpiredException.class)
+	public ResponseEntity<@NonNull ErrorResponse> otpHasExpired (OtpHasExpiredException ohe) {
+		ErrorResponse er = new ErrorResponse(ohe.getMessage(), "EXPIRED_OTP");
+		
+		return ResponseEntity.status(HttpStatus.GONE).body(er);
+	}
+	
+	@ExceptionHandler(TooManyOtpAttemptsException.class)
+	public ResponseEntity<@NonNull ErrorResponse> tooManyAttempts (TooManyOtpAttemptsException tma) {
+		ErrorResponse er = new ErrorResponse(tma.getMessage(), "MANY_ATTEMPTS");
+		
+		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(er);
+	}
+	
+	@ExceptionHandler(UserSessionNotFoundException.class)
+	public ResponseEntity<@NonNull ErrorResponse> userSessionNotFound (UserSessionNotFoundException usnf) {
+		ErrorResponse er = new ErrorResponse(usnf.getMessage(), "SESSION_NOT_FOUND");
+		
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(er);
+	}
+	
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<@NonNull ErrorResponse> invalidHandlerArg (MethodArgumentNotValidException manv) {
+		ErrorResponse er = new ErrorResponse("Bad Request Nigga!!!", "BAD_REQUEST");
+		
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(er);
 	}
 }

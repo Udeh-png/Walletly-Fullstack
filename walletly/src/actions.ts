@@ -43,7 +43,7 @@ export const submitSignupForm = async (data: SignupFormType) => {
     },
     body: JSON.stringify(data),
   });
-
+  console.log(fetchData);
   const resData = await fetchData.json();
 
   if (!fetchData.ok) {
@@ -81,4 +81,26 @@ export const resendOtp = async (email: string) => {
     );
 };
 
-export const verifyOtp = async (email: string) => {};
+export const verifyOtp = async (email: string, otp: string) => {
+  const fetchData = await fetch(`${route}/validate-user`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, otp }),
+  });
+
+  const data = await fetchData.json();
+
+  const cookieStore = await cookies();
+  cookieStore.set("accessToken", `${data.type} ${data.accessToken}`);
+  cookieStore.set("refreshToken", `${data.type} ${data.refreshToken}`);
+
+  redirect("/dashboard");
+};
+
+{
+  /* 
+  eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI2OWI5MjJlMTRmNmQwYWFjMWViM2U0ODciLCJpYXQiOjE3NzM3NDA3NzAsImV4cCI6MTc3Mzc0MTY3MH0.gJeGcbaWz56RbXpxMehaOfm0nYEIqL7UEp3eWWX6dS6WHjRYCiucAo6hzQkDd8DKGjrC-ryOPvJ5jrE_38rvLQ
+  */
+}

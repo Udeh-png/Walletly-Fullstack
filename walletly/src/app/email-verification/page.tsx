@@ -1,14 +1,21 @@
+/* eslint-disable react-hooks/refs */
 "use client";
 
 import { otpInputSchema, OtpInputType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useForm } from "react-hook-form";
 import { FaStopwatch } from "react-icons/fa6";
 import { IoIosMailUnread } from "react-icons/io";
 import { motion } from "framer-motion";
 import { getCookie } from "@/utilities";
-import { resendOtp } from "@/actions";
+import { resendOtp, verifyOtp } from "@/actions";
 
 const fields = [
   "otpInput1",
@@ -45,6 +52,52 @@ export default function EmailVerificationPage() {
   } = useForm<OtpInputType>({
     resolver: zodResolver(otpInputSchema),
   });
+
+  const handleKeyPress = async (e: React.KeyboardEvent) => {
+    const inputElem = e.target as HTMLInputElement;
+    const prevElem = inputElem.previousElementSibling as HTMLElement;
+    const nextElem = inputElem.nextElementSibling as HTMLElement;
+
+    if ((e.key === "Backspace" || e.key === "ArrowLeft") && prevElem) {
+      await new Promise(() => {
+        setTimeout(() => {
+          prevElem.focus();
+        }, 10);
+      });
+    } else if (e.key === "ArrowRight" && nextElem) {
+      await new Promise(() => {
+        setTimeout(() => {
+          nextElem.focus();
+        }, 10);
+      });
+    }
+  };
+
+  const handleOnSubmit = useCallback(() => {
+    const inputContainer = inputContainerRef.current;
+    if (inputContainer) {
+      const children = Array.from(inputContainer.children);
+
+      const values = children
+        .map((child) => (child as HTMLInputElement).value)
+        .join("");
+      verifyOtp(userEmail, values);
+    }
+  }, [userEmail]);
+
+  const handleResendOtp = async () => {
+    const response = await resendOtp(userEmail);
+
+    if (response?.message) {
+      setError("root", response.message);
+      return;
+    }
+
+    const otpTimestamp =
+      Number(getCookie("otpGenerationTimestamp")) || new Date().getTime();
+    setOtpTimestamp(otpTimestamp);
+    setExpired(false);
+  };
 
   useEffect(() => {
     const change = () => {
@@ -109,10 +162,11 @@ export default function EmailVerificationPage() {
     };
   }, [inputContainerRef]);
 
-  useEffect(() => {}, [isValid]);
+  useEffect(() => {
+    handleSubmit(handleOnSubmit);
+  }, [isValid, handleSubmit, handleOnSubmit]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setUserEmail(decodeURIComponent(getCookie("email") || ""));
   }, []);
 
@@ -126,44 +180,6 @@ export default function EmailVerificationPage() {
     if (isSubmitted) {
       trigger();
     }
-  };
-
-  const handleKeyPress = async (e: React.KeyboardEvent) => {
-    const inputElem = e.target as HTMLInputElement;
-    const prevElem = inputElem.previousElementSibling as HTMLElement;
-    const nextElem = inputElem.nextElementSibling as HTMLElement;
-
-    if ((e.key === "Backspace" || e.key === "ArrowLeft") && prevElem) {
-      await new Promise(() => {
-        setTimeout(() => {
-          prevElem.focus();
-        }, 10);
-      });
-    } else if (e.key === "ArrowRight" && nextElem) {
-      await new Promise(() => {
-        setTimeout(() => {
-          nextElem.focus();
-        }, 10);
-      });
-    }
-  };
-
-  const handleOnSubmit = () => {
-    console.log("Submitted");
-  };
-
-  const handleResendOtp = async () => {
-    const response = await resendOtp(userEmail);
-
-    if (response?.message) {
-      setError("root", response.message);
-      return;
-    }
-
-    const otpTimestamp =
-      Number(getCookie("otpGenerationTimestamp")) || new Date().getTime();
-    setOtpTimestamp(otpTimestamp);
-    setExpired(false);
   };
 
   return (
