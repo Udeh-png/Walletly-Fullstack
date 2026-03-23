@@ -16,6 +16,7 @@ import { IoIosMailUnread } from "react-icons/io";
 import { motion } from "framer-motion";
 import { getCookie } from "@/utilities";
 import { resendOtp, verifyOtp } from "@/actions";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const fields = [
   "otpInput1",
@@ -28,14 +29,17 @@ const fields = [
 
 export default function EmailVerificationPage() {
   const inputContainerRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const [userEmail, setUserEmail] = useState("");
+  const [pasted, setPasted] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const otpGenerationTime =
     Number(getCookie("otpGenerationTimestamp")) || new Date().getTime();
 
   const [otpTimestampState, setOtpTimestamp] = useState(otpGenerationTime);
 
   const expiryDateObj = useMemo(() => {
-    const expiresIn = 60000; // 5 mins in ms
+    const expiresIn = 60000 * 5; // 5 mins in ms
     return new Date(otpTimestampState + expiresIn);
   }, [otpTimestampState]);
 
@@ -48,10 +52,24 @@ export default function EmailVerificationPage() {
     handleSubmit,
     trigger,
     setError,
-    formState: { isValid, errors, isSubmitted },
+    setValue,
+    setFocus,
+    formState: { errors, isSubmitted, isValid },
   } = useForm<OtpInputType>({
     resolver: zodResolver(otpInputSchema),
   });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, "");
+    const nextElem = e.target.nextElementSibling as HTMLElement;
+    e.target.value = val;
+    if (val && e.target.nextElementSibling) {
+      nextElem.focus();
+    }
+    if (isSubmitted) {
+      trigger();
+    }
+  };
 
   const handleKeyPress = async (e: React.KeyboardEvent) => {
     const inputElem = e.target as HTMLInputElement;
@@ -73,21 +91,27 @@ export default function EmailVerificationPage() {
     }
   };
 
-  const handleOnSubmit = useCallback(() => {
+  const handleOnSubmit = useCallback(async () => {
     const inputContainer = inputContainerRef.current;
+    console.log("called handleOnSubmit");
     if (inputContainer) {
       const children = Array.from(inputContainer.children);
 
       const values = children
         .map((child) => (child as HTMLInputElement).value)
         .join("");
-      verifyOtp(userEmail, values);
+
+      setIsLoading(true);
+      console.log("submitted");
+      // await verifyOtp(userEmail, values);
+      setIsLoading(false);
     }
   }, [userEmail]);
 
   const handleResendOtp = async () => {
+    setIsLoading(true);
     const response = await resendOtp(userEmail);
-
+    setIsLoading(false);
     if (response?.message) {
       setError("root", response.message);
       return;
@@ -104,7 +128,7 @@ export default function EmailVerificationPage() {
       setPageHasMounted(true);
     };
     change();
-  }, []);
+  }, []); // set page mounted
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -132,12 +156,15 @@ export default function EmailVerificationPage() {
     return () => {
       clearInterval(interval);
     };
-  }, [expiryDateObj]);
+  }, [expiryDateObj]); // timer interval
 
   useEffect(() => {
     const container = inputContainerRef.current;
     (container?.firstElementChild as HTMLElement)?.focus();
+  }, []); // focus on first input
 
+  useEffect(() => {
+    const container = inputContainerRef.current;
     const handlePaste = (e: ClipboardEvent) => {
       e.preventDefault();
       const data = e.clipboardData?.getData("text");
@@ -150,9 +177,12 @@ export default function EmailVerificationPage() {
 
       const splitData = data?.split("");
 
-      containerChildren.forEach((child, idx) => {
-        (child as HTMLInputElement).value = splitData[idx];
+      containerChildren.forEach((_, idx) => {
+        setValue(`otpInput${idx + 1}` as keyof OtpInputType, splitData[idx]);
       });
+
+      setPasted(true);
+      setFocus("otpInput6");
     };
 
     container?.addEventListener("paste", handlePaste);
@@ -160,27 +190,18 @@ export default function EmailVerificationPage() {
     return () => {
       container?.removeEventListener("paste", handlePaste);
     };
-  }, [inputContainerRef]);
+  }, [inputContainerRef, setValue, setFocus]); // past event listener
 
   useEffect(() => {
-    handleSubmit(handleOnSubmit);
-  }, [isValid, handleSubmit, handleOnSubmit]);
+    const form = formRef.current;
+    if (pasted || isValid) {
+      form?.requestSubmit();
+    }
+  }, [isValid, pasted, handleOnSubmit, handleSubmit]); // auto-submit
 
   useEffect(() => {
     setUserEmail(decodeURIComponent(getCookie("email") || ""));
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value.replace(/\D/g, "");
-    const nextElem = e.target.nextElementSibling as HTMLElement;
-    e.target.value = val;
-    if (val && e.target.nextElementSibling) {
-      nextElem.focus();
-    }
-    if (isSubmitted) {
-      trigger();
-    }
-  };
+  }, []); // get/set user email
 
   return (
     <div className="flex items-center justify-center">
@@ -188,6 +209,7 @@ export default function EmailVerificationPage() {
         <form
           action="javascript:void(0)"
           className="space-y-7"
+          ref={formRef}
           onSubmit={handleSubmit(handleOnSubmit)}
         >
           <div className="flex flex-col items-center gap-5">
@@ -269,6 +291,8 @@ export default function EmailVerificationPage() {
 
         {errors.root && <p>{errors.root.message}</p>}
       </div>
+
+      {isLoading && <LoadingSpinner />}
     </div>
   );
 }

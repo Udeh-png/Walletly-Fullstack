@@ -10,7 +10,7 @@ import { passwordCriteria } from "@/data";
 import { SignupFormType, signupSchema } from "@/types";
 import { submitSignupForm } from "@/actions";
 import { motion } from "framer-motion";
-import { FaSpinner } from "react-icons/fa6";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -289,11 +289,7 @@ export default function Signup() {
         )}
       </motion.div>
 
-      {isSubmitting && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center z-10">
-          <FaSpinner className="animate-spin text-primary text-5xl" />
-        </div>
-      )}
+      {isSubmitting && <LoadingSpinner />}
     </div>
   );
 }

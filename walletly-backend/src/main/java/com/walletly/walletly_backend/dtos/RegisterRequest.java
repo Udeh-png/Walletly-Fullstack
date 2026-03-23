@@ -28,7 +28,7 @@ public class RegisterRequest {
 	
 	@NotBlank
 	@Size(min=8)
-	@Pattern(regexp = "^(?=.[A-Z])(?=.[a-z])(?=.[0-9])(?=.[^A-Za-z0-9]).+$")
+//	@Pattern(regexp = "^([A-Z])([a-z])([0-9])([^A-Za-z0-9])")
 	private String password;
 	private final Long timestamp = System.currentTimeMillis();
 }

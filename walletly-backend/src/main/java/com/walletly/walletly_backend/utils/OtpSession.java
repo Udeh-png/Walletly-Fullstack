@@ -7,7 +7,7 @@ import lombok.*;
 @RequiredArgsConstructor
 public class OtpSession {
 	
-	final int OTP_EXPIRATION_TIME = 60000;
+	final int OTP_EXPIRATION_TIME = 60000 * 5;
 	
 	@NonNull
 	@Setter
