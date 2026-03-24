@@ -18,8 +18,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(UserEmailAlreadyExists.class)
 	public ResponseEntity<@NonNull ErrorResponse> handleEmailExist (UserEmailAlreadyExists eae) {
 		ErrorResponse er = new ErrorResponse(eae.getMessage(),"EMAIL_EXISTS");
-		er.setMessage(eae.getMessage());
-		er.setType("EMAIL_EXISTS");
+		
 		return ResponseEntity
 				.status(HttpStatus.CONFLICT)
 				.body(er);
@@ -36,8 +35,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(AccountSuspendedException.class)
 	public ResponseEntity<@NonNull ErrorResponse> suspendedHandler (AccountSuspendedException ase) {
 		ErrorResponse er = new ErrorResponse(ase.getMessage(), "SUSPENDED");
-		er.setMessage(ase.getMessage());
-		er.setType("SUSPENDED");
+		
 		return ResponseEntity
 				.status(HttpStatus.UNAUTHORIZED)
 				.body(er);
@@ -53,7 +51,7 @@ public class GlobalExceptionHandler {
 	
 	@ExceptionHandler(UnknownHostException.class)
 	public ResponseEntity<@NonNull ErrorResponse> unknownHostHandler (UnknownHostException uhe) {
-		ErrorResponse er = new ErrorResponse("The connection is taking too long. Please check your internet and try again.", "UNKNOWN");
+		ErrorResponse er = new ErrorResponse("The connection is taking too long. Please check your internet and try again.", "NETWORK");
 		return ResponseEntity
 				.status(HttpStatus.SERVICE_UNAVAILABLE)
 				.body(er);
@@ -62,6 +60,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(ResendException.class)
 	public ResponseEntity<@NonNull ErrorResponse> resendExceptionHandler (ResendException re) {
 		ErrorResponse er = new ErrorResponse(re.getMessage(), null);
+		
 		return ResponseEntity
 				.internalServerError()
 				.body(er);
@@ -70,6 +69,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(OtpMissMatchException.class)
 	public ResponseEntity<@NonNull ErrorResponse> wrongOtpHandler (OtpMissMatchException ome) {
 		ErrorResponse er = new ErrorResponse(ome.getMessage(), "OTP_MISMATCH");
+		
 		return ResponseEntity.badRequest().body(er);
 	}
 	
@@ -99,5 +99,12 @@ public class GlobalExceptionHandler {
 		ErrorResponse er = new ErrorResponse("Bad Request Nigga!!!", "BAD_REQUEST");
 		
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(er);
+	}
+	
+	@ExceptionHandler(OtpSessionStillActiveException.class)
+	public ResponseEntity<@NonNull ErrorResponse> otpStillActive (OtpSessionStillActiveException ossa) {
+		ErrorResponse er = new ErrorResponse(ossa.getMessage(), "SESSION_STILL_ACTIVE");
+		
+		return ResponseEntity.status(HttpStatus.CONFLICT).body(er);
 	}
 }

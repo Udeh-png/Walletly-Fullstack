@@ -11,10 +11,6 @@ public class OtpSession {
 	
 	@NonNull
 	@Setter
-	private String sessionId;
-	
-	@NonNull
-	@Setter
 	private String otp;
 	
 	private int attempts = 0;

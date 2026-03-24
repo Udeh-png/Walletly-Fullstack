@@ -5,6 +5,7 @@ import com.walletly.walletly_backend.dtos.JwtTokenResponse;
 import com.walletly.walletly_backend.dtos.ValidateUserRequest;
 import com.walletly.walletly_backend.dtos.OtpResponse;
 import com.walletly.walletly_backend.dtos.RegisterRequest;
+import com.walletly.walletly_backend.exceptions.UserSessionNotFoundException;
 import com.walletly.walletly_backend.services.*;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -23,28 +24,19 @@ public class AuthController {
 	SignUpService signUpService;
 	
 	@PostMapping("/register")
-	public ResponseEntity<@NonNull OtpResponse> register (@Valid @RequestBody RegisterRequest user) throws ResendException {
-		OtpResponse otpResponse = signUpService.sendSignUpOtp(user);
+	public ResponseEntity<@NonNull OtpResponse> register (@Valid @RequestBody RegisterRequest user) throws ResendException, UserSessionNotFoundException {
+		OtpResponse otpResponse = signUpService.takeInfoVerifyEmail(user);
 		return ResponseEntity.ok(otpResponse);
 	}
 	
 	@GetMapping("/resend-otp/{email}")
-	public ResponseEntity<@NonNull OtpResponse> resendOtp (@PathVariable String email) throws ResendException {
+	public ResponseEntity<@NonNull OtpResponse> resendOtp (@PathVariable String email) throws ResendException, UserSessionNotFoundException {
 		OtpResponse response = signUpService.resendOtp(email);
 		return ResponseEntity.ok(response);
 	}
 	
-	@GetMapping("/authorize-otp-page-access/{tempUserId}")
-	public ResponseEntity<@NonNull String> authorizeOtpPageAccess (@PathVariable String tempUserId) {
-		Boolean exists = signUpService.authorizeOtpPageAccess(tempUserId);
-		
-		if (exists) return ResponseEntity.status(HttpStatus.OK).build();
-		
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-	}
-	
 	@PostMapping("/validate-user")
-	public ResponseEntity<@NonNull JwtTokenResponse> validateUser (@Valid @RequestBody ValidateUserRequest validateOtp, HttpServletResponse response) {
+	public ResponseEntity<@NonNull JwtTokenResponse> validateUser (@Valid @RequestBody ValidateUserRequest validateOtp, HttpServletResponse response) throws UserSessionNotFoundException {
 		JwtTokenResponse tokenDto = signUpService.validateUser(validateOtp.getEmail(), validateOtp.getOtp(), response);
 		
 		return ResponseEntity.ok(tokenDto);

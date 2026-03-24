@@ -8,19 +8,19 @@ const route = "http://localhost:8080/auth";
 
 export const setOtpCookies = async (
   cookieStore: ReturnType<typeof import("next/headers").cookies>,
-  tempUserId: string,
   otpGenerationTimestamp: number,
   email?: string,
 ) => {
   const cookie = await cookieStore;
-  cookie.set("tempUserId", tempUserId, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "strict",
+  const val = Buffer.from("true").toString("base64");
+  cookie.set("IsValidating", val, {
     maxAge: 60 * 10, // 6 min
   });
 
   cookie.set("otpGenerationTimestamp", otpGenerationTimestamp.toString(), {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
     maxAge: 60 * 10, // 5 min
   });
 
@@ -34,7 +34,6 @@ export const setOtpCookies = async (
 };
 
 export const submitSignupForm = async (data: SignupFormType) => {
-  console.log("Submitting Form data");
   const cookieStore = cookies();
   const fetchData = await fetch(`${route}/register`, {
     method: "POST",
@@ -43,20 +42,15 @@ export const submitSignupForm = async (data: SignupFormType) => {
     },
     body: JSON.stringify(data),
   });
-  console.log(fetchData);
+
   const resData = await fetchData.json();
 
   if (!fetchData.ok) {
     return resData;
   }
 
-  if (resData.tempUserId && resData.otpGenerationTimestamp) {
-    setOtpCookies(
-      cookieStore,
-      resData.tempUserId,
-      resData.otpGenerationTimestamp,
-      data.email,
-    );
+  if (resData.otpGenerationTimestamp) {
+    setOtpCookies(cookieStore, resData.otpGenerationTimestamp, data.email);
   }
 
   redirect("/email-verification");
@@ -74,11 +68,7 @@ export const resendOtp = async (email: string) => {
   if (!response.ok) return resData;
 
   if (resData.tempUserId && resData.otpGenerationTimestamp)
-    setOtpCookies(
-      cookieStore,
-      resData.tempUserId,
-      resData.otpGenerationTimestamp,
-    );
+    setOtpCookies(cookieStore, resData.otpGenerationTimestamp);
 };
 
 export const verifyOtp = async (email: string, otp: string) => {
@@ -92,15 +82,17 @@ export const verifyOtp = async (email: string, otp: string) => {
 
   const data = await fetchData.json();
 
+  if (!fetchData.ok) {
+    const cookie = await cookies();
+    cookie.delete("otpGenerationTimestamp");
+    cookie.delete("IsValidating");
+    cookie.delete("email");
+    return data;
+  }
+
   const cookieStore = await cookies();
   cookieStore.set("accessToken", `${data.type} ${data.accessToken}`);
   cookieStore.set("refreshToken", `${data.type} ${data.refreshToken}`);
 
   redirect("/dashboard");
 };
-
-{
-  /* 
-  eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI2OWI5MjJlMTRmNmQwYWFjMWViM2U0ODciLCJpYXQiOjE3NzM3NDA3NzAsImV4cCI6MTc3Mzc0MTY3MH0.gJeGcbaWz56RbXpxMehaOfm0nYEIqL7UEp3eWWX6dS6WHjRYCiucAo6hzQkDd8DKGjrC-ryOPvJ5jrE_38rvLQ
-  */
-}

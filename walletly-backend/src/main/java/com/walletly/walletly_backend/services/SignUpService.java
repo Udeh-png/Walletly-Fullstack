@@ -62,71 +62,101 @@ public class SignUpService {
 		);
 	}
 	
-	public OtpResponse sendSignUpOtp (RegisterRequest user) throws ResendException {
-		if (!userRepo.findAll().isEmpty() && userRepo.existsByEmail(user.getEmail())) {
-			throw new UserEmailAlreadyExists(user.getEmail());
+	public OtpResponse takeInfoVerifyEmail(RegisterRequest user) throws ResendException, UserSessionNotFoundException {
+		String userEmail = user.getEmail();
+		
+		validateRegistrationEligibility(userEmail);
+		
+		if (tempUsers.get(userEmail) == null) {
+			return initiateRegistration(user);
 		}
 		
-		SuspendedAccount suspended = suspendedAccountMap.get(user.getEmail());
+		return resendOtp(userEmail);
+	}
+	
+	public void validateRegistrationEligibility (String email) {
+		if (!userRepo.findAll().isEmpty() && userRepo.existsByEmail(email)) {
+			throw new UserEmailAlreadyExists(email);
+		}
+		
+		SuspendedAccount suspended = suspendedAccountMap.get(email);
 		if (suspended != null) {
 			if (suspended.suspensionExpired()) {
-				suspendedAccountMap.remove(user.getEmail());
+				suspendedAccountMap.remove(email);
 			} else {
 				throw new AccountSuspendedException(suspended.getMessage(), suspended.getReason());
 			}
 		}
-		
-		RegisterRequest userFromTempUsers = tempUsers.get(user.getEmail());
-		
-		if (userFromTempUsers == null) {
-			user.setId(UUID.randomUUID().toString());
-			tempUsers.put(user.getEmail(), user);
-			
-			OtpSession otpSession = otpService.validateAndGenerate(user.getEmail(),user.getId());
-			
-			return new OtpResponse(user.getId(), otpSession.getGenerateTimestamp());
-		}
-		
-		try{
-			OtpSession otpSession = otpService.validateAndGenerate(userFromTempUsers.getEmail(), userFromTempUsers.getId());
-			return new OtpResponse(otpSession.getSessionId(), otpSession.getGenerateTimestamp());
-			
-		} catch (TooManyOtpRequestsException e) {
-			SuspendedAccount suspendedAccount = new SuspendedAccount(
-					userFromTempUsers.getEmail(),
-					System.currentTimeMillis(),
-					SUSPENSION_TIME,
-					"You have been suspended for too many otp requests",
-					e
-			);
-			suspendedAccountMap.put(userFromTempUsers.getEmail(), suspendedAccount); // add the user to the suspended email map
-			otpService.removeEmailFromMap(userFromTempUsers.getEmail());
-			tempUsers.remove(userFromTempUsers.getEmail());
-			
-			throw new AccountSuspendedException(suspendedAccount.getMessage(), suspendedAccount.getReason());
-		}
 	}
 	
-	public OtpResponse resendOtp(String email) throws ResendException {
+	public OtpResponse initiateRegistration (RegisterRequest user) throws UserSessionNotFoundException, ResendException {
+		user.setId(UUID.randomUUID().toString());
+		tempUsers.put(user.getEmail(), user);
+		
+		OtpSession otpSession = otpService.generateOtp();
+		otpService.send(user.getEmail(), otpSession);
+		
+		return new OtpResponse(otpSession.getGenerateTimestamp());
+	}
+	
+	public OtpResponse resendOtp(String email) throws ResendException, UserSessionNotFoundException {
 		RegisterRequest user = tempUsers.get(email);
 		
-		if (user == null) throw new UserSessionNotFoundException();
+		if (user == null || !otpService.hasOtpSession(email)) throw new UserSessionNotFoundException();
 		
-		String userId = user.getId();
-		try {
-			OtpSession otpSession = otpService.validateAndGenerate(email, userId);
-			return new OtpResponse(userId, otpSession.getGenerateTimestamp());
-		} catch (TooManyOtpRequestsException tmor) {
-			throw new AccountSuspendedException("", tmor);
-		}
+		if (otpService.hasReachedLimit(email)) {
+			SuspendedAccount newSuspendedAccount = new SuspendedAccount(
+					email,
+					System.currentTimeMillis(),
+					60000L * 120,
+					"",
+					new TooManyOtpRequestsException(),
+					10L
+			);
+			
+			suspendedAccountMap.put(email, newSuspendedAccount);
+			tempUsers.remove(email);
+			otpService.removeEmailFromMap(email);
+			
+			throw new TooManyOtpRequestsException();
+		};
+		
+		OtpSession currentSession = otpService.getSessions(email).getLast();
+		
+		if (!currentSession.hasExpired()) throw new OtpSessionStillActiveException();
+		
+		OtpSession otpSession = otpService.generateOtp();
+		otpService.send(email, otpSession);
+		return new OtpResponse(otpSession.getGenerateTimestamp());
 	}
 	
-	public JwtTokenResponse validateUser (String email, String otp, HttpServletResponse response) {
+	public JwtTokenResponse validateUser (String email, String otp, HttpServletResponse response)throws UserSessionNotFoundException {
 		RegisterRequest userDto = tempUsers.get(email);
 		
-		if (userDto == null) throw new UserSessionNotFoundException();
+		if (userDto == null || !otpService.hasOtpSession(email)) throw new UserSessionNotFoundException();
 		
-		otpService.verifyOtp(userDto.getEmail(), otp);
+		OtpSession currentSession = otpService.getSessions(email).getLast();
+		
+		if (currentSession.hasExceededAttemptLimit()) {
+			SuspendedAccount newSuspendedAccount = new SuspendedAccount(
+					email,
+					System.currentTimeMillis(),
+					60000L * 120,
+					"",
+					new TooManyOtpRequestsException(),
+					10L
+			);
+			
+			suspendedAccountMap.put(email, newSuspendedAccount);
+			tempUsers.remove(email);
+			otpService.removeEmailFromMap(email);
+			
+			throw new TooManyOtpAttemptsException();
+		}
+		
+		if (currentSession.hasExpired()) throw new OtpHasExpiredException();
+		
+		if (!otpService.otpIsValid(userDto.getEmail(), otp)) throw new OtpMissMatchException();
 		
 		String encodedPassword = passwordEncoder.encode(userDto.getPassword());
 		
@@ -150,6 +180,7 @@ public class SignUpService {
 		);
 		
 		walletRepo.insert(wallet);
+		
 		tempUsers.remove(email);
 		otpService.removeEmailFromMap(email);
 
@@ -157,18 +188,5 @@ public class SignUpService {
 		String refreshToken = jwtService.generateRefreshToken(user.getId().toString());
 		
 		return new JwtTokenResponse(accessToken, refreshToken, "Bearer");
-	}
-	
-	public Boolean authorizeOtpPageAccess (String userId) {
-		System.out.println("Authorize Otp Page Access");
-		boolean exists = tempUsers
-				.values()
-				.stream()
-				.anyMatch(
-						(user) -> user.getId().equals(userId)
-				);
-		if (!exists) throw new NotAuthorizedException("");
-		
-		return true;
 	}
 }

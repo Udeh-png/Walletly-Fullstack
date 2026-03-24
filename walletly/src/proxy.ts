@@ -3,28 +3,27 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const proxy = async (req: NextRequest) => {
   const pathName = req.nextUrl.pathname;
-  // if (pathName === "/email-verification") {
-  //   const tempUserId = (await cookies()).get("tempUserId")?.value;
+  if (pathName === "/email-verification") {
+    const isValidating = (await cookies()).get("IsValidating");
 
-  //   if (!tempUserId) {
-  //     return NextResponse.redirect(
-  //       new URL("/sign-up?No-Temp-user-id", req.url),
-  //     );
-  //   }
+    if (!isValidating) {
+      return NextResponse.redirect(
+        new URL("/sign-up?no-cookie-value", req.url),
+      );
+    }
 
-  //   const checkForTempUser = await fetch(
-  //     `http://localhost:8080/auth/authorize-otp-page-access/${tempUserId}`,
-  //   );
+    const decodedVal = Buffer.from(isValidating.value).toString("utf8");
 
-  //   if (!checkForTempUser.ok) {
-  //     return NextResponse.redirect(new URL("/sign-up?Check-not-ok", req.url));
-  //   }
-  // }
+    if (!Boolean(decodedVal)) {
+      return NextResponse.redirect(
+        new URL("/sign-up?no-cookie-value", req.url),
+      );
+    }
+  }
 
   if (pathName === "/dashboard") {
     const accessToken = (await cookies()).get("accessToken");
     const refreshToken = (await cookies()).get("refreshToken");
-
     if (!accessToken || !refreshToken) {
       return NextResponse.redirect(new URL("/sign-up", req.url));
     }

@@ -25,63 +25,55 @@ public class OtpService {
 		otpSessionsMap.remove(email);
 	}
 	
-	public OtpSession generate (String tempUserId, String email) throws ResendException {
+	public List<OtpSession> getSessions (String email) {
+		return otpSessionsMap.get(email);
+	}
+	
+	public OtpSession generateOtp () {
 		int otpInt = secureRandom.nextInt(900000) + 100000; //generate the otp
+		
+		OtpSession otpSession = new OtpSession(); // create a new otp session object
+		otpSession.setOtp(String.valueOf(otpInt));
+		return otpSession;
+	}
+	
+	public void send (String email, OtpSession otpSession)throws ResendException {
 		String message =
 				"<p>Your OTP is: <strong style='font-size: 15px; color: #2563eb;'>"
-						+ otpInt +
+						+ otpSession.getOtp() +
 						"</strong> Do not share this code with anyone</p>"; // html message
 		
 		CreateEmailOptions emailOptions = CreateEmailOptions.builder()
 				.from("onboarding@resend.dev")
-						.to(email)
-								.subject("Email Verification")
-										.html(message)
-												.build(); // build the message to send with resend api
+				.to(email)
+				.subject("Email Verification")
+				.html(message)
+				.build(); // build the message to send with resend api
 		resend.emails().send(emailOptions);
-		OtpSession otpSession = new OtpSession(tempUserId, String.valueOf(otpInt), System.currentTimeMillis()); // create a new otp session object
-		
+		otpSession.setGenerateTimestamp(System.currentTimeMillis());
 		otpSessionsMap.computeIfAbsent(email, (k) -> new ArrayList<>()).add(otpSession);
-		
-		return otpSession;
 	}
 	
-	public OtpSession validateAndGenerate(String email, String tempUserId)throws ResendException,TooManyOtpRequestsException {
-		boolean hasPendingSessions = otpSessionsMap.containsKey(email);
-		
-		if (hasPendingSessions) {
-			List<OtpSession> otpSessions = otpSessionsMap.get(email);
-			
-			OtpSession lastSession = otpSessions.getLast();
-			
-			if (otpSessions.size() >= 3 && lastSession.hasExpired()) { // check if user has made up to 3 otp requests and the last request has expires
-				throw new TooManyOtpRequestsException(); // throw an error for too many requests
-			}
-			
-			if (!lastSession.hasExpired()) {
-				return lastSession; // if the otp has not expired DO NOT generate a new otp session just resend the las session to the frontend
-			}
-		}
-		
-		return generate(tempUserId, email);
+	public boolean hasOtpSession (String email) {
+		return otpSessionsMap.containsKey(email);
 	}
 	
-	public void verifyOtp (String email, String otp) {
+	public boolean hasReachedLimit (String email) throws UserSessionNotFoundException {
+		List<OtpSession> sessions = otpSessionsMap.get(email);
+		
+		if (sessions == null || sessions.isEmpty()) throw new UserSessionNotFoundException();
+		
+		OtpSession lastSession = sessions.getLast();
+		return sessions.size() >= 3 && lastSession.hasExpired();
+	}
+	
+	public boolean otpIsValid (String email, String otp) throws UserSessionNotFoundException {
 		List<OtpSession> sessions = otpSessionsMap.get(email);
 		
 		if (sessions == null || sessions.isEmpty()) throw new UserSessionNotFoundException();
 		
 		OtpSession currentSession = sessions.getLast();
 		
-		if (currentSession.hasExceededAttemptLimit()) {
-			throw new TooManyOtpAttemptsException();
-		}
-		
-		if (currentSession.hasExpired()) throw new OtpHasExpiredException();
-		
-		if (!currentSession.getOtp().equals(otp)) {
-			currentSession.incrementAttempts();
-			throw new OtpMissMatchException();
-		}
+		return currentSession.getOtp().equals(otp);
 	}
 }

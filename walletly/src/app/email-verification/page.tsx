@@ -102,8 +102,7 @@ export default function EmailVerificationPage() {
         .join("");
 
       setIsLoading(true);
-      console.log("submitted");
-      // await verifyOtp(userEmail, values);
+      await verifyOtp(userEmail, values);
       setIsLoading(false);
     }
   }, [userEmail]);
