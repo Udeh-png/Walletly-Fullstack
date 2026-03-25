@@ -1,8 +1,7 @@
-package com.walletly.walletly_backend.dtos;
+package com.walletly.walletly_backend.dtos.requests;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,8 +11,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterRequest {
-	private String id;
-	
 	@NotBlank
 	@Size(min=3, max = 20)
 	private String firstname;

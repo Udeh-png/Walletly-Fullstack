@@ -1,12 +1,12 @@
 package com.walletly.walletly_backend.services;
 
 import com.resend.core.exception.ResendException;
-import com.walletly.walletly_backend.dtos.JwtTokenResponse;
+import com.walletly.walletly_backend.dtos.response.JwtTokenResponse;
 import com.walletly.walletly_backend.modals.User;
 import com.walletly.walletly_backend.modals.Wallet;
 import com.walletly.walletly_backend.repos.WalletRepo;
-import com.walletly.walletly_backend.dtos.OtpResponse;
-import com.walletly.walletly_backend.dtos.RegisterRequest;
+import com.walletly.walletly_backend.dtos.response.OtpResponse;
+import com.walletly.walletly_backend.dtos.requests.RegisterRequest;
 import com.walletly.walletly_backend.exceptions.*;
 import com.walletly.walletly_backend.repos.UserRepo;
 import com.walletly.walletly_backend.utils.*;
@@ -90,7 +90,6 @@ public class SignUpService {
 	}
 	
 	public OtpResponse initiateRegistration (RegisterRequest user) throws UserSessionNotFoundException, ResendException {
-		user.setId(UUID.randomUUID().toString());
 		tempUsers.put(user.getEmail(), user);
 		
 		OtpSession otpSession = otpService.generateOtp();
@@ -130,7 +129,7 @@ public class SignUpService {
 		return new OtpResponse(otpSession.getGenerateTimestamp());
 	}
 	
-	public JwtTokenResponse validateUser (String email, String otp, HttpServletResponse response)throws UserSessionNotFoundException {
+	public JwtTokenResponse validateUser (String email, String otp)throws UserSessionNotFoundException {
 		RegisterRequest userDto = tempUsers.get(email);
 		
 		if (userDto == null || !otpService.hasOtpSession(email)) throw new UserSessionNotFoundException();

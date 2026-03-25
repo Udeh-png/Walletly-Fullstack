@@ -51,7 +51,7 @@ body {
 
 .form-wrapper::after {
   background: var(--primary-color);
-  animation-delay: 3400ms !important;
+  animation-delay: 0.5s !important;
   height: 4px;
 }
 

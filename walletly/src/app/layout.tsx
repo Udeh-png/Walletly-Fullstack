@@ -20,14 +20,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} md:px-20 md:py-7 py-5 px-3 antialiased overflow-x-hidden`}
-      >
-        <div className="fixed size-120 blur-3xl rounded-full md:-bottom-50 -top-50 -left-30 bg-primary -z-10 opacity-10" />
-
+      <body className={`${inter.variable} antialiased overflow-x-hidden`}>
         {children}
-
-        <div className="fixed size-120 blur-3xl rounded-full md:-bottom-50 -bottom-100 -right-10 bg-primary -z-10 opacity-10" />
       </body>
     </html>
   );

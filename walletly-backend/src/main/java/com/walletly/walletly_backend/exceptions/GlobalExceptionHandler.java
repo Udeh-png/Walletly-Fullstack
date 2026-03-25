@@ -1,7 +1,7 @@
 package com.walletly.walletly_backend.exceptions;
 
 import com.resend.core.exception.ResendException;
-import com.walletly.walletly_backend.dtos.ErrorResponse;
+import com.walletly.walletly_backend.dtos.response.ErrorResponse;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

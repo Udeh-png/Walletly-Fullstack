@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { FaEye, FaEyeSlash } from "react-icons/fa";
@@ -9,8 +8,9 @@ import { PasswordListItem } from "@/components/PasswordStrengthListItem";
 import { passwordCriteria } from "@/data";
 import { SignupFormType, signupSchema } from "@/types";
 import { submitSignupForm } from "@/actions";
-import { motion } from "framer-motion";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import Link from "next/link";
+import { FormWrapper } from "../../components/FormWrapper";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -58,71 +58,8 @@ export default function Signup() {
   };
 
   return (
-    <div className="grid lg:grid-cols-2 mx-auto gap-x-10">
-      <div className="lg:flex hidden items-start flex-col gap-6">
-        <motion.div
-          initial={{ translateY: 100, opacity: 0 }}
-          animate={{ translateY: 0, opacity: 1 }}
-          transition={{ type: "tween" }}
-        >
-          <img src="/images/logo.png" alt="" className="md:max-w-80 max-w-40" />
-        </motion.div>
-        <div className="">
-          <motion.p
-            className="text-5xl font-bold"
-            initial={{ translateY: 100, opacity: 0 }}
-            animate={{ translateY: 0, opacity: 1 }}
-            transition={{ type: "tween", delay: 0.2 }}
-          >
-            Take <span className="text-primary">Control</span> Of Your Finance
-          </motion.p>
-          <motion.p
-            className="text-xl text-gray-500 mt-4"
-            initial={{ translateY: 100, opacity: 0 }}
-            animate={{ translateY: 0, opacity: 1 }}
-            transition={{ type: "tween", delay: 0.4 }}
-          >
-            The modern way to tract, manage, and grow your wealth with
-            confidence. Join thousands today.
-          </motion.p>
-        </div>
-
-        <div className="flex items-center gap-5">
-          <motion.div
-            className="flex"
-            initial={{ translateX: -100, opacity: 0 }}
-            animate={{ translateX: 0, opacity: 1 }}
-            transition={{ type: "tween", delay: 0.5 }}
-          >
-            <div className="size-10 border-3 border-border rounded-full -mr-3 bg-red-500" />
-            <div className="size-10 border-3 border-border rounded-full -mr-3 bg-green-500" />
-            <div className="size-10 border-3 border-border rounded-full -mr-3 bg-blue-500" />
-          </motion.div>
-
-          <motion.p
-            className="text-sm font-semibold text-gray-500"
-            initial={{ translateX: 100, opacity: 0 }}
-            animate={{ translateX: 0, opacity: 1 }}
-            transition={{ type: "tween", delay: 0.5 }}
-          >
-            Trusted by 10k+ users
-          </motion.p>
-        </div>
-      </div>
-      <motion.div
-        className="form-wrapper"
-        initial={{
-          translateX: "var(--slide-in-offset)",
-          opacity: 0,
-        }}
-        animate={{
-          translateX: 0,
-          opacity: 1,
-        }}
-        transition={{
-          type: "tween",
-        }}
-      >
+    <div className="">
+      <FormWrapper>
         <form
           action=""
           className="flex flex-col md:gap-7 gap-5"
@@ -277,18 +214,21 @@ export default function Signup() {
 
           <p className="mt-2 text-center text-sm text-gray-500 border-t border-border pt-5">
             Already have an account?{" "}
-            <a href="/login" className="text-primary font-medium underline">
+            <Link
+              href="/auth/login"
+              className="text-primary font-medium underline"
+            >
               Login
-            </a>
+            </Link>
           </p>
         </form>
+
         {errors.root && (
           <p className="input-error-type border border-red-500">
             {errors.root.message}
           </p>
         )}
-      </motion.div>
-
+      </FormWrapper>
       {isSubmitting && <LoadingSpinner />}
     </div>
   );

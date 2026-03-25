@@ -1,17 +1,16 @@
 package com.walletly.walletly_backend.controllers;
 
 import com.resend.core.exception.ResendException;
-import com.walletly.walletly_backend.dtos.JwtTokenResponse;
-import com.walletly.walletly_backend.dtos.ValidateUserRequest;
-import com.walletly.walletly_backend.dtos.OtpResponse;
-import com.walletly.walletly_backend.dtos.RegisterRequest;
+import com.walletly.walletly_backend.dtos.response.JwtTokenResponse;
+import com.walletly.walletly_backend.dtos.requests.ValidateUserRequest;
+import com.walletly.walletly_backend.dtos.response.OtpResponse;
+import com.walletly.walletly_backend.dtos.requests.RegisterRequest;
 import com.walletly.walletly_backend.exceptions.UserSessionNotFoundException;
 import com.walletly.walletly_backend.services.*;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

@@ -28,7 +28,10 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
+    "**/*.mts",
+    "src/app/auth/default.tsx",
+    "src/app/auth/layout.tsx",
+    "src/app/auth/page.tsx"
   ],
   "exclude": ["node_modules"]
 }

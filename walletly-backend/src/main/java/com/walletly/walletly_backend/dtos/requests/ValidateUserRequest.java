@@ -1,8 +1,7 @@
-package com.walletly.walletly_backend.dtos;
+package com.walletly.walletly_backend.dtos.requests;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
