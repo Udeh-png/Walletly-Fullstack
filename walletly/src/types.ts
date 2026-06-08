@@ -34,3 +34,10 @@ export const otpInputSchema = z.object({
 });
 
 export type OtpInputType = z.infer<typeof otpInputSchema>;
+
+export const loginSchema = z.object({
+  email: z.email().min(1, "Email is required"),
+  password: z.string().min(1, "Password is required"),
+});
+
+export type LogInType = z.infer<typeof loginSchema>;

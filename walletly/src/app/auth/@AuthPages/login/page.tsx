@@ -5,16 +5,23 @@ import { FormWrapper } from "../../components/FormWrapper";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { useState } from "react";
 import Link from "next/link";
+import { loginSchema, LogInType } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const {
     register,
+    handleSubmit,
     formState: { errors, isSubmitting },
-  } = useForm();
+  } = useForm<LogInType>({ resolver: zodResolver(loginSchema) });
+
+  const handleOnSubmit = () => {
+    console.log("submitting");
+  };
   return (
     <FormWrapper>
-      <form>
+      <form onSubmit={handleSubmit(handleOnSubmit)}>
         <div className="mb-5">
           <p className="text-3xl font-bold">Welcome back!</p>
           <p className="text-gray-400">
@@ -67,12 +74,16 @@ export default function Login() {
               </button>
             </div>
 
-            <Link
-              href="/auth/register"
-              className="text-primary font-small text-sm underline block"
-            >
-              Forgotten Password
-            </Link>
+            <div className="flex justify-between">
+              <p className="input-error-text">{errors.password?.message}</p>
+
+              <Link
+                href="/"
+                className="text-primary font-small text-sm underline text-right"
+              >
+                Forgotten Password?
+              </Link>
+            </div>
           </div>
         </div>
 

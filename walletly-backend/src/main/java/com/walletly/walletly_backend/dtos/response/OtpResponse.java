@@ -8,5 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class OtpResponse {
-	Long otpGenerationTimestamp;
+	private String id;
+	private Long otpGenerationTimestamp;
 }

@@ -6,8 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
+//import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+//import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+//import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
@@ -28,13 +36,16 @@ public class config {
 	
 	@Bean
 	public SecurityFilterChain filterChain (HttpSecurity security) throws Exception {
-		security.authorizeHttpRequests(
-				(auth) -> auth
-						.requestMatchers("/auth/**").permitAll()
+		security
+				.authorizeHttpRequests(auth -> auth.requestMatchers("/auth/**")
+						.permitAll()
 						.anyRequest()
-						.authenticated())
-						.csrf(CsrfConfigurer::disable);
-		
+						.authenticated()
+				)
+				.csrf(CsrfConfigurer::disable)
+				.sessionManagement(session -> session
+						.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
 		return security.build();
 	}
 	
@@ -49,7 +60,11 @@ public class config {
 	}
 	
 	@Bean
-	public ConcurrentHashMap<String, SuspendedAccount> suspendedAccount () {
-		return suspendedAccountMap;
+	public RedisTemplate<String, String> redisTemplate(RedisConnectionFactory factory) {
+		RedisTemplate<String, String> template = new RedisTemplate<>();
+		template.setConnectionFactory(factory);
+		template.setKeySerializer(new StringRedisSerializer());
+		template.setValueSerializer(new StringRedisSerializer());
+		return template;
 	}
 }

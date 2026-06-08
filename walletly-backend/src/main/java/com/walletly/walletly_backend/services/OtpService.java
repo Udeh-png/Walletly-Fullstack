@@ -2,78 +2,67 @@ package com.walletly.walletly_backend.services;
 
 import com.resend.Resend;
 import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.*;
-import com.walletly.walletly_backend.exceptions.*;
-import com.walletly.walletly_backend.utils.OtpSession;
+import com.resend.services.emails.model.CreateEmailOptions;
+import com.walletly.walletly_backend.exceptions.OtpHasExpiredException;
+import com.walletly.walletly_backend.exceptions.OtpMissMatchException;
+import com.walletly.walletly_backend.exceptions.SessionNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
-@Component
+import static com.walletly.walletly_backend.services.AuthService.SESSION_TTL;
+
+@Service()
 public class OtpService {
-	private final ConcurrentHashMap<String, List<OtpSession>> otpSessionsMap = new ConcurrentHashMap<>();
-	SecureRandom secureRandom = new SecureRandom();
-	
 	@Autowired
-	private Resend resend;
+	Resend resend;
+	@Autowired
+	RedisTemplate<String, String> redisTemplate;
 	
-	public void removeEmailFromMap (String email) {
-		otpSessionsMap.remove(email);
+	static final Long OTP_TTL = 5L;
+	
+	public String generateOtp () {
+		SecureRandom secureRandom = new SecureRandom();
+		int otpInt = secureRandom.nextInt(900000) + 100000;
+		return String.valueOf(otpInt);
 	}
 	
-	public List<OtpSession> getSessions (String email) {
-		return otpSessionsMap.get(email);
+	public Long storeOtp(String id, String otp) {
+		redisTemplate.opsForValue().set("otp:code:"+id,otp, OTP_TTL, TimeUnit.MINUTES);
+		return System.currentTimeMillis();
 	}
 	
-	public OtpSession generateOtp () {
-		int otpInt = secureRandom.nextInt(900000) + 100000; //generate the otp
-		
-		OtpSession otpSession = new OtpSession(); // create a new otp session object
-		otpSession.setOtp(String.valueOf(otpInt));
-		return otpSession;
+	public void deleteOtpSession (String id) {
+		redisTemplate.opsForValue().getAndDelete("otp:code:"+id);
 	}
 	
-	public void send (String email, OtpSession otpSession)throws ResendException {
-		String message =
-				"<p>Your OTP is: <strong style='font-size: 15px; color: #2563eb;'>"
-						+ otpSession.getOtp() +
-						"</strong> Do not share this code with anyone</p>"; // html message
-		
+	public void sendOtp (String email, String otp) throws ResendException {
 		CreateEmailOptions emailOptions = CreateEmailOptions.builder()
 				.from("onboarding@resend.dev")
 				.to(email)
-				.subject("Email Verification")
-				.html(message)
-				.build(); // build the message to send with resend api
+				.subject("Otp Verification")
+				.text(otp)
+				.build();
+		
 		resend.emails().send(emailOptions);
-		otpSession.setGenerateTimestamp(System.currentTimeMillis());
-		otpSessionsMap.computeIfAbsent(email, (k) -> new ArrayList<>()).add(otpSession);
 	}
 	
-	public boolean hasOtpSession (String email) {
-		return otpSessionsMap.containsKey(email);
+	public boolean hasLiveOtp(String id) {
+		return redisTemplate.opsForValue().get("otp:code:"+id) != null;
 	}
 	
-	public boolean hasReachedLimit (String email) throws UserSessionNotFoundException {
-		List<OtpSession> sessions = otpSessionsMap.get(email);
+	public void verifyOtp (String sessionId, String sentOtp) {
+		String codeKey = "otp:code:" + sessionId;
+		String storedOtp = redisTemplate.opsForValue().get(codeKey);
 		
-		if (sessions == null || sessions.isEmpty()) throw new UserSessionNotFoundException();
+		if (storedOtp == null)
+			throw new OtpHasExpiredException();
 		
-		OtpSession lastSession = sessions.getLast();
-		return sessions.size() >= 3 && lastSession.hasExpired();
-	}
-	
-	public boolean otpIsValid (String email, String otp) throws UserSessionNotFoundException {
-		List<OtpSession> sessions = otpSessionsMap.get(email);
-		
-		if (sessions == null || sessions.isEmpty()) throw new UserSessionNotFoundException();
-		
-		OtpSession currentSession = sessions.getLast();
-		
-		return currentSession.getOtp().equals(otp);
+		if (!storedOtp.equals(sentOtp)) {
+			throw new OtpMissMatchException();
+		}
 	}
 }

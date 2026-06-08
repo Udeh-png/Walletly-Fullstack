@@ -87,16 +87,16 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(er);
 	}
 	
-	@ExceptionHandler(UserSessionNotFoundException.class)
-	public ResponseEntity<@NonNull ErrorResponse> userSessionNotFound (UserSessionNotFoundException usnf) {
-		ErrorResponse er = new ErrorResponse(usnf.getMessage(), "SESSION_NOT_FOUND");
+	@ExceptionHandler(SessionNotFoundException.class)
+	public ResponseEntity<@NonNull ErrorResponse> userSessionNotFound (SessionNotFoundException snf) {
+		ErrorResponse er = new ErrorResponse(snf.getMessage(), "SESSION_NOT_FOUND");
 		
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(er);
 	}
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<@NonNull ErrorResponse> invalidHandlerArg (MethodArgumentNotValidException manv) {
-		ErrorResponse er = new ErrorResponse("Bad Request Nigga!!!", "BAD_REQUEST");
+		ErrorResponse er = new ErrorResponse("Bad Request Nigga!!!" + manv.getMessage(), "BAD_REQUEST");
 		
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(er);
 	}
@@ -106,5 +106,12 @@ public class GlobalExceptionHandler {
 		ErrorResponse er = new ErrorResponse(ossa.getMessage(), "SESSION_STILL_ACTIVE");
 		
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(er);
+	}
+	
+	@ExceptionHandler(InvalidCredentialsException.class)
+	public ResponseEntity<@NonNull ErrorResponse> invalidCredentials (InvalidCredentialsException ice) {
+		ErrorResponse er = new ErrorResponse(ice.getMessage(), "INVALID_CREDENTIALS");
+		
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(er);
 	}
 }

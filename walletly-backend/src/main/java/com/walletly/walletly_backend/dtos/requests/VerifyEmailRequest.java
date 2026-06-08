@@ -1,16 +1,14 @@
 package com.walletly.walletly_backend.dtos.requests;
 
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
 @Data
-public class ValidateUserRequest {
+public class VerifyEmailRequest {
 	
 	@NotBlank
-	@Email
-	private String email;
+	private String id;
 	
 	@NotBlank
 	@Length(min = 6, max = 6)

@@ -15,11 +15,11 @@ import java.time.LocalDateTime;
 @Getter
 public class Wallet {
 	@Id
-	private ObjectId id;
+	private String id;
 	
 	@Setter
 	@NonNull
-	private ObjectId userId;
+	private String userId;
 	
 	@Setter
 	@NonNull
