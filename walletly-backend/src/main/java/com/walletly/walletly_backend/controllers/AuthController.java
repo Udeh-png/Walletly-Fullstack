@@ -1,6 +1,7 @@
 package com.walletly.walletly_backend.controllers;
 
 import com.resend.core.exception.ResendException;
+import com.walletly.walletly_backend.dtos.requests.LoginRequest;
 import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.dtos.requests.ResendOtpRequest;
 import com.walletly.walletly_backend.dtos.requests.VerifyEmailRequest;
@@ -34,23 +35,14 @@ public class AuthController {
 		return ResponseEntity.ok(authService.verifyRegistration(request.getOtp(), request.getId(), response));
 	}
 	
+	@PostMapping("/login")
+	public void login (@RequestBody LoginRequest request, HttpServletResponse response) {
+		authService.login(request, response);
+	}
+	
 	@GetMapping("/resend-otp")
 	public ResponseEntity<@NonNull OtpResponse> resendOtp (@RequestBody ResendOtpRequest resendReq) throws ResendException {
 		OtpResponse response = authService.resendOtp(resendReq.getEmail());
 		return ResponseEntity.ok(response);
 	}
-
-//	@PostMapping("/validate-user")
-//	public ResponseEntity<@NonNull JwtTokenResponse> validateUser (@Valid @RequestBody ValidateUserRequest validateOtp) throws SessionNotFoundException {
-//		JwtTokenResponse tokenDto = authService.createUser(validateOtp.getEmail(), validateOtp.getOtp());
-//
-//		return ResponseEntity.ok(tokenDto);
-//	}
-
-//	@PostMapping("authenticate-user")
-//	public ResponseEntity<@NonNull JwtTokenResponse> validateUser (@RequestBody LoginRequest loginRequest) {
-//		JwtTokenResponse tokenResponse = authService.authenticateUser(loginRequest);
-//
-//		return ResponseEntity.ok(tokenResponse);
-//	}
 }

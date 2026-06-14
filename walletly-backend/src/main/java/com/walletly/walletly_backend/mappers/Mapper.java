@@ -1,4 +1,4 @@
-package com.walletly.walletly_backend.Mappers;
+package com.walletly.walletly_backend.mappers;
 
 import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.dtos.response.UserResponse;

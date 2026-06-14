@@ -24,23 +24,6 @@ public class GlobalExceptionHandler {
 				.body(er);
 	}
 	
-	@ExceptionHandler(NotAuthorizedException.class)
-	public ResponseEntity<@NonNull ErrorResponse> handleUnauthorized (NotAuthorizedException nae) {
-		ErrorResponse er = new ErrorResponse(nae.getMessage(), "AUTHORIZED");
-		return ResponseEntity
-				.status(HttpStatus.UNAUTHORIZED)
-				.body(er);
-	}
-	
-	@ExceptionHandler(AccountSuspendedException.class)
-	public ResponseEntity<@NonNull ErrorResponse> suspendedHandler (AccountSuspendedException ase) {
-		ErrorResponse er = new ErrorResponse(ase.getMessage(), "SUSPENDED");
-		
-		return ResponseEntity
-				.status(HttpStatus.UNAUTHORIZED)
-				.body(er);
-	}
-	
 	@ExceptionHandler(SocketTimeoutException.class)
 	public ResponseEntity<@NonNull ErrorResponse> handleSocketTimeout (ResendException e) {
 		ErrorResponse er = new ErrorResponse("Network unreachable. Check your internet connection Nigger", "TIMEOUT");
@@ -78,13 +61,6 @@ public class GlobalExceptionHandler {
 		ErrorResponse er = new ErrorResponse(ohe.getMessage(), "EXPIRED_OTP");
 		
 		return ResponseEntity.status(HttpStatus.GONE).body(er);
-	}
-	
-	@ExceptionHandler(TooManyOtpAttemptsException.class)
-	public ResponseEntity<@NonNull ErrorResponse> tooManyAttempts (TooManyOtpAttemptsException tma) {
-		ErrorResponse er = new ErrorResponse(tma.getMessage(), "MANY_ATTEMPTS");
-		
-		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(er);
 	}
 	
 	@ExceptionHandler(SessionNotFoundException.class)

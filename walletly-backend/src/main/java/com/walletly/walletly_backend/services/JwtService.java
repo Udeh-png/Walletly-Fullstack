@@ -1,12 +1,16 @@
 package com.walletly.walletly_backend.services;
 
+import com.walletly.walletly_backend.modals.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.function.Function;
 
 @Component
 public class JwtService {
@@ -23,21 +27,38 @@ public class JwtService {
 		return Keys.hmacShaKeyFor(secret.getBytes());
 	}
 	
-	public String generateAccessToken(String userId) {
+	public String generateAccessToken(User user) {
 		return Jwts.builder()
-				.subject(userId)
+				.subject(user.getEmail())
 				.issuedAt(new Date())
 				.expiration(new Date(System.currentTimeMillis() + Long.parseLong(accessExpiration)))
 				.signWith(getSecretKey())
 				.compact();
 	}
 	
-	public String generateRefreshToken (String userId) {
+	public String generateRefreshToken (User user) {
 		return Jwts.builder()
-				.subject(userId)
+				.subject(user.getEmail())
 				.issuedAt(new Date())
 				.expiration(new Date(System.currentTimeMillis() + Long.parseLong(refreshExpiration)))
 				.signWith(getSecretKey())
 				.compact();
+	}
+	
+	public <T> T extractClaim (String token, Function<Claims, T> function) {
+		Claims claims = extractAllClaims(token);
+		return function.apply(claims);
+	}
+	
+	public Claims extractAllClaims (String token) {
+		return Jwts.parser().verifyWith(getSecretKey()).build().parseSignedClaims(token).getPayload();
+	}
+	
+	public boolean tokenIsValid(String token, User user) {
+		return !tokenIsExpired(token) && extractAllClaims(token).getSubject().equals(user.getEmail());
+	}
+	
+	public Boolean tokenIsExpired (String token) {
+		return extractClaim(token, Claims::getExpiration).before(new Date());
 	}
 }

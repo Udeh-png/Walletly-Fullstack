@@ -1,25 +1,30 @@
 package com.walletly.walletly_backend.services;
 
 import com.resend.core.exception.ResendException;
-import com.walletly.walletly_backend.Mappers.Mapper;
+import com.walletly.walletly_backend.dtos.requests.LoginRequest;
+import com.walletly.walletly_backend.mappers.Mapper;
 import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.dtos.response.OtpResponse;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
 import com.walletly.walletly_backend.exceptions.SessionNotFoundException;
 import com.walletly.walletly_backend.exceptions.UserEmailAlreadyExists;
+import com.walletly.walletly_backend.security.MyUserDetails;
 import com.walletly.walletly_backend.modals.User;
 import com.walletly.walletly_backend.repos.UserRepo;
-import jakarta.servlet.http.Cookie;
+import com.walletly.walletly_backend.utils.CookieType;
+import com.walletly.walletly_backend.utils.CookiesUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,6 +44,8 @@ public class AuthService {
 	RedisTemplate<String, String> redisTemplate;
 	@Autowired
 	ObjectMapper objectMapper;
+	@Autowired
+	AuthenticationManager authManager;
 	
 	static final Long SESSION_TTL = 30L;
 	
@@ -61,6 +68,41 @@ public class AuthService {
 		return new OtpResponse(id, otpStoreTime);
 	}
 	
+	public UserResponse verifyRegistration (String otp, String sessionId, HttpServletResponse response) {
+		otpService.verifyOtp(sessionId, otp);
+		
+		User user = Mapper.regRequestToUser(getRegInfo(sessionId));
+		
+		user.setPassword(Objects.requireNonNull(passwordEncoder.encode(user.getPassword())));
+		
+		user.setCreatedAt(LocalDateTime.now());
+		
+		userRepo.save(user);
+		
+		CookiesUtil.createJwtCookies(response, CookieType.ACCESS_TOKEN, jwtService.generateAccessToken(user));
+		CookiesUtil.createJwtCookies(response, CookieType.REFRESH_TOKEN, jwtService.generateRefreshToken(user));
+		
+		otpService.deleteOtpSession(sessionId);
+		
+		deleteRegSession(sessionId, user.getEmail());
+		
+		return Mapper.userToUserResponse(user);
+	}
+	
+	public void login (LoginRequest request, HttpServletResponse response) {
+		Authentication auth = authManager
+				.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+		if (auth.isAuthenticated()) {
+			MyUserDetails userDetails = (MyUserDetails)auth.getPrincipal();
+			assert userDetails != null;
+			User user = userDetails.getUser();
+			
+			CookiesUtil.createJwtCookies(response, CookieType.ACCESS_TOKEN, jwtService.generateAccessToken(user));
+			CookiesUtil.createJwtCookies(response, CookieType.REFRESH_TOKEN, jwtService.generateRefreshToken(user));
+		}
+		
+	}
+	
 	public OtpResponse resendOtp (String email) throws ResendException{
 		String regId = getRegId(email);
 		
@@ -75,32 +117,6 @@ public class AuthService {
 		Long otpGenerationTime = otpService.storeOtp(regId, otp);
 		
 		return new OtpResponse(regId, otpGenerationTime);
-	}
-	
-	public UserResponse verifyRegistration (String otp, String sessionId, HttpServletResponse response) {
-		otpService.verifyOtp(sessionId, otp);
-		
-		User user = Mapper.regRequestToUser(getRegInfo(sessionId));
-		
-		user.setPassword(Objects.requireNonNull(passwordEncoder.encode(user.getPassword())));
-		
-		user.setCreatedAt(LocalDateTime.now());
-		
-		userRepo.save(user);
-		
-		Cookie jwtCookie = new Cookie("jwt-token", jwtService.generateAccessToken(user.getId()));
-		
-		jwtCookie.setHttpOnly(true);
-		jwtCookie.setMaxAge(60 * 20);
-		jwtCookie.setAttribute("SameSite", "Strict");
-		
-		response.addCookie(jwtCookie);
-		
-		otpService.deleteOtpSession(sessionId);
-		
-		deleteRegSession(sessionId, user.getEmail());
-		
-		return Mapper.userToUserResponse(user);
 	}
 	
 	public String generateId () {

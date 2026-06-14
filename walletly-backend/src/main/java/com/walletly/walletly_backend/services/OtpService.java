@@ -5,15 +5,12 @@ import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
 import com.walletly.walletly_backend.exceptions.OtpHasExpiredException;
 import com.walletly.walletly_backend.exceptions.OtpMissMatchException;
-import com.walletly.walletly_backend.exceptions.SessionNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
-
-import static com.walletly.walletly_backend.services.AuthService.SESSION_TTL;
 
 @Service()
 public class OtpService {
