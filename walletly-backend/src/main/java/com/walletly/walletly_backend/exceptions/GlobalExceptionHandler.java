@@ -2,9 +2,11 @@ package com.walletly.walletly_backend.exceptions;
 
 import com.resend.core.exception.ResendException;
 import com.walletly.walletly_backend.dtos.response.ErrorResponse;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -84,10 +86,17 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(er);
 	}
 	
-	@ExceptionHandler(InvalidCredentialsException.class)
-	public ResponseEntity<@NonNull ErrorResponse> invalidCredentials (InvalidCredentialsException ice) {
-		ErrorResponse er = new ErrorResponse(ice.getMessage(), "INVALID_CREDENTIALS");
+	@ExceptionHandler (UsernameNotFoundException.class)
+	public ResponseEntity<@NonNull ErrorResponse> usernameNotFound (UsernameNotFoundException unf) {
+		ErrorResponse er = new ErrorResponse(unf.getMessage(), "WRONG_CREDENTIALS");
 		
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(er);
+	}
+	
+	@ExceptionHandler (ExpiredJwtException.class)
+	public ResponseEntity<@NonNull ErrorResponse> expiredJwt (ExpiredJwtException ej) {
+		ErrorResponse er = new ErrorResponse(ej.getMessage(), "EXPIRED_JWT");
+		
+		return ResponseEntity.status(HttpStatus.GONE).body(er);
 	}
 }
