@@ -1,9 +1,12 @@
 package com.walletly.walletly_backend.security;
 
 import com.walletly.walletly_backend.services.JwtService;
+import com.walletly.walletly_backend.utils.CookieType;
+import com.walletly.walletly_backend.utils.CookiesUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NullMarked;
@@ -12,8 +15,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.WebUtils;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
@@ -26,12 +33,12 @@ public class JwtFilter extends OncePerRequestFilter {
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
-		String authHeader = request.getHeader("Authorization");
+		Cookie tokenCookie = WebUtils.getCookie(request, CookieType.ACCESS_TOKEN.getName());
 		String username = null;
 		String jwtToken = null;
 		
-		if (authHeader != null && authHeader.startsWith("Bearer ")) {
-			jwtToken = authHeader.substring(7);
+		if (tokenCookie != null) {
+			jwtToken = tokenCookie.getValue();
 			username = jwtService.extractClaim(jwtToken, Claims::getSubject);
 		}
 		

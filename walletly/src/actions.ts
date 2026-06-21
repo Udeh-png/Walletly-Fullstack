@@ -35,7 +35,7 @@ export const setOtpCookies = async (
 
 export const submitSignupForm = async (data: SignupFormType) => {
   const cookieStore = cookies();
-  const fetchData = await fetch(`${route}/register`, {
+  const fetchData = await fetch(`${route}/register/initiate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
