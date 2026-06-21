@@ -3,13 +3,16 @@ package com.walletly.walletly_backend.services;
 import com.resend.Resend;
 import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
-import com.walletly.walletly_backend.exceptions.OtpHasExpiredException;
-import com.walletly.walletly_backend.exceptions.OtpMissMatchException;
+import com.walletly.walletly_backend.exceptions.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import javax.security.auth.login.AccountLockedException;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service()
@@ -19,7 +22,11 @@ public class OtpService {
 	@Autowired
 	RedisTemplate<String, String> redisTemplate;
 	
-	static final Long OTP_TTL = 5L;
+	static final int OTP_TTL = 5;
+	static final int OTP_REQUESTS_TTL = 30;
+	static final int ACCOUNT_LOCK_TTL = 15;
+	static final int ATTEMPTS_LIMIT = 10;
+	static final int REQUESTS_LIMIT = 5;
 	
 	public String generateOtp () {
 		SecureRandom secureRandom = new SecureRandom();
@@ -27,16 +34,52 @@ public class OtpService {
 		return String.valueOf(otpInt);
 	}
 	
-	public Long storeOtp(String id, String otp) {
-		redisTemplate.opsForValue().set("otp:code:"+id,otp, OTP_TTL, TimeUnit.MINUTES);
-		return System.currentTimeMillis();
+	public void storeOtp(String otp, String email) {
+		redisTemplate.opsForValue().set("otp:code:"+email,otp, OTP_TTL, TimeUnit.MINUTES);
 	}
 	
-	public void deleteOtpSession (String id) {
-		redisTemplate.opsForValue().getAndDelete("otp:code:"+id);
+	public void invalidateOtp (String email) {
+		redisTemplate.delete("otp:code:"+email);
 	}
 	
-	public void sendOtp (String email, String otp) throws ResendException {
+	public void resetCounter (String counterKey) {
+		redisTemplate.delete(counterKey);
+	}
+	
+	public void resetRedisOtpKeys(String email) {
+		redisTemplate.delete(List.of(
+				"otp:code:" + email,
+				"otp:attempts:" + email,
+				"otp:requests:" + email,
+				"otp:requests:cooldown:" + email)
+		);
+	}
+	
+	public void sendOtp (String email, String otp) throws ResendException, AccountLockedException {
+		if (Boolean.TRUE.equals(redisTemplate.hasKey("otp:requests:locked:" + email))
+				|| Boolean.TRUE.equals(redisTemplate.hasKey("otp:attempts:locked:" + email))) {
+			throw new AccountLockedException("Too many verification code requests");
+		}
+		
+		final String requestsKey = "otp:requests:" + email;
+		final String requestCooldownKey = "otp:requests:cooldown:" + email;
+		
+		Boolean createdCooldown = redisTemplate.opsForValue().setIfAbsent(requestCooldownKey, "1", 1, TimeUnit.MINUTES);
+		
+		if (Boolean.FALSE.equals(createdCooldown)) throw new CooldownActiveException(redisTemplate.getExpire(requestCooldownKey));
+		
+		Long requests = redisTemplate.opsForValue().increment(requestsKey);
+		
+		long currentReqCount = requests == null ? 0 : requests;
+		
+		if (currentReqCount == 1) {
+			redisTemplate.expire(requestsKey, OTP_REQUESTS_TTL, TimeUnit.MINUTES);
+		}
+		
+		if (currentReqCount > REQUESTS_LIMIT) {
+			throw new TooManyOtpRequestsException();
+		}
+		
 		CreateEmailOptions emailOptions = CreateEmailOptions.builder()
 				.from("onboarding@resend.dev")
 				.to(email)
@@ -45,18 +88,44 @@ public class OtpService {
 				.build();
 		
 		resend.emails().send(emailOptions);
-	}
-	
-	public boolean hasLiveOtp(String id) {
-		return redisTemplate.opsForValue().get("otp:code:"+id) != null;
-	}
-	
-	public void verifyOtp (String sessionId, String sentOtp) {
-		String codeKey = "otp:code:" + sessionId;
-		String storedOtp = redisTemplate.opsForValue().get(codeKey);
 		
-		if (storedOtp == null)
-			throw new OtpHasExpiredException();
+		if (currentReqCount == REQUESTS_LIMIT) {
+			redisTemplate.opsForValue().set("otp:request:locked:" + email, "1", ACCOUNT_LOCK_TTL, TimeUnit.MINUTES);
+			invalidateOtp(email);
+			resetCounter(requestsKey);
+			throw new TooManyOtpRequestsException();
+		}
+	}
+	
+	public void verifyOtp (String sentOtp, String email) throws AccountLockedException {
+		if (Boolean.TRUE.equals(redisTemplate.hasKey(("otp:attempts:locked:" + email))))
+			throw new AccountLockedException("Too many verification code attempts");
+		
+		final String attemptsKey = "otp:attempts:" + email;
+		
+		Long attempts = redisTemplate.opsForValue().increment(attemptsKey);
+		
+		if (attempts != null && attempts == 1) {
+			redisTemplate.expire("otp:attempts:" + email, OTP_REQUESTS_TTL, TimeUnit.MINUTES);
+		}
+		
+		long currentAttemptsCount = attempts == null ? 0 : attempts;
+		
+		if (currentAttemptsCount > ATTEMPTS_LIMIT) {
+			throw new TooManyAttemptsException();
+		}
+		
+		if (currentAttemptsCount == ATTEMPTS_LIMIT) {
+			redisTemplate.opsForValue().set("otp:attempts:locked:" + email, "1", ACCOUNT_LOCK_TTL, TimeUnit.MINUTES);
+			redisTemplate.opsForValue().set("otp:requests:locked:" + email, "1", ACCOUNT_LOCK_TTL, TimeUnit.MINUTES);
+			invalidateOtp(email);
+			resetCounter(attemptsKey);
+			throw new TooManyAttemptsException();
+		}
+		
+		String storedOtp = redisTemplate.opsForValue().get("otp:code:" + email);
+		
+		if (storedOtp == null) throw new OtpHasExpiredException();
 		
 		if (!storedOtp.equals(sentOtp)) {
 			throw new OtpMissMatchException();

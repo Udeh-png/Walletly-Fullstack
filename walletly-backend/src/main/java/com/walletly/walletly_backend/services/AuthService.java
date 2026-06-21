@@ -4,7 +4,7 @@ import com.resend.core.exception.ResendException;
 import com.walletly.walletly_backend.dtos.requests.LoginRequest;
 import com.walletly.walletly_backend.mappers.Mapper;
 import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
-import com.walletly.walletly_backend.dtos.response.OtpResponse;
+import com.walletly.walletly_backend.dtos.response.InitiateRegResponse;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
 import com.walletly.walletly_backend.exceptions.SessionNotFoundException;
 import com.walletly.walletly_backend.exceptions.UserEmailAlreadyExists;
@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.ObjectMapper;
 
+import javax.security.auth.login.AccountLockedException;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -49,7 +50,7 @@ public class AuthService {
 	
 	static final Long SESSION_TTL = 30L;
 	
-	public OtpResponse initiateRegistration (RegistrationRequest regInfo) throws ResendException {
+	public InitiateRegResponse initiateRegistration (RegistrationRequest regInfo) throws ResendException, AccountLockedException {
 		String regReqEmail = regInfo.getEmail();
 		String id = Optional.ofNullable(getRegId(regReqEmail)).orElseGet(this::generateId);
 		
@@ -58,20 +59,21 @@ public class AuthService {
 		
 		storeRegSession(id, regInfo);
 		
-		if (otpService.hasLiveOtp(id)) return null;
-		
 		String otp = otpService.generateOtp();
 
 		otpService.sendOtp(regReqEmail, otp);
-
-		Long otpStoreTime = otpService.storeOtp(id, otp);
-		return new OtpResponse(id, otpStoreTime);
+		return new InitiateRegResponse(id);
 	}
 	
-	public UserResponse verifyRegistration (String otp, String sessionId, HttpServletResponse response) {
-		otpService.verifyOtp(sessionId, otp);
+	public UserResponse verifyRegistration (String otp, String sessionId, HttpServletResponse response) throws AccountLockedException {
+		RegistrationRequest regRequest = getRegInfo(sessionId);
 		
-		User user = Mapper.regRequestToUser(getRegInfo(sessionId));
+		if (regRequest == null) throw new SessionNotFoundException();
+		
+		User user = Mapper.regRequestToUser(regRequest);
+		String userEmail = user.getEmail();
+		
+		otpService.verifyOtp(otp, userEmail);
 		
 		user.setPassword(Objects.requireNonNull(passwordEncoder.encode(user.getPassword())));
 		
@@ -82,9 +84,8 @@ public class AuthService {
 		CookiesUtil.createJwtCookies(response, CookieType.ACCESS_TOKEN, jwtService.generateAccessToken(user));
 		CookiesUtil.createJwtCookies(response, CookieType.REFRESH_TOKEN, jwtService.generateRefreshToken(user));
 		
-		otpService.deleteOtpSession(sessionId);
-		
-		deleteRegSession(sessionId, user.getEmail());
+		otpService.resetRedisOtpKeys(userEmail);
+		resetRegRedisKeys(sessionId, userEmail);
 		
 		return Mapper.userToUserResponse(user);
 	}
@@ -100,23 +101,23 @@ public class AuthService {
 			CookiesUtil.createJwtCookies(response, CookieType.ACCESS_TOKEN, jwtService.generateAccessToken(user));
 			CookiesUtil.createJwtCookies(response, CookieType.REFRESH_TOKEN, jwtService.generateRefreshToken(user));
 		}
-		
 	}
 	
-	public OtpResponse resendOtp (String email) throws ResendException{
+	public void resendOtp (String email) throws ResendException, AccountLockedException {
 		String regId = getRegId(email);
 		
 		if (regId == null) throw new SessionNotFoundException();
 		
-		if (otpService.hasLiveOtp(regId)) throw new RuntimeException();
-		
 		String otp = otpService.generateOtp();
 		
-		otpService.sendOtp(email, otp);
+		try {
+			otpService.sendOtp(email, otp);
+		} catch (AccountLockedException e) {
+			otpService.storeOtp(otp, email);
+			throw new AccountLockedException(e.getMessage());
+		}
 		
-		Long otpGenerationTime = otpService.storeOtp(regId, otp);
-		
-		return new OtpResponse(regId, otpGenerationTime);
+		otpService.storeOtp(otp, email);
 	}
 	
 	public String generateId () {
@@ -133,9 +134,9 @@ public class AuthService {
 		redisTemplate.opsForValue().set("otp:sessionId:"+regInfo.getEmail(), id, SESSION_TTL, TimeUnit.MINUTES);
 	}
 	
-	public void deleteRegSession (String id, String email) {
-		redisTemplate.opsForValue().getAndDelete("otp:userInfo:"+ id);
-		redisTemplate.opsForValue().getAndDelete("otp:sessionId:"+email);
+	public void resetRegRedisKeys (String id, String email) {
+		redisTemplate.delete("otp:userInfo:"+ id);
+		redisTemplate.delete("otp:sessionId:"+email);
 	}
 	
 	public RegistrationRequest getRegInfo (String sessionId) {

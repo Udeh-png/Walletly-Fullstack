@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class OtpResponse {
+public class InitiateRegResponse {
 	private String id;
-	private Long otpGenerationTimestamp;
 }

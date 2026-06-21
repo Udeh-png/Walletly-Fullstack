@@ -3,9 +3,10 @@ package com.walletly.walletly_backend.mappers;
 import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
 import com.walletly.walletly_backend.modals.User;
+import lombok.NonNull;
 
 public class Mapper {
-	public static UserResponse userToUserResponse (User user) {
+	public static UserResponse userToUserResponse (@NonNull User user) {
 		return new UserResponse(
 				user.getId(),
 				user.getFirstName(),
@@ -15,7 +16,7 @@ public class Mapper {
 		);
 	}
 	
-	public static User regRequestToUser (RegistrationRequest regReq) {
+	public static User regRequestToUser (@NonNull RegistrationRequest regReq) {
 		return new User(
 				regReq.getFirstName(),
 				regReq.getLastName(),

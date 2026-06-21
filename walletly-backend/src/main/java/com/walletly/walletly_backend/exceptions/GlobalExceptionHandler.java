@@ -86,6 +86,27 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.status(HttpStatus.CONFLICT).body(er);
 	}
 	
+	@ExceptionHandler(CooldownActiveException.class)
+	public ResponseEntity<@NonNull ErrorResponse> cooldownActive (CooldownActiveException ca) {
+		ErrorResponse er = new ErrorResponse(ca.getMessage(), "COOLDOWN_ACTIVE");
+		
+		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(er);
+	}
+	
+	@ExceptionHandler(TooManyOtpRequestsException.class)
+	public ResponseEntity<@NonNull ErrorResponse> tooManyRequests (TooManyOtpRequestsException tmr) {
+		ErrorResponse er = new ErrorResponse(tmr.getMessage(), "TOO_MANY_REQUESTS");
+		
+		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(er);
+	}
+	
+	@ExceptionHandler(TooManyAttemptsException.class)
+	public ResponseEntity<@NonNull ErrorResponse> tooManyAttempts (TooManyAttemptsException tma) {
+		ErrorResponse er = new ErrorResponse(tma.getMessage(), "TOO_MANY_REQUESTS");
+		
+		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(er);
+	}
+	
 	@ExceptionHandler (UsernameNotFoundException.class)
 	public ResponseEntity<@NonNull ErrorResponse> usernameNotFound (UsernameNotFoundException unf) {
 		ErrorResponse er = new ErrorResponse(unf.getMessage(), "WRONG_CREDENTIALS");

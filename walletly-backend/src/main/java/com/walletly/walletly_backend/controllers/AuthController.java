@@ -5,7 +5,7 @@ import com.walletly.walletly_backend.dtos.requests.LoginRequest;
 import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.dtos.requests.ResendOtpRequest;
 import com.walletly.walletly_backend.dtos.requests.VerifyEmailRequest;
-import com.walletly.walletly_backend.dtos.response.OtpResponse;
+import com.walletly.walletly_backend.dtos.response.InitiateRegResponse;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
 import com.walletly.walletly_backend.exceptions.SessionNotFoundException;
 import com.walletly.walletly_backend.services.*;
@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.security.auth.login.AccountLockedException;
+
 @CrossOrigin("*")
 @RequestMapping("/auth")
 @RestController()
@@ -25,13 +27,13 @@ public class AuthController {
 	AuthService authService;
 	
 	@PostMapping("/register/initiate")
-	public ResponseEntity<@NonNull OtpResponse> initiateRegistration (@Valid @RequestBody RegistrationRequest regRequest) throws ResendException, SessionNotFoundException {
-		OtpResponse otpResponse = authService.initiateRegistration(regRequest);
-		return ResponseEntity.ok(otpResponse);
+	public ResponseEntity<@NonNull InitiateRegResponse> initiateRegistration (@Valid @RequestBody RegistrationRequest regRequest) throws ResendException, SessionNotFoundException, AccountLockedException {
+		InitiateRegResponse initiateRegResponse = authService.initiateRegistration(regRequest);
+		return ResponseEntity.ok(initiateRegResponse);
 	}
 	
 	@PostMapping("/register/verify")
-	public ResponseEntity<@NonNull UserResponse> verifyRegistration (@Valid @RequestBody VerifyEmailRequest request, HttpServletResponse response) {
+	public ResponseEntity<@NonNull UserResponse> verifyRegistration (@Valid @RequestBody VerifyEmailRequest request, HttpServletResponse response) throws AccountLockedException {
 		return ResponseEntity.ok(authService.verifyRegistration(request.getOtp(), request.getId(), response));
 	}
 	
@@ -41,8 +43,8 @@ public class AuthController {
 	}
 	
 	@GetMapping("/resend-otp")
-	public ResponseEntity<@NonNull OtpResponse> resendOtp (@RequestBody ResendOtpRequest resendReq) throws ResendException {
-		OtpResponse response = authService.resendOtp(resendReq.getEmail());
-		return ResponseEntity.ok(response);
+	public ResponseEntity<@NonNull String> resendOtp (@RequestBody ResendOtpRequest resendReq) throws ResendException, AccountLockedException {
+		authService.resendOtp(resendReq.getEmail());
+		return ResponseEntity.ok("OTP sent to " + resendReq.getEmail() + ". Check your inbox");
 	}
 }
