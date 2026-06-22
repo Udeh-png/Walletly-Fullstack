@@ -4,6 +4,7 @@ import com.resend.core.exception.ResendException;
 import com.walletly.walletly_backend.dtos.response.ErrorResponse;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -14,9 +15,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
-	
 	@ExceptionHandler(UserEmailAlreadyExists.class)
 	public ResponseEntity<@NonNull ErrorResponse> handleEmailExist (UserEmailAlreadyExists eae) {
 		ErrorResponse er = new ErrorResponse(eae.getMessage(),"EMAIL_EXISTS");
@@ -118,6 +119,16 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<@NonNull ErrorResponse> expiredJwt (ExpiredJwtException ej) {
 		ErrorResponse er = new ErrorResponse(ej.getMessage(), "EXPIRED_JWT");
 		
-		return ResponseEntity.status(HttpStatus.GONE).body(er);
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(er);
+	}
+	
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<@NonNull ErrorResponse> handleAllUnhandledExceptions(Exception ex) {
+		ErrorResponse er = new ErrorResponse("An unexpected error occurred. Please try again later.", "UNKNOWN");
+		
+		// Log the actual error internally so developers can fix it
+		log.error("Unhandled exception caught: ", ex);
+		
+		return new ResponseEntity<>(er, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 }
