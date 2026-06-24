@@ -2,8 +2,11 @@ package com.walletly.walletly_backend.mappers;
 
 import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
+import com.walletly.walletly_backend.modals.PreRegUser;
 import com.walletly.walletly_backend.modals.User;
 import lombok.NonNull;
+
+import java.time.Instant;
 
 public class Mapper {
 	public static UserResponse userToUserResponse (@NonNull User user) {
@@ -22,6 +25,16 @@ public class Mapper {
 				regReq.getLastName(),
 				regReq.getEmail(),
 				regReq.getPassword()
+		);
+	}
+	
+	public static PreRegUser regRequestToPreRegUser (RegistrationRequest regReq) {
+		return new PreRegUser(
+				regReq.getEmail(),
+				regReq.getPassword(),
+				regReq.getFirstName(),
+				regReq.getLastName(),
+				Instant.now()
 		);
 	}
 }

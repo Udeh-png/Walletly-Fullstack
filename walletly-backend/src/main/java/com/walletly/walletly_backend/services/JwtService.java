@@ -1,5 +1,6 @@
 package com.walletly.walletly_backend.services;
 
+import com.walletly.walletly_backend.dtos.response.UserResponse;
 import com.walletly.walletly_backend.modals.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -27,7 +28,7 @@ public class JwtService {
 		return Keys.hmacShaKeyFor(secret.getBytes());
 	}
 	
-	public String generateAccessToken(User user) {
+	public String generateAccessToken(UserResponse user) {
 		return Jwts.builder()
 				.subject(user.getEmail())
 				.issuedAt(new Date())
@@ -36,7 +37,7 @@ public class JwtService {
 				.compact();
 	}
 	
-	public String generateRefreshToken (User user) {
+	public String generateRefreshToken (UserResponse user) {
 		return Jwts.builder()
 				.subject(user.getEmail())
 				.issuedAt(new Date())

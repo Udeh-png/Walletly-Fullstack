@@ -4,16 +4,14 @@ import com.resend.core.exception.ResendException;
 import com.walletly.walletly_backend.dtos.requests.LoginRequest;
 import com.walletly.walletly_backend.mappers.Mapper;
 import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
-import com.walletly.walletly_backend.dtos.response.InitiateRegResponse;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
 import com.walletly.walletly_backend.exceptions.SessionNotFoundException;
 import com.walletly.walletly_backend.exceptions.UserEmailAlreadyExists;
+import com.walletly.walletly_backend.modals.PreRegUser;
+import com.walletly.walletly_backend.repos.PreRegUserRepo;
 import com.walletly.walletly_backend.security.MyUserDetails;
 import com.walletly.walletly_backend.modals.User;
 import com.walletly.walletly_backend.repos.UserRepo;
-import com.walletly.walletly_backend.utils.CookieType;
-import com.walletly.walletly_backend.utils.CookiesUtil;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +23,7 @@ import tools.jackson.core.JsonParser;
 import tools.jackson.databind.ObjectMapper;
 
 import javax.security.auth.login.AccountLockedException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,8 +34,12 @@ import java.util.concurrent.TimeUnit;
 public class AuthService {
 	@Autowired
 	OtpService otpService;
+	
 	@Autowired
 	UserRepo userRepo;
+	@Autowired
+	PreRegUserRepo preRegUserRepo;
+	
 	@Autowired
 	JwtService jwtService;
 	@Autowired
@@ -50,22 +53,24 @@ public class AuthService {
 	
 	static final Long SESSION_TTL = 30L;
 	
-	public InitiateRegResponse initiateRegistration (RegistrationRequest regInfo) throws ResendException, AccountLockedException {
+	public String initiateRegistration (RegistrationRequest regInfo) throws ResendException, AccountLockedException {
 		String regReqEmail = regInfo.getEmail();
 		String id = Optional.ofNullable(getRegId(regReqEmail)).orElseGet(this::generateId);
 		
 		if (userRepo.existsByEmail(regReqEmail))
 			throw new UserEmailAlreadyExists(regReqEmail);
 		
-		storeRegSession(id, regInfo);
+//		storeRegSession(id, regInfo);
 		
 		String otp = otpService.generateOtp();
 
 		otpService.sendOtp(regReqEmail, otp);
-		return new InitiateRegResponse(id);
+//		otpService.storeOtp(otp, regReqEmail);
+		
+		return id;
 	}
 	
-	public UserResponse verifyRegistration (String otp, String sessionId, HttpServletResponse response) throws AccountLockedException {
+	public UserResponse verifyRegistration (String otp, String sessionId) throws AccountLockedException {
 		RegistrationRequest regRequest = getRegInfo(sessionId);
 		
 		if (regRequest == null) throw new SessionNotFoundException();
@@ -81,26 +86,20 @@ public class AuthService {
 		
 		userRepo.save(user);
 		
-		CookiesUtil.createJwtCookies(response, CookieType.ACCESS_TOKEN, jwtService.generateAccessToken(user));
-		CookiesUtil.createJwtCookies(response, CookieType.REFRESH_TOKEN, jwtService.generateRefreshToken(user));
-		
 		otpService.resetRedisOtpKeys(userEmail);
 		resetRegRedisKeys(sessionId, userEmail);
 		
 		return Mapper.userToUserResponse(user);
 	}
 	
-	public void login (LoginRequest request, HttpServletResponse response) {
+	public UserResponse login (LoginRequest request) {
 		Authentication auth = authManager
 				.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-		if (auth.isAuthenticated()) {
-			MyUserDetails userDetails = (MyUserDetails)auth.getPrincipal();
-			assert userDetails != null;
-			User user = userDetails.getUser();
-			
-			CookiesUtil.createJwtCookies(response, CookieType.ACCESS_TOKEN, jwtService.generateAccessToken(user));
-			CookiesUtil.createJwtCookies(response, CookieType.REFRESH_TOKEN, jwtService.generateRefreshToken(user));
-		}
+		
+		MyUserDetails userDetails = (MyUserDetails)auth.getPrincipal();
+		assert userDetails != null;
+		
+		return Mapper.userToUserResponse(userDetails.getUser());
 	}
 	
 	public void resendOtp (String email) throws ResendException, AccountLockedException {
@@ -125,13 +124,10 @@ public class AuthService {
 	}
 	
 	public void storeRegSession (String id, RegistrationRequest regInfo) {
-		redisTemplate.opsForValue().set(
-				"otp:userInfo:"+ id,
-				objectMapper.writeValueAsString(regInfo),
-				SESSION_TTL,
-				TimeUnit.MINUTES
-		);
-		redisTemplate.opsForValue().set("otp:sessionId:"+regInfo.getEmail(), id, SESSION_TTL, TimeUnit.MINUTES);
+		PreRegUser user = Mapper.regRequestToPreRegUser(regInfo);
+		user.setId(id);
+		
+		preRegUserRepo.save(user);
 	}
 	
 	public void resetRegRedisKeys (String id, String email) {

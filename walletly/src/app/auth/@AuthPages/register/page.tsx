@@ -7,10 +7,10 @@ import { useState, useEffect } from "react";
 import { PasswordListItem } from "@/components/PasswordStrengthListItem";
 import { passwordCriteria } from "@/data";
 import { SignupFormType, signupSchema } from "@/types";
-import { submitSignupForm } from "@/actions";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import Link from "next/link";
 import { FormWrapper } from "../../components/FormWrapper";
+import { redirect } from "next/navigation";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -49,7 +49,23 @@ export default function Signup() {
   };
 
   const onSubmit = async (data: SignupFormType) => {
-    const error = await submitSignupForm(data);
+    const response = await fetch(
+      "http://localhost:8080/api/auth/register/initiate",
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      },
+    );
+
+    if (response.status === 200) {
+      redirect("/email-verification");
+    }
+
+    const error = await response.json();
     if (error) {
       setError("root", {
         message: error.message,
@@ -78,13 +94,13 @@ export default function Signup() {
                 autoComplete=""
                 type="text"
                 id="first name"
-                className={`form-input ${errors.firstname ? "ring-red-500! ring-2!" : ""}`}
+                className={`form-input ${errors.firstName ? "ring-red-500! ring-2!" : ""}`}
                 placeholder="John"
-                {...register("firstname")}
+                {...register("firstName")}
               />
 
-              {errors.firstname && (
-                <p className="input-error-text">{errors.firstname.message}</p>
+              {errors.firstName && (
+                <p className="input-error-text">{errors.firstName.message}</p>
               )}
             </div>
 
@@ -96,13 +112,13 @@ export default function Signup() {
                 autoComplete=""
                 type="text"
                 id="last name"
-                className={`form-input ${errors.lastname ? "ring-red-500! ring-2!" : ""}`}
+                className={`form-input ${errors.lastName ? "ring-red-500! ring-2!" : ""}`}
                 placeholder="Doe"
-                {...register("lastname")}
+                {...register("lastName")}
               />
 
-              {errors.lastname && (
-                <p className="input-error-text">{errors.lastname.message}</p>
+              {errors.lastName && (
+                <p className="input-error-text">{errors.lastName.message}</p>
               )}
             </div>
           </div>
@@ -212,6 +228,12 @@ export default function Signup() {
             </button>
           </div>
 
+          {errors.root && (
+            <p className="input-error-type text-red-500 text-center text-sm">
+              {errors.root.message}
+            </p>
+          )}
+
           <p className="mt-2 text-center text-sm text-gray-500 border-t border-border pt-5">
             Already have an account?{" "}
             <Link
@@ -222,12 +244,6 @@ export default function Signup() {
             </Link>
           </p>
         </form>
-
-        {errors.root && (
-          <p className="input-error-type border border-red-500">
-            {errors.root.message}
-          </p>
-        )}
       </FormWrapper>
       {isSubmitting && <LoadingSpinner />}
     </div>

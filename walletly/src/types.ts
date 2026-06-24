@@ -14,8 +14,8 @@ export const signupSchema = z
     confirmPassword: z
       .string()
       .min(1, { message: "Confirm password is required" }),
-    firstname: z.string().min(1, { message: "First name is required" }),
-    lastname: z.string().min(1, { message: "Last name is required" }),
+    firstName: z.string().min(1, { message: "First name is required" }),
+    lastName: z.string().min(1, { message: "Last name is required" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
