@@ -27,6 +27,6 @@ public class PreRegUser {
 	private String lastName;
 	
 	@NonNull
-	@Indexed(expireAfter = "1800")
+	@Indexed(expireAfter = "30s")
 	private Instant createdAt;
 }

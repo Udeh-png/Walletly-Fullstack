@@ -7,6 +7,7 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -24,6 +25,15 @@ public class GlobalExceptionHandler {
 		
 		return ResponseEntity
 				.status(HttpStatus.CONFLICT)
+				.body(er);
+	}
+	
+	@ExceptionHandler(BadCredentialsException.class)
+	public ResponseEntity<@NonNull ErrorResponse> handleBadCredentials (BadCredentialsException bc) {
+		ErrorResponse er = new ErrorResponse("Invalid Email or Password.","BAD_CREDENTIALS");
+		
+		return ResponseEntity
+				.status(HttpStatus.BAD_REQUEST)
 				.body(er);
 	}
 	

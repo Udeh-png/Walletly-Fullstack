@@ -3,20 +3,14 @@
 
 import { otpInputSchema, OtpInputType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { FaStopwatch } from "react-icons/fa6";
 import { IoIosMailUnread } from "react-icons/io";
 import { motion } from "framer-motion";
 import { getCookie } from "@/utilities";
-import { resendOtp, verifyOtp } from "@/actions";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { redirect } from "next/navigation";
 
 const fields = [
   "otpInput1",
@@ -25,23 +19,21 @@ const fields = [
   "otpInput4",
   "otpInput5",
   "otpInput6",
-] as const;
+] as const; // with "as const", the type is created behind the scenes, as those exact string values,
+//  rather than just string. This is important so it matches the type of the form data.
 
 export default function EmailVerificationPage() {
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const [userEmail, setUserEmail] = useState("");
+  const userEmail = localStorage.getItem("userEmail") || "";
   const [pasted, setPasted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const otpGenerationTime =
-    Number(getCookie("otpGenerationTimestamp")) || new Date().getTime();
-
-  const [otpTimestampState, setOtpTimestamp] = useState(otpGenerationTime);
+  const [otpRequestTimestamp, setOtpTimestamp] = useState(new Date().getTime());
 
   const expiryDateObj = useMemo(() => {
-    const expiresIn = 60000 * 5; // 5 mins in ms
-    return new Date(otpTimestampState + expiresIn);
-  }, [otpTimestampState]);
+    const expiresIn = 60000; // 5 mins in ms
+    return new Date(otpRequestTimestamp + expiresIn);
+  }, [otpRequestTimestamp]);
 
   const [pageHasMounted, setPageHasMounted] = useState(false);
   const [mins, setMins] = useState("00");
@@ -91,7 +83,29 @@ export default function EmailVerificationPage() {
     }
   };
 
-  const handleOnSubmit = useCallback(async () => {
+  const verifyOtp = async (value: string) => {
+    return await fetch("http://localhost:8080/api/auth/register/verify", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ otp: value }),
+    });
+  };
+
+  const resendOtp = async (email: string) => {
+    return await fetch("http://localhost:8080/api/auth/resend-otp", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+  };
+
+  const handleOnSubmit = async () => {
     const inputContainer = inputContainerRef.current;
     console.log("called handleOnSubmit");
     if (inputContainer) {
@@ -102,17 +116,29 @@ export default function EmailVerificationPage() {
         .join("");
 
       setIsLoading(true);
-      await verifyOtp(userEmail, values);
+      const response = await verifyOtp(values);
       setIsLoading(false);
+
+      if (response.status === 200) {
+        redirect("/dashboard");
+      }
+
+      const error = await response.json();
+
+      setError("root", {
+        message: error.message,
+      });
     }
-  }, [userEmail]);
+  };
 
   const handleResendOtp = async () => {
     setIsLoading(true);
     const response = await resendOtp(userEmail);
     setIsLoading(false);
-    if (response?.message) {
-      setError("root", response.message);
+    if (response.status !== 200) {
+      const error = await response.json();
+
+      setError("root", error.message);
       return;
     }
 
@@ -196,11 +222,7 @@ export default function EmailVerificationPage() {
     if (pasted || isValid) {
       form?.requestSubmit();
     }
-  }, [isValid, pasted, handleOnSubmit, handleSubmit]); // auto-submit
-
-  useEffect(() => {
-    setUserEmail(decodeURIComponent(getCookie("email") || ""));
-  }, []); // get/set user email
+  }, [isValid, pasted]); // auto-submit
 
   return (
     <div className="flex items-center justify-center">

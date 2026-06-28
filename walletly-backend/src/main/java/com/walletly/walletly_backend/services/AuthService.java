@@ -60,12 +60,12 @@ public class AuthService {
 		if (userRepo.existsByEmail(regReqEmail))
 			throw new UserEmailAlreadyExists(regReqEmail);
 		
-//		storeRegSession(id, regInfo);
+		storeRegSession(id, regInfo);
 		
 		String otp = otpService.generateOtp();
 
 		otpService.sendOtp(regReqEmail, otp);
-//		otpService.storeOtp(otp, regReqEmail);
+		otpService.storeOtp(otp, regReqEmail);
 		
 		return id;
 	}
@@ -124,10 +124,13 @@ public class AuthService {
 	}
 	
 	public void storeRegSession (String id, RegistrationRequest regInfo) {
-		PreRegUser user = Mapper.regRequestToPreRegUser(regInfo);
-		user.setId(id);
-		
-		preRegUserRepo.save(user);
+		redisTemplate.opsForValue().set(
+				"otp:userInfo:"+ id,
+				objectMapper.writeValueAsString(regInfo),
+				SESSION_TTL,
+				TimeUnit.MINUTES
+		);
+		redisTemplate.opsForValue().set("otp:sessionId:"+regInfo.getEmail(), id, SESSION_TTL, TimeUnit.MINUTES);
 	}
 	
 	public void resetRegRedisKeys (String id, String email) {

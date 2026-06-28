@@ -7,29 +7,55 @@ import { useState } from "react";
 import Link from "next/link";
 import { loginSchema, LogInType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { ErrorMessage } from "../../components/ErrorMessage";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<LogInType>({ resolver: zodResolver(loginSchema) });
 
-  const handleOnSubmit = () => {
-    console.log("submitting");
-  };
+  const handleOnSubmit = async (data: LogInType) => {
+    const response = await fetch("http://localhost:8080/api/auth/login", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (response.ok) {
+      // eslint-disable-next-line react-hooks/immutability
+      window.location.href = "/dashboard";
+    }
+
+    const errorData = await response.json();
+    if (errorData?.message) {
+      setError("root", {
+        message: errorData.message,
+      });
+    }
+  }; // displaying error message
   return (
     <FormWrapper>
-      <form onSubmit={handleSubmit(handleOnSubmit)}>
-        <div className="mb-5">
+      {isSubmitting && <LoadingSpinner />}
+      <form
+        onSubmit={handleSubmit(handleOnSubmit)}
+        className="px-1 md:px-0 md:space-y-7 space-y-5"
+      >
+        <div className="">
           <p className="text-3xl font-bold">Welcome back!</p>
           <p className="text-gray-400">
             Enter your details to get back to your finances.
           </p>
         </div>
 
-        <div className="flex flex-col md:gap-7 gap-5 mb-10">
+        <div className="flex flex-col md:gap-7 gap-5">
           <div className="input-container w-full">
             <label htmlFor="email" className="input-label">
               Email
@@ -97,7 +123,12 @@ export default function Login() {
           </button>
         </div>
 
-        <p className="mt-10 text-center text-sm text-gray-500 border-t border-border pt-5">
+        <ErrorMessage
+          condition={Boolean(errors.root)}
+          message={errors.root?.message || ""}
+        />
+
+        <p className="mt-5 text-center text-sm text-gray-500 border-t border-border pt-5">
           Don&apos;t have an account?{" "}
           <Link
             href="/auth/register"

@@ -21,7 +21,7 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary-color);
   --color-secondary: var(--secondary-color);
-  --color-border: var(--border-color);
+  --color-border-color: var(--border-color);
   --color-primary-gradient: var(--gradient-primary);
   --font-inter: var(--font-inter);
 }
@@ -35,7 +35,7 @@
 }
 
 .form-input {
-  @apply w-full rounded-xl p-4 outline-0 bg-black/20 ring-2 ring-border focus:ring-2 focus:ring-[#9B4BC2] transition duration-200;
+  @apply w-full rounded-xl p-4 outline-0 bg-black/20 ring-2 ring-border-color focus:ring-2 focus:ring-[#9B4BC2] transition duration-200;
 }
 
 body {
@@ -46,7 +46,7 @@ body {
 
 .form-wrapper,
 .form-wrapper2 {
-  @apply md:rounded-4xl md:border border-border overflow-clip relative md:bg-gray-700/10 md:px-10 md:py-12 p-0;
+  @apply md:rounded-4xl md:border overflow-clip relative md:bg-gray-700/10 md:px-10 md:py-12 px-0 pt-[10%] border-border-color;
 }
 
 .form-wrapper::after {
@@ -102,7 +102,7 @@ body {
 }
 
 .otp-input {
-  @apply border-2 border-border rounded-lg md:size-13 size-12 text-center text-xl font-bold focus:border-primary outline-0 transition-colors duration-300;
+  @apply border-2 border-border-color rounded-lg md:size-13 size-12 text-center text-xl font-bold focus:border-primary outline-0 transition-colors duration-300;
 }
 
 .input-error-text {

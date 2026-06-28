@@ -3,7 +3,7 @@
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { MultipleFieldErrors, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { PasswordListItem } from "@/components/PasswordStrengthListItem";
 import { passwordCriteria } from "@/data";
 import { SignupFormType, signupSchema } from "@/types";
@@ -11,11 +11,13 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import Link from "next/link";
 import { FormWrapper } from "../../components/FormWrapper";
 import { redirect } from "next/navigation";
+import { ErrorMessage } from "../../components/ErrorMessage";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isTouched, setIsTouched] = useState(false);
+  const errMsgRef = useRef<HTMLDivElement | null>(null);
 
   const {
     register,
@@ -29,8 +31,10 @@ export default function Signup() {
   });
 
   useEffect(() => {
-    console.log(isSubmitting);
-  }, [isSubmitting]);
+    if (errMsgRef.current && errors.root) {
+      errMsgRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [errors.root]);
 
   const passwordMeetsCriteria = (criteria: string) => {
     if (!isTouched) return false;
@@ -78,13 +82,14 @@ export default function Signup() {
       <FormWrapper>
         <form
           action=""
-          className="flex flex-col md:gap-7 gap-5"
+          className="flex flex-col md:gap-7 gap-5 md:px-0 px-1"
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="mb-3">
             <p className="text-3xl font-bold">Create Account</p>
             <p className="text-gray-400">Sign up in seconds to get started</p>
           </div>
+
           <div className="flex md:flex-row justify-between gap-x-4 gap-y-8">
             <div className="input-container w-full">
               <label htmlFor="first name" className="input-label">
@@ -228,13 +233,12 @@ export default function Signup() {
             </button>
           </div>
 
-          {errors.root && (
-            <p className="input-error-type text-red-500 text-center text-sm">
-              {errors.root.message}
-            </p>
-          )}
+          <ErrorMessage
+            condition={Boolean(errors.root)}
+            message={errors.root?.message || ""}
+          />
 
-          <p className="mt-2 text-center text-sm text-gray-500 border-t border-border pt-5">
+          <p className="mt-2 text-center text-sm border-t border-border-color pt-5 w-[80%] self-center">
             Already have an account?{" "}
             <Link
               href="/auth/login"

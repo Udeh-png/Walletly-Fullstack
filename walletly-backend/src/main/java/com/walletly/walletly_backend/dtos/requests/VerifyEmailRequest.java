@@ -6,10 +6,6 @@ import org.hibernate.validator.constraints.Length;
 
 @Data
 public class VerifyEmailRequest {
-	
-	@NotBlank
-	private String id;
-	
 	@NotBlank
 	@Length(min = 6, max = 6)
 	private String otp;
