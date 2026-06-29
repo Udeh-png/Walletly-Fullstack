@@ -39,9 +39,9 @@ export const AuthLeftSide = () => {
           animate={{ translateX: 0, opacity: 1 }}
           transition={{ type: "tween", delay: 0.5 }}
         >
-          <div className="size-10 border-3 border-border rounded-full -mr-3 bg-red-500" />
-          <div className="size-10 border-3 border-border rounded-full -mr-3 bg-green-500" />
-          <div className="size-10 border-3 border-border rounded-full -mr-3 bg-blue-500" />
+          <div className="size-10 border-3 border-border-color rounded-full -mr-3 bg-red-500" />
+          <div className="size-10 border-3 border-border-color rounded-full -mr-3 bg-green-500" />
+          <div className="size-10 border-3 border-border-color rounded-full -mr-3 bg-blue-500" />
         </motion.div>
 
         <motion.p

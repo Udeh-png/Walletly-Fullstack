@@ -7,8 +7,6 @@ import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
 import com.walletly.walletly_backend.exceptions.SessionNotFoundException;
 import com.walletly.walletly_backend.exceptions.UserEmailAlreadyExists;
-import com.walletly.walletly_backend.modals.PreRegUser;
-import com.walletly.walletly_backend.repos.PreRegUserRepo;
 import com.walletly.walletly_backend.security.MyUserDetails;
 import com.walletly.walletly_backend.modals.User;
 import com.walletly.walletly_backend.repos.UserRepo;
@@ -23,7 +21,6 @@ import tools.jackson.core.JsonParser;
 import tools.jackson.databind.ObjectMapper;
 
 import javax.security.auth.login.AccountLockedException;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -37,11 +34,6 @@ public class AuthService {
 	
 	@Autowired
 	UserRepo userRepo;
-	@Autowired
-	PreRegUserRepo preRegUserRepo;
-	
-	@Autowired
-	JwtService jwtService;
 	@Autowired
 	BCryptPasswordEncoder passwordEncoder;
 	@Autowired
@@ -59,6 +51,8 @@ public class AuthService {
 		
 		if (userRepo.existsByEmail(regReqEmail))
 			throw new UserEmailAlreadyExists(regReqEmail);
+		
+		regInfo.setPassword(Objects.requireNonNull(passwordEncoder.encode(regInfo.getPassword())));
 		
 		storeRegSession(id, regInfo);
 		
@@ -80,8 +74,6 @@ public class AuthService {
 		
 		otpService.verifyOtp(otp, userEmail);
 		
-		user.setPassword(Objects.requireNonNull(passwordEncoder.encode(user.getPassword())));
-		
 		user.setCreatedAt(LocalDateTime.now());
 		
 		userRepo.save(user);
@@ -102,21 +94,21 @@ public class AuthService {
 		return Mapper.userToUserResponse(userDetails.getUser());
 	}
 	
-	public void resendOtp (String email) throws ResendException, AccountLockedException {
-		String regId = getRegId(email);
+	public void resendOtp (String id) throws ResendException, AccountLockedException {
+		RegistrationRequest regInfo = getRegInfo(id);
 		
-		if (regId == null) throw new SessionNotFoundException();
+		if (regInfo == null) throw new SessionNotFoundException();
 		
+		String email = regInfo.getEmail();
 		String otp = otpService.generateOtp();
 		
 		try {
 			otpService.sendOtp(email, otp);
 		} catch (AccountLockedException e) {
-			otpService.storeOtp(otp, email);
 			throw new AccountLockedException(e.getMessage());
+		}finally {
+			otpService.storeOtp(otp, email);
 		}
-		
-		otpService.storeOtp(otp, email);
 	}
 	
 	public String generateId () {

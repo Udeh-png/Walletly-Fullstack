@@ -18,6 +18,7 @@ export default function Signup() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isTouched, setIsTouched] = useState(false);
   const errMsgRef = useRef<HTMLDivElement | null>(null);
+  const [, setTime] = useState<string | null>(null);
 
   const {
     register,
@@ -66,6 +67,12 @@ export default function Signup() {
     );
 
     if (response.status === 200) {
+      localStorage.setItem("userEmail", data.email);
+      setTime(() => {
+        const time = new Date().getTime().toString();
+        localStorage.setItem("otpRequestTimestamp", time || "0");
+        return time;
+      });
       redirect("/email-verification");
     }
 

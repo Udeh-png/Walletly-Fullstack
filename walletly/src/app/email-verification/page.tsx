@@ -5,12 +5,11 @@ import { otpInputSchema, OtpInputType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import { FaStopwatch } from "react-icons/fa6";
 import { IoIosMailUnread } from "react-icons/io";
 import { motion } from "framer-motion";
-import { getCookie } from "@/utilities";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { redirect } from "next/navigation";
+import { ErrorMessage } from "../auth/components/ErrorMessage";
 
 const fields = [
   "otpInput1",
@@ -25,14 +24,14 @@ const fields = [
 export default function EmailVerificationPage() {
   const inputContainerRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const userEmail = localStorage.getItem("userEmail") || "";
   const [pasted, setPasted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [otpRequestTimestamp, setOtpTimestamp] = useState(new Date().getTime());
+  const [otpRequestTimestamp, setOtpTimestamp] = useState<number>();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   const expiryDateObj = useMemo(() => {
     const expiresIn = 60000; // 5 mins in ms
-    return new Date(otpRequestTimestamp + expiresIn);
+    return new Date((otpRequestTimestamp || 0) + expiresIn);
   }, [otpRequestTimestamp]);
 
   const [pageHasMounted, setPageHasMounted] = useState(false);
@@ -94,14 +93,12 @@ export default function EmailVerificationPage() {
     });
   };
 
-  const resendOtp = async (email: string) => {
+  const resendOtp = async () => {
     return await fetch("http://localhost:8080/api/auth/resend-otp", {
-      method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email }),
     });
   };
 
@@ -120,6 +117,8 @@ export default function EmailVerificationPage() {
       setIsLoading(false);
 
       if (response.status === 200) {
+        localStorage.removeItem("userEmail");
+        localStorage.removeItem("otpRequestTimestamp");
         redirect("/dashboard");
       }
 
@@ -133,18 +132,25 @@ export default function EmailVerificationPage() {
 
   const handleResendOtp = async () => {
     setIsLoading(true);
-    const response = await resendOtp(userEmail);
+    const response = await resendOtp();
+
+    setOtpTimestamp(new Date().getTime());
+
+    localStorage.setItem(
+      "otpRequestTimestamp",
+      new Date().getTime().toString(),
+    );
+
     setIsLoading(false);
+
     if (response.status !== 200) {
       const error = await response.json();
 
-      setError("root", error.message);
+      setError("root", {
+        message: error.message,
+      });
       return;
     }
-
-    const otpTimestamp =
-      Number(getCookie("otpGenerationTimestamp")) || new Date().getTime();
-    setOtpTimestamp(otpTimestamp);
     setExpired(false);
   };
 
@@ -154,6 +160,18 @@ export default function EmailVerificationPage() {
     };
     change();
   }, []); // set page mounted
+
+  useEffect(() => {
+    const otpRequestTimestamp = localStorage.getItem("otpRequestTimestamp");
+    if (otpRequestTimestamp) {
+      setOtpTimestamp(Number(otpRequestTimestamp));
+    }
+    const userEmail =
+      localStorage.getItem("userEmail") || "You shouldn't be here";
+    if (userEmail) {
+      setUserEmail(userEmail);
+    }
+  }, []); // get otpRequestTimestamp and userEmail from localStorage
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -284,11 +302,6 @@ export default function EmailVerificationPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-1 justify-center text-white/70 text-sm -mt-5">
-            <FaStopwatch />
-            <p>{`${mins}:${secs}`}</p>
-          </div>
-
           <div className="">
             <input
               type="submit"
@@ -297,20 +310,23 @@ export default function EmailVerificationPage() {
               disabled={!pageHasMounted}
             />
           </div>
+
+          <ErrorMessage
+            condition={!!errors.root}
+            message={errors.root?.message || ""}
+          />
         </form>
 
-        <p className="text-center text-white/70 md:font-light font-normal mt-7">
+        <p className="text-center text-white/70 md:font-light font-normal mt-5">
           Didn&apos;t recieve the code?{" "}
           <button
-            className="text-primary font-semibold disabled:cursor-not-allowed disabled:line-through disabled:text-gray-600 transition-all cursor-pointer"
+            className="text-primary font-semibold disabled:cursor-not-allowed disabled:text-gray-600 transition-all cursor-pointer text-sm"
             disabled={!expired}
             onClick={handleResendOtp}
           >
-            Resend Code
+            Resend Code {!expired && `${mins}:${secs}`}
           </button>
         </p>
-
-        {errors.root && <p>{errors.root.message}</p>}
       </div>
 
       {isLoading && <LoadingSpinner />}

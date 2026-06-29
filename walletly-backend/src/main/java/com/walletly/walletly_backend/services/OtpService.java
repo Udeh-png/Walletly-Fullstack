@@ -9,10 +9,11 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.security.auth.login.AccountLockedException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service()
@@ -34,12 +35,33 @@ public class OtpService {
 		return String.valueOf(otpInt);
 	}
 	
+	private String encodeOtp (String otp, String salt) {
+		MessageDigest digest = null;
+		try {
+			digest = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+		
+		String saltedOtp = otp + salt;
+		
+		byte[] hash = digest.digest(saltedOtp.getBytes(StandardCharsets.UTF_8));
+		
+		return Base64.getEncoder().encodeToString(hash);
+	}
+	
 	public void storeOtp(String otp, String email) {
-		redisTemplate.opsForValue().set("otp:code:"+email,otp, OTP_TTL, TimeUnit.MINUTES);
+		String salt = UUID.randomUUID().toString();
+		
+		String encodedOtp = encodeOtp(otp, salt);
+		
+		redisTemplate.opsForValue().set("otp:code:"+email,encodedOtp, OTP_TTL, TimeUnit.MINUTES);
+		redisTemplate.opsForValue().set("otp:salt:"+email,salt, OTP_TTL, TimeUnit.MINUTES);
 	}
 	
 	public void invalidateOtp (String email) {
 		redisTemplate.delete("otp:code:"+email);
+		redisTemplate.delete("otp:salt:"+email);
 	}
 	
 	public void resetCounter (String counterKey) {
@@ -49,9 +71,11 @@ public class OtpService {
 	public void resetRedisOtpKeys(String email) {
 		redisTemplate.delete(List.of(
 				"otp:code:" + email,
+				"otp:salt:" + email,
 				"otp:attempts:" + email,
 				"otp:requests:" + email,
-				"otp:requests:cooldown:" + email)
+				"otp:requests:cooldown:" + email
+				)
 		);
 	}
 	
@@ -127,7 +151,10 @@ public class OtpService {
 		
 		if (storedOtp == null) throw new OtpHasExpiredException();
 		
-		if (!storedOtp.equals(sentOtp)) {
+		String salt = redisTemplate.opsForValue().get("otp:salt:" + email);
+		String encodedSentOtp = encodeOtp(sentOtp, salt);
+		
+		if (!storedOtp.equals(encodedSentOtp)) {
 			throw new OtpMissMatchException();
 		}
 	}

@@ -40,7 +40,7 @@ public class AuthController {
 				.httpOnly(true)
 				.secure(false)
 				.path("/")
-				.maxAge(7 * 24 * 60 * 60)
+				.maxAge(30 * 60)
 				.sameSite("Lax")
 				.build();
 		
@@ -74,8 +74,10 @@ public class AuthController {
 	
 	@GetMapping("/resend-otp")
 	public ResponseEntity<?> resendOtp (HttpServletRequest request) throws ResendException, AccountLockedException {
-		Cookie idCookie = WebUtils.getCookie(request, "reqId");
-		assert idCookie != null;
+		Cookie idCookie = WebUtils.getCookie(request, "regId");
+		
+		if (idCookie == null) throw new SessionNotFoundException();
+		
 		authService.resendOtp(idCookie.getValue());
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
