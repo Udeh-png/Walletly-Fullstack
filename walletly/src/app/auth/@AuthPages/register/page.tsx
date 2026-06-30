@@ -85,7 +85,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="">
+    <div className="lg:mt-0 mt-5">
       <FormWrapper>
         <form
           action=""
@@ -93,7 +93,7 @@ export default function Signup() {
           onSubmit={handleSubmit(onSubmit)}
         >
           <div className="mb-3">
-            <p className="text-3xl font-bold">Create Account</p>
+            <p className="text-3xl font-bold">Create Your Account</p>
             <p className="text-gray-400">Sign up in seconds to get started</p>
           </div>
 

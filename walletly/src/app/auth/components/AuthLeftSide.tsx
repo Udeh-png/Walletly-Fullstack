@@ -1,18 +1,23 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import { motion } from "framer-motion";
+import { usePathname } from "next/navigation";
 
 export const AuthLeftSide = () => {
+  const path = usePathname();
+  console.log(path);
   return (
-    <div className="lg:flex hidden items-start flex-col gap-6">
+    <div className="flex items-start flex-col gap-6">
       <motion.div
         initial={{ translateY: 100, opacity: 0 }}
         animate={{ translateY: 0, opacity: 1 }}
         transition={{ type: "tween" }}
+        className="relative"
       >
+        <div className="absolute size-full rounded-full blur-2xl top-0 bg-primary/30 -z-10" />
         <img src="/images/logo.png" alt="" className="md:max-w-80 max-w-40" />
       </motion.div>
-      <div className="">
+      <div className={`${path === "/auth/login" ? "lg:block hidden" : ""}`}>
         <motion.p
           className="text-5xl font-bold"
           initial={{ translateY: 100, opacity: 0 }}
@@ -32,7 +37,9 @@ export const AuthLeftSide = () => {
         </motion.p>
       </div>
 
-      <div className="flex items-center gap-5">
+      <div
+        className={`flex items-center gap-5 ${path === "/auth/login" ? "lg:block hidden" : ""}`}
+      >
         <motion.div
           className="flex"
           initial={{ translateX: -100, opacity: 0 }}
@@ -45,7 +52,7 @@ export const AuthLeftSide = () => {
         </motion.div>
 
         <motion.p
-          className="text-sm font-semibold text-gray-500"
+          className={`text-sm font-semibold text-gray-500`}
           initial={{ translateX: 100, opacity: 0 }}
           animate={{ translateX: 0, opacity: 1 }}
           transition={{ type: "tween", delay: 0.5 }}
