@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+// @ts-expect-error: CSS module side-effect import
 import "./globals.css";
 
 const inter = Inter({
@@ -20,7 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} antialiased overflow-x-hidden pt-5`}>
+      <body
+        className={`${inter.variable} antialiased overflow-x-hidden md:p-5 p-3`}
+      >
         {children}
       </body>
     </html>

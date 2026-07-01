@@ -17,7 +17,7 @@ export const proxy = async (req: NextRequest) => {
     const accessToken = (await cookies()).get("ACCESS_TOKEN");
     const refreshToken = (await cookies()).get("REFRESH_TOKEN");
     if (!accessToken || !refreshToken) {
-      return NextResponse.redirect(new URL("/auth/login", req.url));
+      // return NextResponse.redirect(new URL("/auth/login", req.url));
     }
   }
 
