@@ -1,4 +1,11 @@
-import { FaEye, FaPlus } from "react-icons/fa6";
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable jsx-a11y/alt-text */
+import {
+  FaChevronRight,
+  FaEllipsisVertical,
+  FaEye,
+  FaPlus,
+} from "react-icons/fa6";
 import {
   LuBell,
   LuHistory,
@@ -74,29 +81,26 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="bg-[#15141f] w-[full] rounded-3xl md:p-7 p-3 h-fit">
+        <div className="bg-[#15141f] w-[full] rounded-3xl md:p-7 p-3 h-fit border-[rgba(155,75,194,0.7)]">
           <div className="flex justify-between items-center">
             <h3 className="md:text-2xl text-xl font-semibold">
               Payment Methods
             </h3>
 
-            <div className="flex items-center md:gap-x-4 gap-x-2.5">
-              <p className="text-sm text-primary">View All</p>
-
-              <div className="bg-[#0d0d16] border border-[rgba(155,75,194,0.7)] rounded-full p-2">
-                <FaPlus className="text-xl" />
-              </div>
+            <div className="bg-[#0d0d16] border border-[rgba(155,75,194,0.7)] rounded-full p-1.5">
+              <FaPlus className="text-xl" />
             </div>
           </div>
 
-          <div className="md:mt-8 mt-4 flex flex-col md:gap-y-4 gap-y-2">
-            <div className="flex gap-x-4 md:px-4 px-2 py-3 relative">
-              <p className="absolute bg-primary font-semibold rounded-full px-3 py-1 md:text-sm text-xs text-white/80 right-4 md:top-3 top-0">
-                Default
-              </p>
-              <div className="w-12 h-8 rounded border border-[rgba(155,75,194,0.7)]" />
+          <div className="md:mt-8 mt-4 flex flex-col md:gap-y-8 gap-y-8">
+            <div className="flex gap-x-4 relative items-start">
+              <FaEllipsisVertical className="absolute top-1 right-0" />
+              <img src={"/images/visa.svg"} className="size-11" />
               <div className="">
-                <p className="text-sm text-[rgba(255,255,255,0.8)]">Visa</p>
+                <div className="flex items-center gap-x-2">
+                  <p className="text-[rgba(255,255,255,0.8)]">Visa</p>
+                  <p className="text-primary font-semibold text-xs">Default</p>
+                </div>
                 <p className="font-semibold text-white/90 text-lg">
                   **** **** **** 1234
                 </p>
@@ -106,20 +110,14 @@ export default function Page() {
                   </span>{" "}
                   <span className="text-white/90 font-semibold">12/24</span>
                 </p>
-
-                <div className="flex gap-x-4 mt-2 text-sm">
-                  <button>Edit</button>
-                  <button className="">Delete</button>
-                </div>
               </div>
             </div>
 
-            <div className="flex gap-x-4 md:px-4 px-2 py-3 relative">
-              <div className="w-12 h-8 rounded border border-[rgba(155,75,194,0.7)]" />
+            <div className="flex gap-x-4 relative items-start">
+              <FaEllipsisVertical className="absolute top-1 right-0" />
+              <img src={"/images/mastercard.svg"} className="size-11" />
               <div className="">
-                <p className="text-sm text-[rgba(255,255,255,0.8)]">
-                  Mastercard
-                </p>
+                <p className="text-[rgba(255,255,255,0.8)]">Mastercard</p>
                 <p className="font-semibold text-white/90 text-lg">
                   **** **** **** 5678
                 </p>
@@ -129,13 +127,13 @@ export default function Page() {
                   </span>{" "}
                   <span className="text-white/90 font-semibold">11/25</span>
                 </p>
-
-                <div className="flex gap-x-4 mt-2 text-sm text-white/80">
-                  <button>Edit</button>
-                  <button className="">Delete</button>
-                </div>
               </div>
             </div>
+          </div>
+
+          <div className="text-sm text-primary flex items-center gap-x-2 md:mt-7 mt-5 cursor-pointer justify-self-end">
+            <p className="">View All</p>
+            <FaChevronRight className="text-xs" />
           </div>
         </div>
       </div>
