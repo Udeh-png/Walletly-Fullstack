@@ -16,7 +16,7 @@ import {
 export default function Page() {
   return (
     <div>
-      <div className="grid lg:grid-cols-[1.3fr_1fr] min-[900px]:grid-cols-2 md:gap-4 gap-4">
+      <div className="grid min-[1170px]:grid-cols-[1.3fr_1fr] md:gap-4 gap-4">
         <div className="bg-[linear-gradient(to_bottom,var(--primary-color),#0d0d1a)] w-[full] rounded-3xl md:p-7 p-3 relative min-h-fit flex flex-col justify-between gap-y-7">
           <div className="flex justify-between items-center">
             <div className="flex items-center md:gap-x-4 gap-x-2">
