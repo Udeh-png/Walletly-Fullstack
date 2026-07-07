@@ -9,9 +9,9 @@ import { passwordCriteria } from "@/data";
 import { SignupFormType, signupSchema } from "@/types";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import Link from "next/link";
-import { FormWrapper } from "../../../../components/auth/FormWrapper";
 import { redirect } from "next/navigation";
-import { ErrorMessage } from "../../../../components/auth/ErrorMessage";
+import { FormWrapper } from "@/components/auth/FormWrapper";
+import { ErrorMessage } from "@/components/auth/ErrorMessage";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);

@@ -1,4 +1,4 @@
-import { AuthLeftSide } from "../../components/auth/AuthLeftSide";
+import { AuthLeftSide } from "@/components/auth/AuthLeftSide";
 
 export default function Layout({
   children,
@@ -15,7 +15,7 @@ export default function Layout({
         {children}
 
         <div className="pr-1">
-          <AuthLeftSide></AuthLeftSide>
+          <AuthLeftSide />
         </div>
 
         <div>{AuthPages}</div>

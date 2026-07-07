@@ -9,7 +9,7 @@ import { IoIosMailUnread } from "react-icons/io";
 import { motion } from "framer-motion";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { redirect } from "next/navigation";
-import { ErrorMessage } from "../../../components/auth/ErrorMessage";
+import { ErrorMessage } from "@/components/auth/ErrorMessage";
 
 const fields = [
   "otpInput1",
