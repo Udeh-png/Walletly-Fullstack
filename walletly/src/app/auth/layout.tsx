@@ -1,4 +1,4 @@
-import { AuthLeftSide } from "./components/AuthLeftSide";
+import { AuthLeftSide } from "../../components/auth/AuthLeftSide";
 
 export default function Layout({
   children,

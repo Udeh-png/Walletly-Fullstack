@@ -4,14 +4,14 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { MultipleFieldErrors, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect, useRef } from "react";
-import { PasswordListItem } from "@/components/PasswordStrengthListItem";
+import { PasswordListItem } from "@/components/auth/PasswordStrengthListItem";
 import { passwordCriteria } from "@/data";
 import { SignupFormType, signupSchema } from "@/types";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import Link from "next/link";
-import { FormWrapper } from "../../components/FormWrapper";
+import { FormWrapper } from "../../../../components/auth/FormWrapper";
 import { redirect } from "next/navigation";
-import { ErrorMessage } from "../../components/ErrorMessage";
+import { ErrorMessage } from "../../../../components/auth/ErrorMessage";
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);

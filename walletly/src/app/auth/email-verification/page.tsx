@@ -7,9 +7,9 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { IoIosMailUnread } from "react-icons/io";
 import { motion } from "framer-motion";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { redirect } from "next/navigation";
-import { ErrorMessage } from "../auth/components/ErrorMessage";
+import { ErrorMessage } from "../../../components/auth/ErrorMessage";
 
 const fields = [
   "otpInput1",

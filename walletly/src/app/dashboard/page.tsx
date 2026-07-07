@@ -1,6 +1,6 @@
-import { BalanceSection } from "@/components/dashboard/balance-section";
-import { PaymentMethodsSection } from "@/components/dashboard/payment_methods-section";
-import { QuickActionsSection } from "@/components/dashboard/quick_actions-section";
+import { BalanceSection } from "@/sections/dashboard/balance-section";
+import { PaymentMethodsSection } from "@/sections/dashboard/payment_methods-section";
+import { QuickActionsSection } from "@/sections/dashboard/quick_actions-section";
 
 export default function Page() {
   return (
