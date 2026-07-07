@@ -1,19 +1,7 @@
-/* eslint-disable jsx-a11y/alt-text */
-/* eslint-disable @next/next/no-img-element */
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 // @ts-expect-error: CSS module side-effect import
 import "./globals.css";
-import {
-  LuBell,
-  LuChartArea,
-  LuCircleHelp,
-  LuHistory,
-  LuLayoutDashboard,
-  LuLogOut,
-  LuSettings,
-} from "react-icons/lu";
-import { CiCreditCard1 } from "react-icons/ci";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,83 +24,7 @@ export default function RootLayout({
       <body
         className={`${inter.variable} antialiased overflow-x-hidden md:p-5 p-3`}
       >
-        <div className="flex">
-          <div className="md:block hidden h-screen w-70 fixed top-0 left-0 bg-[rgba(21,20,31,0.5)] py-5 px-3">
-            <div className="flex items-center gap-x-3">
-              <img src={"/images/logo.png"} className="w-8" />
-              <p className="text-lg font-semibold">Walletly</p>
-            </div>
-
-            <div className="mt-7">
-              <p className="text-sm text-white/60">Menu</p>
-
-              <ul className="flex flex-col gap-y-2 mt-1">
-                <li>
-                  <div className="flex items-center gap-x-2 text-white/90 overflow-clip font-semibold bg-white/10 p-2 relative rounded-lg after:content-[''] after:absolute after:top-1/2 after:-translate-y-1/2 after:-left-0.5 after:w-1 after:h-[70%] after:bg-primary after:rounded-full">
-                    <LuLayoutDashboard className="text-lg" />
-                    <p className="">Dashboard</p>
-                  </div>
-                </li>
-
-                <li>
-                  <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
-                    <LuHistory className="text-lg" />
-                    <p className="">Transactions</p>
-                  </div>
-                </li>
-
-                <li>
-                  <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
-                    <CiCreditCard1 className="text-xl" />
-                    <p className="">Payment methods</p>
-                  </div>
-                </li>
-
-                <li>
-                  <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
-                    <LuBell className="text-lg" />
-                    <p className="">Notifications</p>
-                  </div>
-                </li>
-
-                <li>
-                  <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
-                    <LuChartArea className="text-lg" />
-                    <p className="">Analytics</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-
-            <div className="mt-7">
-              <p className="text-sm text-white/60">My Account</p>
-
-              <ul className="flex flex-col gap-y-2 mt-1">
-                <li>
-                  <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
-                    <LuSettings className="text-lg" />
-                    <p className="">Settings</p>
-                  </div>
-                </li>
-
-                <li>
-                  <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
-                    <LuCircleHelp className="text-lg" />
-                    <p className="">Help desk</p>
-                  </div>
-                </li>
-
-                <li>
-                  <div className="flex items-center gap-x-2 overflow-clip p-2 text-red-500">
-                    <LuLogOut className="text-lg" />
-                    <p className="">Logout</p>
-                  </div>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="w-full md:ml-69">{children}</div>
-        </div>
+        {children}
       </body>
     </html>
   );

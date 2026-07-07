@@ -38,7 +38,7 @@ export const AuthLeftSide = () => {
       </div>
 
       <div
-        className={`flex items-center gap-5 ${path === "/auth/login" ? "lg:block hidden" : ""}`}
+        className={`flex items-center gap-5 ${path === "/auth/login" ? "lg:flex hidden" : ""}`}
       >
         <motion.div
           className="flex"
