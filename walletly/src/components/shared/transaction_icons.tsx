@@ -1,7 +1,7 @@
 import { FaPaperPlane, FaWifi } from "react-icons/fa6";
 import { GoPlusCircle } from "react-icons/go";
 import { HiArrowDownTray } from "react-icons/hi2";
-import { LuReceiptText, LuSquareArrowOutUpRight } from "react-icons/lu";
+import { LuCalendarClock, LuReceiptText } from "react-icons/lu";
 
 export const TransferIcon = () => {
   return (
@@ -19,10 +19,10 @@ export const DepositIcon = () => {
   );
 };
 
-export const WithdrawIcon = () => {
+export const SchedulePaymentIcon = () => {
   return (
     <div className="bg-pink-500/10 w-fit rounded-lg p-3 max-[580]:p-2 flex items-center justify-center text-pink-500">
-      <LuSquareArrowOutUpRight className="text-xl" />
+      <LuCalendarClock className="text-xl" />
     </div>
   );
 };

@@ -4,7 +4,7 @@ import {
   BillsIcon,
   ReceiveIcon,
   TransferIcon,
-  WithdrawIcon,
+  SchedulePaymentIcon,
 } from "@/components/shared/transaction_icons";
 import { FaArrowRight } from "react-icons/fa6";
 
@@ -17,13 +17,7 @@ const quickActions = [
   {
     Icon: TransferIcon,
     name: "Transfer",
-    subTitle: "To wallet",
-  },
-
-  {
-    Icon: WithdrawIcon,
-    name: "Withdraw",
-    subTitle: "To any bank",
+    subTitle: "Start a transfer",
   },
 
   {
@@ -42,6 +36,12 @@ const quickActions = [
     Icon: AirtimeIcon,
     name: "Buy Airtime",
     subTitle: "Top up mobile",
+  },
+
+  {
+    Icon: SchedulePaymentIcon,
+    name: "Auto Pay",
+    subTitle: "Plan payments",
   },
 ];
 

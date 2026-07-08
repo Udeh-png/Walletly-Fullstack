@@ -1,5 +1,5 @@
-import { FaEye, FaRegCopy } from "react-icons/fa6";
-import { LuCirclePlus, LuSquareArrowOutUpRight } from "react-icons/lu";
+import { FaEye, FaPaperPlane, FaRegCopy } from "react-icons/fa6";
+import { LuCirclePlus } from "react-icons/lu";
 
 export const BalanceSection = () => {
   return (
@@ -28,8 +28,8 @@ export const BalanceSection = () => {
         </button>
 
         <button className="bg-primary text-white px-4 sm:px-6 py-2.5 rounded-lg flex items-center justify-center w-full sm:w-auto">
-          <LuSquareArrowOutUpRight className="text-xl mr-3 align-middle" />
-          <span>Withdraw</span>
+          <FaPaperPlane className="mr-3 align-middle" />
+          <span>Send Money</span>
         </button>
       </div>
     </section>
