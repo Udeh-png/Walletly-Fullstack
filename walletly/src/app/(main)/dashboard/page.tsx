@@ -1,6 +1,7 @@
 import { BalanceSection } from "@/sections/dashboard/balance-section";
 import { PaymentMethodsSection } from "@/sections/dashboard/payment_methods-section";
 import { QuickActionsSection } from "@/sections/dashboard/quick_actions-section";
+import { RecentTransactions } from "@/sections/dashboard/recent_transactions-section";
 
 export default function Page() {
   return (
@@ -19,6 +20,8 @@ export default function Page() {
 
         <PaymentMethodsSection />
       </div>
+
+      <RecentTransactions />
     </div>
   );
 }

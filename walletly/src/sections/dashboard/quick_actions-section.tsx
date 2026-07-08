@@ -1,54 +1,47 @@
-import { FaArrowRight, FaPaperPlane, FaWifi } from "react-icons/fa6";
-import { GoPlusCircle } from "react-icons/go";
-import { HiArrowDownTray } from "react-icons/hi2";
-import { LuReceiptText, LuSquareArrowOutUpRight } from "react-icons/lu";
+import {
+  AirtimeIcon,
+  DepositIcon,
+  BillsIcon,
+  ReceiveIcon,
+  TransferIcon,
+  WithdrawIcon,
+} from "@/components/shared/transaction_icons";
+import { FaArrowRight } from "react-icons/fa6";
 
 const quickActions = [
   {
-    Icon: GoPlusCircle,
+    Icon: DepositIcon,
     name: "Add Money",
     subTitle: "Top up wallet",
-    iconBackground: "bg-primary/10",
-    iconTextColor: "text-primary",
   },
   {
-    Icon: FaPaperPlane,
+    Icon: TransferIcon,
     name: "Transfer",
     subTitle: "To wallet",
-    iconBackground: "bg-green-500/10",
-    iconTextColor: "text-green-500",
   },
 
   {
-    Icon: LuSquareArrowOutUpRight,
+    Icon: WithdrawIcon,
     name: "Withdraw",
     subTitle: "To any bank",
-    iconBackground: "bg-pink-500/10",
-    iconTextColor: "text-pink-500",
   },
 
   {
-    Icon: HiArrowDownTray,
+    Icon: ReceiveIcon,
     name: "Receive",
     subTitle: "Share acc info",
-    iconBackground: "bg-blue-500/10",
-    iconTextColor: "text-blue-500",
   },
 
   {
-    Icon: LuReceiptText,
+    Icon: BillsIcon,
     name: "Pay Bills",
     subTitle: "Pay utility bills",
-    iconBackground: "bg-yellow-500/10",
-    iconTextColor: "text-yellow-500",
   },
 
   {
-    Icon: FaWifi,
+    Icon: AirtimeIcon,
     name: "Buy Airtime",
     subTitle: "Top up mobile",
-    iconBackground: "bg-blue-500/10",
-    iconTextColor: "text-blue-500",
   },
 ];
 
@@ -57,17 +50,13 @@ export const QuickActionsSection = () => {
     <section className="border-2 border-white/10 rounded-2xl p-4 sm:p-5 mt-5">
       <h3 className="text-xl font-semibold">Quick Actions</h3>
 
-      <div className="mt-4 sm:mt-5 grid grid-cols-3 max-[1285px]:grid-cols-3 gap-3 sm:gap-x-3 sm:gap-y-4 max-[580]:gap-y-">
+      <div className="mt-4 sm:mt-5 grid grid-cols-3 max-[1285px]:grid-cols-3 gap-3 sm:gap-x-3 sm:gap-y-4">
         {quickActions.map((action, i) => (
           <div
             className="max-[580]:border-2 border-2 border-white/10 rounded-lg p-3 flex max-[580]:flex-col items-center justify-start gap-3 cursor-pointer hover:bg-[rgba(21,20,31,0.7)] transition-all max-[580]:px-0 max-[580]:py-2"
             key={i}
           >
-            <div
-              className={`${action.iconBackground} rounded-lg p-3 max-[580]:p-2 flex items-center justify-center ${action.iconTextColor}`}
-            >
-              <action.Icon className="text-xl" />
-            </div>
+            <action.Icon />
             <div className="flex flex-col items-start max-[580]:items-center">
               <p className="text-sm">{action.name}</p>
               <p className="max-[580]:hidden text-xs text-white/65 mt-1">
