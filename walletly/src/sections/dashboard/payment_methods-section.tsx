@@ -4,7 +4,7 @@ import { FaChevronRight, FaEllipsisVertical, FaPlus } from "react-icons/fa6";
 
 export const PaymentMethodsSection = () => {
   return (
-    <div className="border-2 border-white/10 rounded-2xl p-4 sm:p-5 mt-5">
+    <section className="border-2 border-white/10 rounded-2xl p-4 sm:p-5 mt-5">
       <div className="flex justify-between">
         <h3 className="text-xl font-semibold">Payment Methods</h3>
 
@@ -51,6 +51,6 @@ export const PaymentMethodsSection = () => {
           <p>Add Payment Method</p>
         </div>
       </div>
-    </div>
+    </section>
   );
 };
