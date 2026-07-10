@@ -28,15 +28,25 @@ export default function Page() {
       <RecentTransactions />
 
       <div className="grid min-[955]:grid-cols-[1fr_1.5fr] gap-5 mt-5">
-        <div className="flex flex-col gap-y-5 justify-center">
-          <MoneyFlowCard
-            change={12.8}
-            figure={120_000}
-            state="good"
-            type="In"
-          />
+        <div className="flex flex-col justify-end gap-y-3">
+          <h3 className="text-xl font-semibold mb-1">
+            Capital Flow & Liquidity
+          </h3>
+          <div className="flex flex-col gap-y-5">
+            <MoneyFlowCard
+              change={12.8}
+              figure={120_000}
+              state="good"
+              type="In"
+            />
 
-          <MoneyFlowCard change={5.3} figure={70_000} state="bad" type="Out" />
+            <MoneyFlowCard
+              change={5.3}
+              figure={70_000}
+              state="bad"
+              type="Out"
+            />
+          </div>
         </div>
 
         <SpendingOverview />

@@ -1,51 +1,51 @@
-import { Area, AreaChart, Tooltip, XAxis, YAxis } from "recharts";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ReferenceDot,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 const data = [
   {
-    name: "Sun",
-    uv: 4000,
-    pv: 2400,
+    day: "Sun",
     amt: 2400,
   },
   {
-    name: "Mon",
-    uv: 3000,
-    pv: 1398,
-    amt: 2210,
+    day: "Mon",
+    amt: 1398,
   },
   {
-    name: "Tue",
-    uv: 2000,
-    pv: 9800,
-    amt: 2290,
+    day: "Tue",
+    amt: 9800,
   },
   {
-    name: "Wed",
-    uv: 2780,
-    pv: 3908,
-    amt: 2000,
+    day: "Wed",
+    amt: 3908,
   },
   {
-    name: "Thu",
-    uv: 1890,
-    pv: 4800,
-    amt: 2181,
+    day: "Thu",
+    amt: 4800,
   },
   {
-    name: "Fri",
-    uv: 2390,
-    pv: 3800,
-    amt: 2500,
+    day: "Fri",
+    amt: 3800,
   },
   {
-    name: "Sat",
-    uv: 3490,
-    pv: 4300,
-    amt: 2100,
+    day: "Sat",
+    amt: 4300,
   },
 ];
 
 export const MyAreaChart = () => {
+  const formatter = Intl.NumberFormat("en", { notation: "compact" });
+  const maxPoint = data.reduce(
+    (max, val) => (val.amt > max.amt ? val : max),
+    data[0],
+  );
+  const maxAmt = maxPoint.amt;
   return (
     <AreaChart
       style={{
@@ -55,7 +55,7 @@ export const MyAreaChart = () => {
       responsive
       data={data}
       margin={{ top: 10, right: 0, left: 0, bottom: 0 }}
-      className="min-[955]:aspect-2/1 aspect-[1/0.7]"
+      className="min-[955]:aspect-[2/1.08] aspect-[1/0.7]"
     >
       <defs>
         <linearGradient id="colorPv" x1="0" y1="0" x2="0" y2="1">
@@ -67,27 +67,36 @@ export const MyAreaChart = () => {
           <stop offset="95%" stopColor="var(--primary-color)" stopOpacity={0} />
         </linearGradient>
       </defs>
-      <XAxis dataKey="name" stroke="rgba(255,255,255,0.65)" />
+      <XAxis dataKey="day" stroke="rgba(255,255,255,0.65)" />
       <YAxis
         width="auto"
         stroke="rgba(255,255,255,0.65)"
-        tickFormatter={(val) =>
-          Intl.NumberFormat("en", { notation: "compact" }).format(val)
-        }
+        tickFormatter={(val) => formatter.format(val)}
       />
 
       <Tooltip
-        formatter={(val) =>
-          Intl.NumberFormat("en", { notation: "compact" }).format(val as number)
-        }
+        formatter={(val) => formatter.format(val as number)}
         wrapperStyle={{
           color: "var(--primary-color)",
         }}
       />
+      <CartesianGrid opacity={0.2} stroke="rgb(155, 75, 194)" />
+      <ReferenceDot
+        x={maxPoint.day}
+        y={maxPoint.amt}
+        r={0}
+        label={{
+          value: `₦${formatter.format(maxAmt)}`,
+          position: "right",
+          fill: "rgba(255,255,255,0.7)",
+          fontSize: 12,
+        }}
+      />
       <Area
         type="monotone"
-        dataKey="pv"
+        dataKey="amt"
         stroke="var(--primary-color)"
+        dot={{ r: 4, fill: "#9b4bc2" }}
         color="red"
         fillOpacity={1}
         fill="url(#colorPv)"
