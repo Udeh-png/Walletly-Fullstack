@@ -1,14 +1,14 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { FormWrapper } from "../../../../components/auth/FormWrapper";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { useState } from "react";
 import Link from "next/link";
 import { loginSchema, LogInType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
-import { ErrorMessage } from "../../../../components/auth/ErrorMessage";
+import { ErrorMessage } from "@/components/auth/ErrorMessage";
+import { FormWrapper } from "@/components/auth/FormWrapper";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
