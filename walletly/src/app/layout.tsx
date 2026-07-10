@@ -22,9 +22,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} antialiased overflow-x-hidden md:p-5 p-3`}
+        className={`${inter.variable} antialiased overflow-x-hidden md:p-5 p-3 max-w-350 mx-auto`}
       >
-        {children}
+        <div className="">{children}</div>
       </body>
     </html>
   );

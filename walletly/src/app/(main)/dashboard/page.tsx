@@ -5,7 +5,7 @@ import { MoneyFlowCard } from "@/sections/dashboard/money_flow-section";
 import { PaymentMethodsSection } from "@/sections/dashboard/payment_methods-section";
 import { QuickActionsSection } from "@/sections/dashboard/quick_actions-section";
 import { RecentTransactions } from "@/sections/dashboard/recent_transactions-section";
-import { Pie, PieChart } from "recharts";
+import { SpendingOverview } from "@/sections/dashboard/spending_overview-section";
 
 export default function Page() {
   return (
@@ -27,8 +27,8 @@ export default function Page() {
 
       <RecentTransactions />
 
-      <div className="grid grid-cols-[1fr_1.5fr] gap-x-5 mt-5">
-        <div className="flex flex-col gap-y-5">
+      <div className="grid min-[955]:grid-cols-[1fr_1.5fr] gap-5 mt-5">
+        <div className="flex flex-col gap-y-5 justify-center">
           <MoneyFlowCard
             change={12.8}
             figure={120_000}
@@ -39,30 +39,7 @@ export default function Page() {
           <MoneyFlowCard change={5.3} figure={70_000} state="bad" type="Out" />
         </div>
 
-        <div className="grid grid-cols-[auto_1fr] items-center border-2 border-white/10 rounded-2xl p-4 sm:p-5">
-          <div className="size-70">
-            <PieChart
-              style={{
-                width: "100%",
-                maxWidth: "500px",
-                maxHeight: "80vh",
-                aspectRatio: 1,
-              }}
-            >
-              <Pie
-                data={[{ value: 100 }, { value: 200 }, { value: 300 }]}
-                labelLine={false}
-                fill="var(--primary-color)"
-                dataKey="value"
-                innerRadius={"65%"}
-                outerRadius={"100%"}
-                isAnimationActive={true}
-                className="outline-0"
-                // shape={MyCustomPie}
-              />
-            </PieChart>
-          </div>
-        </div>
+        <SpendingOverview />
       </div>
     </div>
   );

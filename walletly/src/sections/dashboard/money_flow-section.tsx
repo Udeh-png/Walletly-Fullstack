@@ -41,7 +41,7 @@ export const MoneyFlowCard = ({
         <p className="text-xs text-white/45 font-light">This month</p>
       </div>
 
-      <p className="text-4xl font-bold mt-4">
+      <p className="min-[955]:text-4xl text-2xl font-bold mt-4">
         ₦{figure.toLocaleString("en-US")}
       </p>
 

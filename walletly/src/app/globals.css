@@ -108,3 +108,17 @@ body {
 .input-error-text {
   @apply text-red-500 text-sm mt-1;
 }
+
+.scrollable-section::-webkit-scrollbar {
+  width: 0;
+}
+
+.recharts-tooltip-cursor {
+  stroke: rgba(255, 255, 255, 0.7) !important;
+}
+
+.recharts-surface,
+.recharts-zIndex-layer_100,
+.recharts-zIndex-layer_2000 {
+  @apply outline-0;
+}
