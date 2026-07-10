@@ -1,23 +1,82 @@
-import { FaEye, FaPaperPlane, FaRegCopy } from "react-icons/fa6";
+"use client";
+
+import { useEffect, useState } from "react";
+import {
+  FaCheck,
+  FaEye,
+  FaEyeSlash,
+  FaPaperPlane,
+  FaRegCopy,
+} from "react-icons/fa6";
 import { LuCirclePlus } from "react-icons/lu";
+import { AnimatePresence, motion } from "framer-motion";
 
 export const BalanceSection = () => {
+  const [hideBalance, setHideBalance] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const copyAccNumber = async () => {
+    const board = navigator.clipboard;
+    if (!board) {
+      setCopied(true);
+      return;
+    }
+    await board.writeText("1234567890");
+    setCopied(true);
+  };
+
+  useEffect(() => {
+    if (copied) {
+      setTimeout(() => {
+        setCopied(false);
+      }, 1000);
+    }
+  }, [copied]);
   return (
     <section className="bg-[linear-gradient(to_bottom,var(--primary-color),#0d0d1a)] rounded-2xl p-4 sm:p-5 md:p-6 md:mt-5 mt-3">
+      <AnimatePresence>
+        {copied && (
+          <motion.div
+            initial={{
+              translateY: -50,
+            }}
+            animate={{
+              translateY: 0,
+            }}
+            exit={{
+              translateY: -100,
+            }}
+            className="bg-background rounded-lg border border-white/10 w-fit p-3 fixed top-0 left-1/2 -translate-x-1/2 flex gap-2 text-sm"
+          >
+            <div className="bg-green-500/10 text-green-500 w-fit rounded-full p-1">
+              <FaCheck />
+            </div>
+            Copied
+          </motion.div>
+        )}
+      </AnimatePresence>
       <p className="text-sm sm:text-base">
         <span>Available Balance</span>
-        <FaEye className="inline ml-2 cursor-pointer" />
+        <button onClick={() => setHideBalance((bal) => !bal)}>
+          {hideBalance ? (
+            <FaEyeSlash className="inline ml-2 cursor-pointer" />
+          ) : (
+            <FaEye className="inline ml-2 cursor-pointer" />
+          )}
+        </button>
       </p>
 
       <p className="text-3xl sm:text-4xl md:text-5xl font-semibold mt-2 wrap-break-word">
-        ₦394,434.00
+        {hideBalance ? "****" : "₦394,434.00"}
       </p>
 
       <div className="mt-4 sm:mt-3">
         <p className="text-sm text-white/65">Account Number</p>
         <p className="font-semibold text-sm sm:text-base">
           <span className="align-middle">1234 567 890</span>
-          <FaRegCopy className="inline ml-2 cursor-pointer" />
+          <button onClick={() => copyAccNumber()}>
+            <FaRegCopy className="inline ml-2 cursor-pointer" />
+          </button>
         </p>
       </div>
 

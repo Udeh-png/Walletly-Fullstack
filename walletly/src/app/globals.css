@@ -119,6 +119,7 @@ body {
 
 .recharts-surface,
 .recharts-zIndex-layer_100,
-.recharts-zIndex-layer_2000 {
+.recharts-zIndex-layer_2000,
+.recharts-zIndex-layer_500 {
   @apply outline-0;
 }
