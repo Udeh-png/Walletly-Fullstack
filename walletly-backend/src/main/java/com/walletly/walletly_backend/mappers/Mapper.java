@@ -2,7 +2,6 @@ package com.walletly.walletly_backend.mappers;
 
 import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
-import com.walletly.walletly_backend.modals.PreRegUser;
 import com.walletly.walletly_backend.modals.User;
 import lombok.NonNull;
 
@@ -25,16 +24,6 @@ public class Mapper {
 				regReq.getLastName(),
 				regReq.getEmail(),
 				regReq.getPassword()
-		);
-	}
-	
-	public static PreRegUser regRequestToPreRegUser (RegistrationRequest regReq) {
-		return new PreRegUser(
-				regReq.getEmail(),
-				regReq.getPassword(),
-				regReq.getFirstName(),
-				regReq.getLastName(),
-				Instant.now()
 		);
 	}
 }
