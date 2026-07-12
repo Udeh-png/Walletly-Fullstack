@@ -13,7 +13,7 @@ public class FlutterwaveConfig {
 	@Bean
 	public RestClient restClient () {
 		return RestClient.builder()
-				.baseUrl("https://developersandbox-api.flutterwave.com")
+				.baseUrl("https://api.flutterwave.com/v3")
 				.defaultHeader("Authorization", "Bearer" + clientSecret)
 				.build();
 	}

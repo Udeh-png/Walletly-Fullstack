@@ -9,7 +9,7 @@ public class FlutterWaveService {
 	@Autowired
 	RestClient restClient;
 	
-	public void createCustomer () {
+	public void createPayoutSubaccount () {
 		restClient.post();
 	}
 }
