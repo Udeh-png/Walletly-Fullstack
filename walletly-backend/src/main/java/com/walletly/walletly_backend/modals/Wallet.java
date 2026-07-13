@@ -8,6 +8,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Document("Wallets")
@@ -23,13 +24,48 @@ public class Wallet {
 	
 	@Setter
 	@NonNull
+	private String accountName;
+	
+	@Setter
+	@NonNull
 	private double balance;
 	
 	@Setter
 	@NonNull
-	private LocalDateTime createdAt;
+	private String virtualAccountNumber;
 	
 	@Setter
 	@NonNull
-	private String currency;
+	private String virtualAccountBank;
+	
+	@Setter
+	@NonNull
+	private String barterId;
+	
+	@Setter
+	@NonNull
+	private String accountReference;
+	
+	@Setter
+	@NonNull
+	private int flutterwavePsaId;
+	
+	@Setter
+	@NonNull
+	private String email;
+	
+	@Setter
+	private String mobileNumber;
+	
+	@Setter
+	@NonNull
+	private String country;
+	
+	@Setter
+	@NonNull
+	private String status;
+	
+	@Setter
+	@NonNull
+	private Instant createdAt;
 }

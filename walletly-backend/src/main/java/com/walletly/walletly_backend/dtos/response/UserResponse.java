@@ -1,21 +1,17 @@
 package com.walletly.walletly_backend.dtos.response;
 
-import com.mongodb.lang.Nullable;
-import com.walletly.walletly_backend.modals.PaymentMethod;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.springframework.data.annotation.Id;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserResponse {
-	@Id
 	private String id;
 	
 	@NotBlank
@@ -37,5 +33,5 @@ public class UserResponse {
 	private String email;
 	
 	@Setter
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 }

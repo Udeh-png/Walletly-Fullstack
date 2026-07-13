@@ -14,7 +14,7 @@ public class FlutterwaveConfig {
 	public RestClient restClient () {
 		return RestClient.builder()
 				.baseUrl("https://api.flutterwave.com/v3")
-				.defaultHeader("Authorization", "Bearer" + clientSecret)
+				.defaultHeader("Authorization", "Bearer " + clientSecret)
 				.build();
 	}
 }

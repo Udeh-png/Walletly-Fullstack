@@ -21,7 +21,7 @@ import tools.jackson.core.JsonParser;
 import tools.jackson.databind.ObjectMapper;
 
 import javax.security.auth.login.AccountLockedException;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -74,7 +74,7 @@ public class AuthService {
 		
 		otpService.verifyOtp(otp, userEmail);
 		
-		user.setCreatedAt(LocalDateTime.now());
+		user.setCreatedAt(Instant.now());
 		
 		userRepo.save(user);
 		

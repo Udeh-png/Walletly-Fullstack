@@ -1,6 +1,5 @@
 package com.walletly.walletly_backend.modals;
 
-import com.mongodb.lang.Nullable;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -8,13 +7,11 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.Instant;
 
 
 @NoArgsConstructor
 @RequiredArgsConstructor
-@Data
 @Getter
 @Document("Users")
 public class User {
@@ -41,22 +38,13 @@ public class User {
 	
 	@NotBlank
 	@Size(min=8)
-//	@Pattern(regexp = "^([A-Z])([a-z])([0-9])([^A-Za-z0-9])")
 	@NonNull
 	@Setter
 	private String password;
 	
-	@Nullable
 	@Setter
 	private String phone;
 	
-	@Nullable
 	@Setter
-	private String flutterwaveCustomerId;
-	
-	@Setter
-	private ArrayList<PaymentMethod> paymentMethods;
-	
-	@Setter
-	private LocalDateTime createdAt;
+	private Instant createdAt;
 }
