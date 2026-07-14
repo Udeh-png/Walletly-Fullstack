@@ -33,7 +33,7 @@ public class AuthController {
 	@Autowired
 	JwtService jwtService;
 	
-	@PostMapping("/register/initiate")
+	@PostMapping("/registration/initiate")
 	public ResponseEntity<?> initiateRegistration (@Valid @RequestBody RegistrationRequest regRequest, HttpServletResponse response) throws ResendException, SessionNotFoundException, AccountLockedException {
 		String id = authService.initiateRegistration(regRequest);
 		ResponseCookie cookie = ResponseCookie.from("regId", id)
@@ -48,7 +48,7 @@ public class AuthController {
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 	
-	@PostMapping("/register/verify")
+	@PostMapping("/registration/verify")
 	public ResponseEntity<@NonNull UserResponse> verifyRegistration (@Valid @RequestBody VerifyEmailRequest verificationRequest, HttpServletRequest request, HttpServletResponse response) throws AccountLockedException {
 		Cookie idCookie = WebUtils.getCookie(request, "regId");
 		

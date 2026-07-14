@@ -2,11 +2,14 @@ package com.walletly.walletly_backend.services;
 
 import com.resend.core.exception.ResendException;
 import com.walletly.walletly_backend.dtos.requests.LoginRequest;
+import com.walletly.walletly_backend.integration.flutterwave.dto.response.CreatePsaResponse;
 import com.walletly.walletly_backend.mappers.Mapper;
 import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
 import com.walletly.walletly_backend.exceptions.SessionNotFoundException;
 import com.walletly.walletly_backend.exceptions.UserEmailAlreadyExists;
+import com.walletly.walletly_backend.modals.Wallet;
+import com.walletly.walletly_backend.repos.WalletRepo;
 import com.walletly.walletly_backend.security.MyUserDetails;
 import com.walletly.walletly_backend.modals.User;
 import com.walletly.walletly_backend.repos.UserRepo;
@@ -31,9 +34,14 @@ import java.util.concurrent.TimeUnit;
 public class AuthService {
 	@Autowired
 	OtpService otpService;
+	@Autowired
+	FlutterWaveService flutterService;
 	
 	@Autowired
 	UserRepo userRepo;
+	@Autowired
+	WalletRepo walletRepo;
+	
 	@Autowired
 	BCryptPasswordEncoder passwordEncoder;
 	@Autowired
@@ -76,10 +84,15 @@ public class AuthService {
 		
 		user.setCreatedAt(Instant.now());
 		
-		userRepo.save(user);
+		User savedUser = userRepo.save(user);
+		
+		CreatePsaResponse psaResponse = flutterService.createPayoutSubaccount(regRequest);
+		Wallet newWallet = Mapper.mapToWallet(savedUser, psaResponse);
+		
+		walletRepo.save(newWallet);
 		
 		otpService.resetRedisOtpKeys(userEmail);
-		resetRegRedisKeys(sessionId, userEmail);
+		resetRedisRegKeys(sessionId, userEmail);
 		
 		return Mapper.userToUserResponse(user);
 	}
@@ -125,7 +138,7 @@ public class AuthService {
 		redisTemplate.opsForValue().set("otp:sessionId:"+regInfo.getEmail(), id, SESSION_TTL, TimeUnit.MINUTES);
 	}
 	
-	public void resetRegRedisKeys (String id, String email) {
+	public void resetRedisRegKeys (String id, String email) {
 		redisTemplate.delete("otp:userInfo:"+ id);
 		redisTemplate.delete("otp:sessionId:"+email);
 	}
