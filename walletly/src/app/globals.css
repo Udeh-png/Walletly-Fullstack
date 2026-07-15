@@ -116,3 +116,21 @@ body {
 .recharts-tooltip-cursor {
   stroke: rgba(255, 255, 255, 0.7) !important;
 }
+
+iframe {
+  @apply w-120! h-[70vh]! rounded-2xl! left-1/2! -translate-1/2! top-1/2!;
+  animation: iframe-animation;
+  animation-duration: 0.7s;
+  animation-iteration-count: 1;
+  box-shadow: 0 0 35px 10px rgba(155, 75, 194, 0.1);
+}
+
+@keyframes iframe-animation {
+  0% {
+    scale: 0;
+  }
+
+  100% {
+    scale: 1;
+  }
+}

@@ -11,6 +11,7 @@ import {
   LuSettings,
 } from "react-icons/lu";
 import { CiCreditCard1 } from "react-icons/ci";
+import Link from "next/link";
 
 export const Navbar = () => {
   return (
@@ -23,10 +24,13 @@ export const Navbar = () => {
       <div className="mt-7">
         <ul className="flex flex-col gap-y-2 mt-1">
           <li>
-            <div className="flex items-center gap-x-2 text-white/90 overflow-clip font-semibold bg-white/10 p-2 relative rounded-lg after:content-[''] after:absolute after:top-1/2 after:-translate-y-1/2 after:-left-0.5 after:w-1 after:h-[70%] after:bg-primary after:rounded-full">
+            <Link
+              href={"/dashboard"}
+              className="flex items-center gap-x-2 text-white/90 overflow-clip font-semibold bg-white/10 p-2 relative rounded-lg after:content-[''] after:absolute after:top-1/2 after:-translate-y-1/2 after:-left-0.5 after:w-1 after:h-[70%] after:bg-primary after:rounded-full"
+            >
               <LuLayoutDashboard className="text-lg" />
               <p className="">Dashboard</p>
-            </div>
+            </Link>
           </li>
 
           <li>

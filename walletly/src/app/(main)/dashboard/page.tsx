@@ -9,7 +9,7 @@ import { SpendingOverview } from "@/sections/dashboard/spending_overview-section
 
 export default function Page() {
   return (
-    <div className="scale-100">
+    <div className="">
       <p className="md:text-3xl text-2xl md:font-semibold font-bold">
         Hello, John! 👋
       </p>

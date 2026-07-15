@@ -28,10 +28,10 @@ public class Mapper {
 		);
 	}
 	
-	public static CreatePsaRequest regReqToCreatePsaRequest(@NonNull RegistrationRequest user) {
+	public static CreatePsaRequest registrationRequestToCreatePsaRequest(@NonNull RegistrationRequest registrationRequest) {
 		return new CreatePsaRequest(
-				user.getFirstName() + " " + user.getLastName(),
-				user.getEmail(),
+				registrationRequest.getFirstName() + " " + registrationRequest.getLastName(),
+				registrationRequest.getEmail(),
 				"NG"
 		);
 	}
