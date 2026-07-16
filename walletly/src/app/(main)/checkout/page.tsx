@@ -22,7 +22,10 @@ export default function Checkout() {
             amount: 2500,
             currency: "NGN",
             payment_options: "card",
-            redirect_url: "localhost:8080/card-transfer",
+            meta: {
+              batter_id: "234000002746915",
+              remember_me: true,
+            },
             customer: {
               email: "user@example.com",
               name: "John Doe",
@@ -32,6 +35,9 @@ export default function Checkout() {
             },
             callback: function (data: unknown) {
               console.log("Payment success details:", data);
+              fetch(
+                `http://localhost:8080/api/app/verify-card-deposit?transaction_id=${data.transaction_id}`,
+              );
               // Send data.transaction_id to your API route for verification
             },
           });

@@ -1,13 +1,14 @@
 package com.walletly.walletly_backend.integration.flutterwave.dto.response;
 
+import com.walletly.walletly_backend.integration.flutterwave.dto.response.data.CreatePsaResponseData;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
-import java.time.Instant;
-
-@Data
+@EqualsAndHashCode(callSuper = true)
+@ToString
 @Getter
-public class CreatePsaResponse {
-	private String status;
-	private PayoutSubaccountData data;
+public class CreatePsaResponse extends FlutterwaveResponse{
+	private CreatePsaResponseData data;
 }

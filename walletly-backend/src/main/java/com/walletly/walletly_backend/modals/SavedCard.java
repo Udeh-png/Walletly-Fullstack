@@ -3,13 +3,12 @@ package com.walletly.walletly_backend.modals;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-@Document
+@Document(collection = "SavedCards")
 @RequiredArgsConstructor
 @Getter
-public class PaymentMethod {
+public class SavedCard {
 	@Id
 	private String id;
 }
