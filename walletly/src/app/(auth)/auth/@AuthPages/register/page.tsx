@@ -55,7 +55,7 @@ export default function Signup() {
 
   const onSubmit = async (data: SignupFormType) => {
     const response = await fetch(
-      "http://localhost:8080/api/auth/register/initiate",
+      "http://localhost:8080/api/auth/registration/initiate",
       {
         method: "POST",
         credentials: "include",

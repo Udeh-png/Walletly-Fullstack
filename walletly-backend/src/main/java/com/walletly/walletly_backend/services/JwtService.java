@@ -30,7 +30,7 @@ public class JwtService {
 	
 	public String generateAccessToken(UserResponse user) {
 		return Jwts.builder()
-				.subject(user.getEmail())
+				.subject(user.getId())
 				.issuedAt(new Date())
 				.expiration(new Date(System.currentTimeMillis() + Long.parseLong(accessExpiration)))
 				.signWith(getSecretKey())
@@ -39,7 +39,7 @@ public class JwtService {
 	
 	public String generateRefreshToken (UserResponse user) {
 		return Jwts.builder()
-				.subject(user.getEmail())
+				.subject(user.getId())
 				.issuedAt(new Date())
 				.expiration(new Date(System.currentTimeMillis() + Long.parseLong(refreshExpiration)))
 				.signWith(getSecretKey())
@@ -56,7 +56,7 @@ public class JwtService {
 	}
 	
 	public boolean tokenIsValid(String token, User user) {
-		return !tokenIsExpired(token) && extractAllClaims(token).getSubject().equals(user.getEmail());
+		return !tokenIsExpired(token) && extractAllClaims(token).getSubject().equals(user.getId());
 	}
 	
 	public Boolean tokenIsExpired (String token) {

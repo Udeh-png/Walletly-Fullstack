@@ -4,8 +4,8 @@ import lombok.Getter;
 
 @Getter
 public enum CookieType {
-	ACCESS_TOKEN("ACCESS_TOKEN", 900),
-	REFRESH_TOKEN("REFRESH_TOKEN", 21600);
+	ACCESS_TOKEN("ACCESS_TOKEN", 86400000),
+	REFRESH_TOKEN("REFRESH_TOKEN", 172800000);
 	
 	private final String name;
 	private final int maxAgeSeconds;

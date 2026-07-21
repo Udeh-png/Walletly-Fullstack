@@ -5,7 +5,7 @@ import lombok.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TransferRequest {
+public class FlutterwaveTransferRequest {
 	private String account_bank;
 	private String account_number;
 	private double amount;

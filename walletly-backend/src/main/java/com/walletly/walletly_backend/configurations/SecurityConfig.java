@@ -53,7 +53,7 @@ public class SecurityConfig {
 	public SecurityFilterChain filterChain (HttpSecurity security) {
 		security
 				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/api/auth/**", "/api/app/**")
+						.requestMatchers("/api/auth/**")
 						.permitAll()
 						.anyRequest()
 						.authenticated()

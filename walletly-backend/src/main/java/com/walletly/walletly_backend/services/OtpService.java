@@ -4,9 +4,14 @@ import com.resend.Resend;
 import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
 import com.walletly.walletly_backend.exceptions.*;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
 
 import javax.security.auth.login.AccountLockedException;
 import java.nio.charset.StandardCharsets;
@@ -19,9 +24,9 @@ import java.util.concurrent.TimeUnit;
 @Service()
 public class OtpService {
 	@Autowired
-	Resend resend;
-	@Autowired
 	RedisTemplate<String, String> redisTemplate;
+	@Autowired
+	MailService mailService;
 	
 	static final int OTP_TTL = 5;
 	static final int OTP_REQUESTS_TTL = 30;
@@ -103,16 +108,7 @@ public class OtpService {
 		if (currentReqCount > REQUESTS_LIMIT) {
 			throw new TooManyOtpRequestsException();
 		}
-		
-		CreateEmailOptions emailOptions = CreateEmailOptions.builder()
-				.from("onboarding@resend.dev")
-				.to(email)
-				.subject("Otp Verification")
-				.text(otp)
-				.build();
-		
-		resend.emails().send(emailOptions);
-		
+		mailService.sendEmail(email, otp);
 		if (currentReqCount == REQUESTS_LIMIT) {
 			redisTemplate.opsForValue().set("otp:request:locked:" + email, "1", ACCOUNT_LOCK_TTL, TimeUnit.MINUTES);
 			invalidateOtp(email);

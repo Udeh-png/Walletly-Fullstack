@@ -16,6 +16,7 @@ public class CreatePsaRequest {
 	@NonNull
 	private String country;
 	
-	private String mobile_number;
+	@NonNull
+	private String bank_code;
 	
 }

@@ -40,16 +40,16 @@ public class JwtFilter extends OncePerRequestFilter {
 			throws ServletException, IOException {
 		try {
 			Cookie tokenCookie = WebUtils.getCookie(request, CookieType.ACCESS_TOKEN.getName());
-			String username = null;
+			String userId = null;
 			String jwtToken = null;
 			
 			if (tokenCookie != null) {
 				jwtToken = tokenCookie.getValue();
-				username = jwtService.extractClaim(jwtToken, Claims::getSubject);
+				userId = jwtService.extractClaim(jwtToken, Claims::getSubject);
 			}
 			
-			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-				MyUserDetails userDetails = (MyUserDetails)userDetailsService.loadUserByUsername(username);
+			if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+				MyUserDetails userDetails = (MyUserDetails)userDetailsService.loadUserByUsername(userId);
 				if (jwtService.tokenIsValid(jwtToken, userDetails.getUser())) {
 					UsernamePasswordAuthenticationToken userToken =
 							new UsernamePasswordAuthenticationToken(userDetails, null, null);

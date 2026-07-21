@@ -15,11 +15,27 @@ export default function Checkout() {
       <h1>Hello Test user</h1>
 
       <button
-        onClick={() => {
+        onClick={async () => {
+          const tx_ref = await fetch(
+            "http://localhost:8080/api/wallet/fund/initiate",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+              },
+              body: JSON.stringify({
+                amount: 2500,
+              }),
+              credentials: "include",
+            },
+          );
+
+          if (tx_ref.status !== 200) return;
           window.FlutterwaveCheckout({
             public_key: "FLWPUBK_TEST-1ea28c499a322bc644a73047a2d9fd12-X",
-            tx_ref: `tx-${Date.now()}`,
-            amount: 2500,
+            tx_ref,
+            amount: 2500.0,
             currency: "NGN",
             payment_options: "card",
             meta: {

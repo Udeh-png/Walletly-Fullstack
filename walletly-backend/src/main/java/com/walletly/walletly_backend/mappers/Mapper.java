@@ -32,7 +32,8 @@ public class Mapper {
 		return new CreatePsaRequest(
 				registrationRequest.getFirstName() + " " + registrationRequest.getLastName(),
 				registrationRequest.getEmail(),
-				"NG"
+				"NG",
+				"035"
 		);
 	}
 	

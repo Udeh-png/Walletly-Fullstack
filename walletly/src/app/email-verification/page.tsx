@@ -83,7 +83,7 @@ export default function EmailVerificationPage() {
   };
 
   const verifyOtp = async (value: string) => {
-    return await fetch("http://localhost:8080/api/auth/register/verify", {
+    return await fetch("http://localhost:8080/api/auth/registration/verify", {
       method: "POST",
       credentials: "include",
       headers: {

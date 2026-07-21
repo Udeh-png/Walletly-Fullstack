@@ -121,7 +121,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler (UsernameNotFoundException.class)
 	public ResponseEntity<@NonNull ErrorResponse> usernameNotFound (UsernameNotFoundException unf) {
 		ErrorResponse er = new ErrorResponse(unf.getMessage(), "WRONG_CREDENTIALS");
-		
+		log.error("Bad request: ", unf);
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(er);
 	}
 	
