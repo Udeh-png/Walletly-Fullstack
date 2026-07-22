@@ -24,6 +24,7 @@ import tools.jackson.core.JsonParser;
 import tools.jackson.databind.ObjectMapper;
 
 import javax.security.auth.login.AccountLockedException;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -99,7 +100,12 @@ public class AuthService {
 	
 	public UserResponse login (LoginRequest request) {
 		Authentication auth = authManager
-				.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+				.authenticate(
+						new UsernamePasswordAuthenticationToken(
+								request.getEmail(),
+								request.getPassword()
+						)
+				);
 		
 		MyUserDetails userDetails = (MyUserDetails)auth.getPrincipal();
 		assert userDetails != null;

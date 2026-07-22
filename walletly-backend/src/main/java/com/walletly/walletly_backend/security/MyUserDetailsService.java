@@ -15,8 +15,8 @@ public class MyUserDetailsService implements UserDetailsService {
 	
 	@Override
 	@NullMarked
-	public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-		return repo.findById(userId)
+	public UserDetails loadUserByUsername(String userEmail) throws UsernameNotFoundException {
+		return repo.findByEmail(userEmail)
 				.map(MyUserDetails::new)
 				.orElseThrow(
 						() -> new UsernameNotFoundException("Wrong Credentials")

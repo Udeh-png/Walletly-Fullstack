@@ -17,7 +17,7 @@ export default function Checkout() {
       <button
         onClick={async () => {
           const tx_ref = await fetch(
-            "http://localhost:8080/api/wallet/fund/initiate",
+            "http://localhost:8080/api/wallet/deposit/initiate",
             {
               method: "POST",
               headers: {
@@ -52,7 +52,10 @@ export default function Checkout() {
             callback: function (data: unknown) {
               console.log("Payment success details:", data);
               fetch(
-                `http://localhost:8080/api/app/verify-card-deposit?transaction_id=${data.transaction_id}`,
+                `http://localhost:8080/api/wallet/deposit/transact?transaction_id=${data.transaction_id}`,
+                {
+                  credentials: "include",
+                },
               );
               // Send data.transaction_id to your API route for verification
             },

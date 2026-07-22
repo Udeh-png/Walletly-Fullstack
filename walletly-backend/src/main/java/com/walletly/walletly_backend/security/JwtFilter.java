@@ -42,14 +42,16 @@ public class JwtFilter extends OncePerRequestFilter {
 			Cookie tokenCookie = WebUtils.getCookie(request, CookieType.ACCESS_TOKEN.getName());
 			String userId = null;
 			String jwtToken = null;
+			String userEmail = null;
 			
 			if (tokenCookie != null) {
 				jwtToken = tokenCookie.getValue();
 				userId = jwtService.extractClaim(jwtToken, Claims::getSubject);
+				userEmail = jwtService.extractClaim(jwtToken, (claims) -> claims.get("user_email", String.class));
 			}
 			
 			if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-				MyUserDetails userDetails = (MyUserDetails)userDetailsService.loadUserByUsername(userId);
+				MyUserDetails userDetails = (MyUserDetails)userDetailsService.loadUserByUsername(userEmail);
 				if (jwtService.tokenIsValid(jwtToken, userDetails.getUser())) {
 					UsernamePasswordAuthenticationToken userToken =
 							new UsernamePasswordAuthenticationToken(userDetails, null, null);

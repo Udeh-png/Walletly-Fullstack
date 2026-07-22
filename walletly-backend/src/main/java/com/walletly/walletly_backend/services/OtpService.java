@@ -97,15 +97,15 @@ public class OtpService {
 		
 		if (Boolean.FALSE.equals(createdCooldown)) throw new CooldownActiveException(redisTemplate.getExpire(requestCooldownKey));
 		
-		Long requests = redisTemplate.opsForValue().increment(requestsKey);
+		Long requests = redisTemplate.opsForValue().increment(requestsKey); // This creates the key and increments it
 		
 		long currentReqCount = requests == null ? 0 : requests;
 		
 		if (currentReqCount == 1) {
-			redisTemplate.expire(requestsKey, OTP_REQUESTS_TTL, TimeUnit.MINUTES);
+			redisTemplate.expire(requestsKey, OTP_REQUESTS_TTL, TimeUnit.MINUTES); // if the key was created add the TTL
 		}
 		
-		if (currentReqCount > REQUESTS_LIMIT) {
+		if (currentReqCount > REQUESTS_LIMIT) { // Used > so if a prev request incs the key this catches it
 			throw new TooManyOtpRequestsException();
 		}
 		mailService.sendEmail(email, otp);
