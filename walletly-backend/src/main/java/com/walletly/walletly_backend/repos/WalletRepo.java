@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface WalletRepo extends MongoRepository<@NonNull  Wallet, @NonNull ObjectId> {
+public interface WalletRepo extends MongoRepository<@NonNull  Wallet, @NonNull String> {
 	Optional<Wallet> findByUserId(String userId);
 	
 	@Query("{ '_id': ?0 }")

@@ -49,7 +49,10 @@ export default function Checkout() {
             customizations: {
               title: "My Next.js Store",
             },
-            callback: function (data: unknown) {
+            callback: function (data: {
+              transaction_id: string;
+              tx_ref: string;
+            }) {
               console.log("Payment success details:", data);
               fetch(
                 `http://localhost:8080/api/wallet/deposit/transact?transaction_id=${data.transaction_id}`,
