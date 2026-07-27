@@ -4,8 +4,9 @@ import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.integration.flutterwave.dto.requests.CreatePsaRequest;
 import com.walletly.walletly_backend.integration.flutterwave.dto.requests.FlutterwaveTransferRequest;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.CreatePsaResponse;
-import com.walletly.walletly_backend.integration.flutterwave.dto.response.TransactionResponse;
+import com.walletly.walletly_backend.integration.flutterwave.dto.response.VerifyTransactionResponse;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.TransferResponse;
+import com.walletly.walletly_backend.integration.flutterwave.dto.response.VerifyTransferResponse;
 import com.walletly.walletly_backend.mappers.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -32,19 +33,20 @@ public class FlutterWaveService {
 				.body(CreatePsaResponse.class);
 	}
 	
-	public void deleteAccount (String accountRef) {
-		restClient.delete()
-				.uri("payout-subaccounts/" + accountRef)
+	public VerifyTransferResponse verifyTransfer (String transferId) {
+		return restClient.get()
+				.uri("/transfers/" + transferId)
 				.accept(jsonType)
-				.retrieve();
+				.retrieve()
+				.body(VerifyTransferResponse.class);
 	}
 	
-	public TransactionResponse verifyTransaction (String transactionId) {
+	public VerifyTransactionResponse verifyTransaction (String transactionId) {
 		return restClient.get()
 				.uri("/transactions/" + transactionId + "/verify")
 				.accept(jsonType)
 				.retrieve()
-				.body(TransactionResponse.class);
+				.body(VerifyTransactionResponse.class);
 	}
 	
 	public TransferResponse sendMoney (FlutterwaveTransferRequest flutterwaveTransferRequest) {

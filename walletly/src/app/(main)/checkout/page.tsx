@@ -16,22 +16,20 @@ export default function Checkout() {
 
       <button
         onClick={async () => {
-          const tx_ref = await fetch(
-            "http://localhost:8080/api/wallet/deposit/initiate",
+          const tx_refReq = await fetch(
+            "http://localhost:8080/api/wallet/generate-tx_ref",
             {
-              method: "POST",
               headers: {
-                "Content-Type": "application/json",
                 Accept: "application/json",
               },
-              body: JSON.stringify({
-                amount: 2500,
-              }),
               credentials: "include",
             },
           );
 
-          if (tx_ref.status !== 200) return;
+          if (tx_refReq.status !== 200) return;
+
+          const tx_ref = (await tx_refReq.json()).txRef;
+
           window.FlutterwaveCheckout({
             public_key: "FLWPUBK_TEST-1ea28c499a322bc644a73047a2d9fd12-X",
             tx_ref,
@@ -55,7 +53,7 @@ export default function Checkout() {
             }) {
               console.log("Payment success details:", data);
               fetch(
-                `http://localhost:8080/api/wallet/deposit/transact?transaction_id=${data.transaction_id}`,
+                `http://localhost:8080/api/wallet/deposit/initiate?transaction_id=${data.transaction_id}&tx_ref=${tx_ref}`,
                 {
                   credentials: "include",
                 },
@@ -72,3 +70,4 @@ export default function Checkout() {
 }
 
 // FLWPUBK_TEST-1ea28c499a322bc644a73047a2d9fd12-X
+// 4187427415564246

@@ -1,7 +1,9 @@
 package com.walletly.walletly_backend.modals;
 
 import lombok.*;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -16,6 +18,17 @@ public class Transaction {
 	
 	@NonNull
 	@Setter
+	@Indexed(unique = true)
+	@Field(name = "card_tx_ref")
+	private String cardTxRef;
+	
+	@NonNull
+	@Setter
+	@Field(name = "to_wallet_tx_ref")
+	String toWalletTxRef;
+	
+	@NonNull
+	@Setter
 	private String type;
 	
 	@NonNull
@@ -24,15 +37,13 @@ public class Transaction {
 	
 	@NonNull
 	@Setter
-	private BigDecimal settled_amount;
+	@Field(name = "settled_amount")
+	private BigDecimal settledAmount;
 	
 	@NonNull
 	@Setter
 	private String status;
 	
-	@NonNull
-	@Setter
-	private String reference;
 	
 	@NonNull
 	@Setter
@@ -42,6 +53,7 @@ public class Transaction {
 	@Setter
 	private Instant createdAt;
 	
+	@Setter
 	private Map<String, Object> metaData;
 	
 }

@@ -1,41 +1,53 @@
 package com.walletly.walletly_backend.controllers;
 
+import com.walletly.walletly_backend.modals.Transaction;
+import com.walletly.walletly_backend.services.FlutterWaveService;
+import com.walletly.walletly_backend.services.JwtService;
+import com.walletly.walletly_backend.services.WalletService;
+import com.walletly.walletly_backend.utils.CookieType;
+import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.util.WebUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/wallet")
 public class WalletController {
+	@Autowired
+	WalletService walletService;
+	@Autowired
+	JwtService jwtService;
 	
-	@GetMapping("/deposit/transact")
+	@GetMapping("/generate-tx_ref")
+	public ResponseEntity<@NonNull Map<String, String>> generateTxRef () {
+		String txRef = "WLTY-" + System.currentTimeMillis() + "-" + UUID.randomUUID();
+		Map<String, String> responseMap = new HashMap<>();
+		responseMap.put("txRef", txRef);
+		return ResponseEntity.ok(responseMap);
+	}
+	
+	@GetMapping("/deposit/initiate")
 	public ResponseEntity<?> verifyCardDeposit (
 			HttpServletRequest request,
 			@RequestParam String transaction_id,
-			@RequestParam(name = "tx_ref") String cardTxRef) {
+			@RequestParam(name = "tx_ref") String cardTxRef
+	){
+		Cookie accessTokenCookie = WebUtils.getCookie(request, CookieType.ACCESS_TOKEN.getName());
 		
-		return null;
+		if (accessTokenCookie == null) return null;
+		
+		String userId = jwtService.extractClaim(accessTokenCookie.getValue(), Claims::getSubject);
+		
+		Transaction processedTransaction = walletService.verifyChargeAndFundWallet(cardTxRef, userId, transaction_id);
+		
+		return ResponseEntity.ok(processedTransaction);
 	}
 }
-
-/*
-String accessToken = Objects.requireNonNull(WebUtils.getCookie(request, CookieType.ACCESS_TOKEN.getName())).getValue();
-		
-		String userId = jwtService.extractClaim(accessToken, Claims::getSubject);
-		
-		Optional<Wallet> userWalletOtp = walletRepo.findByUserId(userId);
-		
-		if (userWalletOtp.isEmpty()) return null;
-		
-		Wallet userWallet = userWalletOtp.get();
-		
-		Query query = new Query(Criteria.where("tx_ref").is(cardTxRef));
-		Update update = new Update()
-				.setOnInsert("status", "PENDING");
-		
-		FindAndModifyOptions options = new FindAndModifyOptions().upsert(true).returnNew(true);
-		
-		Transaction transaction = mongoTemplate.findAndModify(query, update, options,Transaction.class, "Transactions");
-		
-		return new ResponseEntity<>(new Object(), HttpStatus.OK);
-*/

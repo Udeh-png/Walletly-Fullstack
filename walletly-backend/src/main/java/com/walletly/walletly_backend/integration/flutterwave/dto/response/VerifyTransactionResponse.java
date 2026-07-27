@@ -6,6 +6,6 @@ import lombok.ToString;
 
 @Getter
 @ToString
-public class TransactionResponse extends FlutterwaveResponse {
+public class VerifyTransactionResponse extends FlutterwaveResponse {
 	private TransactionResponseData data;
 }
