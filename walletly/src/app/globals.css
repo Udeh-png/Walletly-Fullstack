@@ -1,6 +1,9 @@
 @import "tailwindcss";
 
 :root {
+  --color-1: #9b4bc2;
+  --color-2: #9b4bc2;
+  --size: 0.75px;
   --background: #080811;
   --foreground: #ffffff;
   --primary-color: #9b4bc2;
@@ -13,6 +16,16 @@
 @media (width < 48rem /* 768px */) {
   :root {
     --slide-in-offset: 0;
+  }
+}
+
+body.no-scroll {
+  overflow: hidden;
+}
+
+@media (width > 48rem /* 768px */) {
+  body.no-scroll {
+    padding-right: 35px;
   }
 }
 
@@ -132,5 +145,73 @@ iframe {
 
   100% {
     scale: 1;
+  }
+}
+
+.loader {
+  animation: rotate 1s infinite;
+  height: calc(60 * var(--size));
+  width: calc(60 * var(--size));
+}
+
+.loader:before,
+.loader:after {
+  border-radius: 50%;
+  content: "";
+  display: block;
+  height: calc(20 * var(--size));
+  width: calc(20 * var(--size));
+}
+.loader:before {
+  animation: ball1 1s infinite;
+  background-color: var(--color-1);
+  box-shadow: calc(40 * var(--size)) 0 0 var(--color-2);
+  margin-bottom: calc(20 * var(--size));
+}
+.loader:after {
+  animation: ball2 1s infinite;
+  background-color: var(--color-2);
+  box-shadow: calc(40 * var(--size)) 0 0 var(--color-1);
+}
+
+@keyframes rotate {
+  0% {
+    transform: rotate(0deg) scale(0.8);
+  }
+  50% {
+    transform: rotate(360deg) scale(1.2);
+  }
+  100% {
+    transform: rotate(720deg) scale(0.8);
+  }
+}
+
+@keyframes ball1 {
+  0% {
+    box-shadow: calc(40 * var(--size)) 0 0 var(--color-2);
+  }
+  50% {
+    box-shadow: 0 0 0 var(--color-2);
+    margin-bottom: 0;
+    transform: translate(calc(20 * var(--size)), calc(20 * var(--size)));
+  }
+  100% {
+    box-shadow: calc(40 * var(--size)) 0 0 var(--color-2);
+    margin-bottom: calc(20 * var(--size));
+  }
+}
+
+@keyframes ball2 {
+  0% {
+    box-shadow: calc(40 * var(--size)) 0 0 var(--color-1);
+  }
+  50% {
+    box-shadow: 0 0 0 var(--color-1);
+    margin-top: calc(-20 * var(--size));
+    transform: translate(calc(20 * var(--size)), calc(20 * var(--size)));
+  }
+  100% {
+    box-shadow: calc(40 * var(--size)) 0 0 var(--color-1);
+    margin-top: 0;
   }
 }

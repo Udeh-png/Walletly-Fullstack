@@ -11,10 +11,20 @@ import {
 } from "react-icons/fa6";
 import { LuCirclePlus } from "react-icons/lu";
 import { AnimatePresence, motion } from "framer-motion";
+import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 
 export const BalanceSection = () => {
   const [hideBalance, setHideBalance] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleFundWallet = () => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(null);
+      }, 3000);
+    });
+  };
 
   const copyAccNumber = async () => {
     const board = navigator.clipboard;
@@ -35,6 +45,7 @@ export const BalanceSection = () => {
   }, [copied]);
   return (
     <section className="bg-[linear-gradient(to_bottom,var(--primary-color),#0d0d1a)] rounded-2xl p-4 sm:p-5 md:p-6 md:mt-5 mt-3 relative lg:overflow-visible overflow-clip">
+      {<LoadingSpinner isLoading={loading} />}
       <img
         src="/images/logo.png"
         alt=""
@@ -87,7 +98,14 @@ export const BalanceSection = () => {
       </div>
 
       <div className="mt-6 sm:mt-15 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4 relative">
-        <button className="bg-primary text-white px-4 sm:px-6 py-2.5 rounded-lg flex items-center justify-center w-full sm:w-auto">
+        <button
+          className="bg-primary text-white px-4 sm:px-6 py-2.5 rounded-lg flex items-center justify-center w-full sm:w-auto cursor-pointer"
+          onClick={async () => {
+            setLoading(true);
+            await handleFundWallet();
+            setLoading(false);
+          }}
+        >
           <LuCirclePlus className="text-xl mr-3 align-middle" />
           <span>Fund Wallet</span>
         </button>

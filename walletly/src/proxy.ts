@@ -16,7 +16,7 @@ export const proxy = async (req: NextRequest) => {
   if (pathName === "/dashboard") {
     const accessToken = (await cookies()).get("ACCESS_TOKEN");
     if (!accessToken) {
-      return NextResponse.redirect(new URL("/auth/login", req.url));
+      // return NextResponse.redirect(new URL("/auth/login", req.url));
     }
   }
 
