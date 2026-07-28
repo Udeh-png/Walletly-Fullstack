@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const proxy = async (req: NextRequest) => {
   const pathName = req.nextUrl.pathname;
-  if (pathName === "/email-verification") {
+  if (pathName === "/auth/email-verification") {
     const hasActiveRegSession = (await cookies()).get("regId");
 
     if (!hasActiveRegSession) {

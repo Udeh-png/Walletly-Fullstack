@@ -43,7 +43,7 @@ export default function Login() {
   }; // displaying error message
   return (
     <FormWrapper>
-      {isSubmitting && <LoadingSpinner />}
+      <LoadingSpinner isLoading={isSubmitting} />
       <form
         onSubmit={handleSubmit(handleOnSubmit)}
         className="px-1 md:px-0 md:space-y-7 space-y-5"

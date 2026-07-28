@@ -87,6 +87,7 @@ export default function Signup() {
   return (
     <div className="lg:mt-0 mt-5">
       <FormWrapper>
+        <LoadingSpinner isLoading={isSubmitting} />
         <form
           action=""
           className="flex flex-col md:gap-7 gap-5 md:px-0 px-1"
@@ -256,7 +257,6 @@ export default function Signup() {
           </p>
         </form>
       </FormWrapper>
-      {isSubmitting && <LoadingSpinner />}
     </div>
   );
 }

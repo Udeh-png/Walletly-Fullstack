@@ -243,8 +243,10 @@ export default function EmailVerificationPage() {
   }, [isValid, pasted]); // auto-submit
 
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex items-center justify-center md:h-dvh md:-my-10">
       <div className="form-wrapper2 md:p-10 md:w-fit w-full">
+        <LoadingSpinner isLoading={isLoading} />
+
         <form
           action="javascript:void(0)"
           className="space-y-7"
@@ -328,8 +330,6 @@ export default function EmailVerificationPage() {
           </button>
         </p>
       </div>
-
-      {isLoading && <LoadingSpinner />}
     </div>
   );
 }
