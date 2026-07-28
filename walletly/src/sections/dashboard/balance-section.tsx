@@ -44,8 +44,8 @@ export const BalanceSection = () => {
     }
   }, [copied]);
   return (
-    <section className="bg-[linear-gradient(to_bottom,var(--primary-color),#0d0d1a)] rounded-2xl p-4 sm:p-5 md:p-6 md:mt-5 mt-3 relative lg:overflow-visible overflow-clip">
-      {<LoadingSpinner isLoading={loading} />}
+    <section className="bg-[linear-gradient(to_bottom,var(--primary-color),#0d0d1a)] rounded-2xl p-4 sm:p-5 md:p-6 mt-5 relative lg:overflow-visible overflow-clip">
+      <LoadingSpinner isLoading={loading} />
       <img
         src="/images/logo.png"
         alt=""
