@@ -8,7 +8,7 @@ import java.time.Instant;
 @ToString
 @Getter
 public class CreatePsaResponseData {
-	private int id;
+	private String id;
 	private String account_reference;
 	private String account_name;
 	private String barter_id;

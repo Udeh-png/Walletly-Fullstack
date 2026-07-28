@@ -6,7 +6,7 @@ export const PaymentMethodsSection = () => {
   return (
     <section className="border-2 border-white/10 rounded-2xl p-4 sm:p-5 mt-5">
       <div className="flex justify-between">
-        <h3 className="text-xl font-semibold">Payment Methods</h3>
+        <h3 className="text-xl font-semibold">Cards</h3>
 
         <div className="flex justify-center items-center gap-2 text-sm text-primary">
           <p>View all</p>

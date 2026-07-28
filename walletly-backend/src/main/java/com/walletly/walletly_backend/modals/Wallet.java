@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -20,6 +21,7 @@ public class Wallet {
 	
 	@Setter
 	@NonNull
+	@Indexed(unique = true)
 	private String userId;
 	
 	@Setter
@@ -48,7 +50,7 @@ public class Wallet {
 	
 	@Setter
 	@NonNull
-	private int flutterwavePsaId;
+	private String flutterwavePsaId;
 	
 	@Setter
 	@NonNull

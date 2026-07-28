@@ -1,7 +1,6 @@
 package com.walletly.walletly_backend.controllers;
 
 import com.walletly.walletly_backend.modals.Transaction;
-import com.walletly.walletly_backend.services.FlutterWaveService;
 import com.walletly.walletly_backend.services.JwtService;
 import com.walletly.walletly_backend.services.WalletService;
 import com.walletly.walletly_backend.utils.CookieType;
@@ -26,15 +25,17 @@ public class WalletController {
 	@Autowired
 	JwtService jwtService;
 	
-	@GetMapping("/generate-tx_ref")
+	@PostMapping("/deposit/initiate")
 	public ResponseEntity<@NonNull Map<String, String>> generateTxRef () {
 		String txRef = "WLTY-" + System.currentTimeMillis() + "-" + UUID.randomUUID();
+		
 		Map<String, String> responseMap = new HashMap<>();
 		responseMap.put("txRef", txRef);
+		
 		return ResponseEntity.ok(responseMap);
 	}
 	
-	@GetMapping("/deposit/initiate")
+	@PostMapping("/deposit/process")
 	public ResponseEntity<?> verifyCardDeposit (
 			HttpServletRequest request,
 			@RequestParam String transaction_id,
@@ -42,8 +43,7 @@ public class WalletController {
 	){
 		Cookie accessTokenCookie = WebUtils.getCookie(request, CookieType.ACCESS_TOKEN.getName());
 		
-		if (accessTokenCookie == null) return null;
-		
+		assert accessTokenCookie != null;
 		String userId = jwtService.extractClaim(accessTokenCookie.getValue(), Claims::getSubject);
 		
 		Transaction processedTransaction = walletService.verifyChargeAndFundWallet(cardTxRef, userId, transaction_id);

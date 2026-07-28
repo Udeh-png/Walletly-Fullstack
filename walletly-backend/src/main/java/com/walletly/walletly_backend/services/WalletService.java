@@ -32,11 +32,20 @@ public class WalletService {
 	@Autowired
 	TransactionRepo transactionRepo;
 	
-	public void creditWallet (String walletId, double amount) {
-		Optional<Wallet> walletOpt = walletRepo.findById(walletId);
-		assert walletOpt.isPresent();
+	public Wallet getWalletWithUserId (String userId) {
+		Optional<Wallet> walletOpt = walletRepo.findByUserId(userId);
 		
-		Wallet wallet = walletOpt.get();
+		return walletOpt.orElseThrow(RuntimeException::new);
+	}
+	
+	public Wallet getWalletWithId (String walletId) {
+		Optional<Wallet> walletOpt = walletRepo.findById(walletId);
+		
+		return walletOpt.orElseThrow(RuntimeException::new);
+	}
+	
+	public void creditWallet (String walletId, double amount) {
+		Wallet wallet = getWalletWithId(walletId);
 		
 		walletRepo.incrementWalletBalance(wallet.getId(), amount);
 	}
@@ -56,11 +65,7 @@ public class WalletService {
 			throw new RuntimeException(String.valueOf(transaction));
 		}
 		
-		Transaction processedTransaction = merchantToWallet(transaction, cardTransactionResponse, userId);
-		
-		transactionRepo.save(processedTransaction);
-		
-		return processedTransaction;
+		return merchantToWallet(transaction, cardTransactionResponse, userId);
 	}
 	
 	public Transaction claimTransaction (String txRef) {
@@ -90,15 +95,13 @@ public class WalletService {
 	public Transaction merchantToWallet (Transaction processingTransaction, VerifyTransactionResponse cardTransaction, String userId) {
 		double amount = cardTransaction.getData().getAmount_settled();
 		
-		Optional<Wallet> walletOpt = walletRepo.findByUserId(userId);
-		
-		Wallet wallet = walletOpt.orElseThrow(RuntimeException::new);
+		Wallet wallet = getWalletWithUserId(userId);
 		String toWalletTxRef = "WLTY-" + System.currentTimeMillis() + "-" + UUID.randomUUID();
 		
 		TransferResponse toWalletResponse = flutterWaveService.sendMoney(new FlutterwaveTransferRequest(
 				"flutterwave",
 				wallet.getBarterId(),
-				cardTransaction.getData().getAmount_settled(),
+				amount,
 				"NGN",
 				"NGN",
 				null,
@@ -112,17 +115,16 @@ public class WalletService {
 		
 		String toWalletTransferStatus = toWalletTransResponse.getData().getStatus();
 		
-		if (toWalletTransferStatus.equalsIgnoreCase("successful")) {
-			processingTransaction.setStatus("SUCCESS");
-			creditWallet(wallet.getId(), amount);
-		} else if (toWalletTransferStatus.equalsIgnoreCase("FAILED")){
+		if (toWalletTransferStatus.equalsIgnoreCase("FAILED")) {
 			processingTransaction.setStatus("FAILED");
 		} else {
-			processingTransaction.setStatus("PROCESSING");
+			processingTransaction.setStatus("SUCCESS");
+			creditWallet(wallet.getId(), amount);
 		}
 		
 		processingTransaction.setToWalletTxRef(toWalletTransResponse.getData().getReference());
 		processingTransaction.setCreatedAt(Instant.now());
+		transactionRepo.save(processingTransaction);
 		
 		return processingTransaction;
 	}
