@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import {
   FaCheck,
   FaEye,
@@ -12,19 +12,14 @@ import {
 import { LuCirclePlus } from "react-icons/lu";
 import { AnimatePresence, motion } from "framer-motion";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { FundWalletModal } from "@/components/dashboard/FundWalletModal";
+import { FundWalletModalContext } from "@/contexts/DepositContext";
 
 export const BalanceSection = () => {
   const [hideBalance, setHideBalance] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  const handleFundWallet = () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(null);
-      }, 3000);
-    });
-  };
+  const [loading] = useState(false);
+  const { modalOpen, setModalOpen } = useContext(FundWalletModalContext);
 
   const copyAccNumber = async () => {
     const board = navigator.clipboard;
@@ -46,6 +41,9 @@ export const BalanceSection = () => {
   return (
     <section className="bg-[linear-gradient(to_bottom,var(--primary-color),#0d0d1a)] rounded-2xl p-4 sm:p-5 md:p-6 mt-5 relative lg:overflow-visible overflow-clip">
       <LoadingSpinner isLoading={loading} />
+      <AnimatePresence>
+        {modalOpen && <FundWalletModal onClose={() => setModalOpen(false)} />}
+      </AnimatePresence>
       <img
         src="/images/logo.png"
         alt=""
@@ -101,9 +99,7 @@ export const BalanceSection = () => {
         <button
           className="bg-primary text-white px-4 sm:px-6 py-2.5 rounded-lg flex items-center justify-center w-full sm:w-auto cursor-pointer"
           onClick={async () => {
-            setLoading(true);
-            await handleFundWallet();
-            setLoading(false);
+            setModalOpen(true);
           }}
         >
           <LuCirclePlus className="text-xl mr-3 align-middle" />

@@ -1,4 +1,4 @@
-import { MyAreaChart } from "@/components/dashboard/area_chart";
+import { MyAreaChart } from "@/components/dashboard/AreaChart";
 import { FaChevronDown } from "react-icons/fa";
 
 export const SpendingOverview = () => {
