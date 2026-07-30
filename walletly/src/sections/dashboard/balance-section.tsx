@@ -39,10 +39,17 @@ export const BalanceSection = () => {
     }
   }, [copied]);
   return (
-    <section className="bg-[linear-gradient(to_bottom,var(--primary-color),#0d0d1a)] rounded-2xl p-4 sm:p-5 md:p-6 mt-5 relative lg:overflow-visible overflow-clip">
+    <section
+      className={`bg-[linear-gradient(to_bottom,var(--primary-color),#0d0d1a)] rounded-2xl p-4 sm:p-5 md:p-6 mt-5 relative lg:overflow-visible overflow-clip ${modalOpen && "bg-red-500!"}`}
+    >
       <LoadingSpinner isLoading={loading} />
       <AnimatePresence>
-        {modalOpen && <FundWalletModal onClose={() => setModalOpen(false)} />}
+        {modalOpen && (
+          <FundWalletModal
+            openModal={modalOpen}
+            onClose={() => setModalOpen(false)}
+          />
+        )}
       </AnimatePresence>
       <img
         src="/images/logo.png"
