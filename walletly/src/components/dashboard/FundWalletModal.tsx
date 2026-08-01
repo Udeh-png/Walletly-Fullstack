@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { SubmitEvent, useState } from "react";
 import { FaCheck, FaChevronRight } from "react-icons/fa6";
 import { LuX } from "react-icons/lu";
 import { GoPlusCircle } from "react-icons/go";
 import { motion } from "framer-motion";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "@/hooks/UseMediaQuery";
+import { LoadingSpinner } from "../shared/LoadingSpinner";
+import Script from "next/script";
 
 const FundWalletFormContent = ({
   onClose,
@@ -15,16 +17,78 @@ const FundWalletFormContent = ({
   onClose: () => void;
   isMobile?: boolean;
 }) => {
-  const [val, setVal] = useState("");
+  const [amount, setAmount] = useState("");
   const [cardSelected, setCardSelected] = useState("1");
   const [rememberCard, setRememberCard] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fee = 0;
-  const amountSettled = Number(val.replaceAll(",", "")) - fee;
+  const amountSettled = Number(amount.replaceAll(",", "")) - fee;
+
+  const initiateDeposit = async (e: SubmitEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    setIsSubmitting(true);
+
+    try {
+      const initiateDepositReq = await fetch(
+        "http://localhost:8080/api/wallet/deposit/initiate",
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+          },
+          credentials: "include",
+        },
+      );
+
+      if (initiateDepositReq.status !== 200) return;
+
+      const tx_ref = (await initiateDepositReq.json()).txRef;
+
+      window.FlutterwaveCheckout({
+        public_key: "FLWPUBK_TEST-1ea28c499a322bc644a73047a2d9fd12-X",
+        tx_ref,
+        amount,
+        currency: "NGN",
+        payment_options: "card",
+        meta: {
+          batter_id: "234000002746915",
+          remember_me: true,
+        },
+        customer: {
+          email: "user@example.com",
+          name: "John Doe",
+        },
+        customizations: {
+          title: "My Next.js Store",
+        },
+        callback: function (data: { transaction_id: string; tx_ref: string }) {
+          console.log("Payment success details:", data);
+          fetch(
+            `http://localhost:8080/api/wallet/deposit/process?transaction_id=${data.transaction_id}&tx_ref=${tx_ref}`,
+            {
+              method: "POST",
+              credentials: "include",
+            },
+          );
+        },
+      });
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="md:h-full h-fit flex flex-col">
+    <form className="md:h-full h-fit flex flex-col" onSubmit={initiateDeposit}>
+      <Script src="https://checkout.flutterwave.com/v3.js"></Script>
+      <LoadingSpinner isLoading={isSubmitting} />
+
       {!isMobile && (
         <button
+          type="button"
           onClick={() => onClose()}
           className="text-2xl p-2 flex-0 bg-[rgba(21,20,31,0.5)] rounded-full w-fit text-primary cursor-pointer"
         >
@@ -33,17 +97,17 @@ const FundWalletFormContent = ({
       )}
       <div className="flex flex-col flex-1 relative">
         <div className="text-3xl mt-5 rounded-xl font-semibold caret-transparent flex gap-x-2">
-          <span className={!val ? "text-white/50" : ""}>₦</span>
+          <span className={!amount ? "text-white/50" : ""}>₦</span>
           <input
-            value={val}
+            value={amount}
             placeholder="0.00"
             onChange={(e) => {
               const value = e.target.value;
 
               const valueToNum = Number(value.replace(/[^0-9.]/g, ""));
               const formatter = Intl.NumberFormat("en-US");
-              console.log(valueToNum);
-              setVal(() =>
+
+              setAmount(() =>
                 valueToNum == 0 ? "" : formatter.format(valueToNum),
               );
             }}
@@ -57,7 +121,7 @@ const FundWalletFormContent = ({
         <div className="mt-5 rounded-lg bg-[rgba(168,85,247,.08)] py-3 px-4 flex flex-col gap-y-3">
           <div className="flex justify-between items-center">
             <p className="text-sm text-white/60">Amount</p>
-            <p className="font-semibold">₦{val || 0}</p>
+            <p className="font-semibold">₦{amount || 0}</p>
           </div>
 
           <div className="flex justify-between items-center">
@@ -83,6 +147,7 @@ const FundWalletFormContent = ({
           </div>
 
           <button
+            type="button"
             className="text-start w-full p-3 border rounded-lg border-primary/40 cursor-pointer"
             onClick={() => {
               setCardSelected((prev) => {
@@ -117,6 +182,7 @@ const FundWalletFormContent = ({
         </div>
 
         <button
+          type="button"
           className={`text-start text-sm text-white/75 flex gap-x-3 cursor-pointer font-semibold disabled:text-white/20! disabled:cursor-not-allowed! mt-5`}
           disabled={cardSelected !== ""}
           onClick={() => setRememberCard((prev) => !prev)}
@@ -131,13 +197,16 @@ const FundWalletFormContent = ({
         </button>
 
         <div className="md:absolute bottom-0 left-0 w-full flex flex-col mt-5 items-start justify-end gap-y-5">
-          <button className="bg-primary text-white px-4 sm:px-6 py-3 rounded-lg flex items-center justify-center w-full cursor-pointer">
+          <button
+            type="submit"
+            className="bg-primary text-white px-4 sm:px-6 py-3 rounded-lg flex items-center justify-center w-full cursor-pointer"
+          >
             <GoPlusCircle className="text-xl mr-2" />
             <p>Fund Wallet</p>
           </button>
         </div>
       </div>
-    </div>
+    </form>
   );
 };
 

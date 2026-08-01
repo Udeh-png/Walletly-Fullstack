@@ -41,3 +41,9 @@ export const loginSchema = z.object({
 });
 
 export type LogInType = z.infer<typeof loginSchema>;
+
+declare global {
+  interface Window {
+    FlutterwaveCheckout: (payload: object) => null;
+  }
+}
