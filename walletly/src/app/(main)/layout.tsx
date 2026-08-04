@@ -1,4 +1,4 @@
-import { Navbar } from "@/components/shared/NavBar";
+import { Nav } from "@/components/shared/Nav";
 
 export default function MainLayout({
   children,
@@ -7,9 +7,9 @@ export default function MainLayout({
 }>) {
   return (
     <div className="flex">
-      <Navbar />
+      <Nav />
 
-      <div className="w-full md:ml-65">{children}</div>
+      <div className="w-full md:ml-65 min-[768px]:pb-0 pb-19">{children}</div>
     </div>
   );
 }
