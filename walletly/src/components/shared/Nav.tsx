@@ -10,15 +10,12 @@ import {
   LuHouse,
   LuLayoutDashboard,
   LuLogOut,
-  LuMenu,
   LuSettings,
 } from "react-icons/lu";
 import { CiCreditCard1 } from "react-icons/ci";
 import Link from "next/link";
-import { FiPieChart } from "react-icons/fi";
 import { MdOutlineQrCodeScanner } from "react-icons/md";
 import { RiHistoryFill } from "react-icons/ri";
-import { FaWallet } from "react-icons/fa6";
 import { IoWalletOutline } from "react-icons/io5";
 
 const DesktopNav = () => {
