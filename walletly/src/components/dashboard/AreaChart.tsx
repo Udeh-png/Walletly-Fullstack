@@ -54,6 +54,7 @@ export const MyAreaChart = () => {
   return (
     <motion.div onViewportEnter={() => setIsInView(true)}>
       <AreaChart
+        key={String(isInView)}
         style={{
           width: "100%",
           maxWidth: "700px",
@@ -102,18 +103,16 @@ export const MyAreaChart = () => {
             fontSize: 12,
           }}
         />
-        {isInView && (
-          <Area
-            type="monotone"
-            dataKey="amt"
-            stroke="var(--primary-color)"
-            dot={{ r: 4, fill: "#9b4bc2" }}
-            color="red"
-            fillOpacity={1}
-            fill="url(#colorPv)"
-            isAnimationActive={true}
-          />
-        )}
+        <Area
+          type="monotone"
+          dataKey="amt"
+          stroke="var(--primary-color)"
+          dot={{ r: 4, fill: "#9b4bc2" }}
+          color="red"
+          fillOpacity={1}
+          fill="url(#colorPv)"
+          className={isInView ? "opacity-100" : "opacity-0"} // could have used hide prop or conditional rendering but that caused overflowing glitch
+        />
       </AreaChart>
     </motion.div>
   );
