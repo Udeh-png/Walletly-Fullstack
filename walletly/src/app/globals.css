@@ -10,7 +10,7 @@
   --secondary-color: #0b0812;
   --border-color: rgba(128, 128, 128, 0.5);
   --slide-in-offset: 100%;
-  --gradient-primary: linear-gradient(to right, #080811, #9b4bc2);
+  --gradient-primary: linear-gradient(90deg, #6d28ff 0%, #d946ef 100%);
 }
 
 @media (width < 48rem /* 768px */) {
@@ -40,11 +40,11 @@ body.no-scroll {
 }
 
 .input-label {
-  @apply text-sm font-medium;
+  @apply text-[0.9rem] font-medium;
 }
 
 .input-container {
-  @apply flex flex-col gap-2;
+  @apply flex flex-col gap-y-1;
 }
 
 .form-input {
