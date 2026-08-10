@@ -14,6 +14,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
 import { FundWalletModal } from "@/components/dashboard/FundWalletModal";
 import { FundWalletModalContext } from "@/contexts/DepositContext";
+import Link from "next/link";
 
 export const BalanceSection = () => {
   const [hideBalance, setHideBalance] = useState(false);
@@ -113,10 +114,13 @@ export const BalanceSection = () => {
           <span>Fund Wallet</span>
         </button>
 
-        <button className="bg-primary text-white px-4 sm:px-6 py-2.5 rounded-lg flex items-center justify-center w-full sm:w-auto">
+        <Link
+          href={"/transfer"}
+          className="bg-primary text-white px-4 sm:px-6 py-2.5 rounded-lg flex items-center justify-center w-full sm:w-auto"
+        >
           <FaPaperPlane className="mr-3 align-middle" />
           <span>Send Money</span>
-        </button>
+        </Link>
       </div>
     </section>
   );
