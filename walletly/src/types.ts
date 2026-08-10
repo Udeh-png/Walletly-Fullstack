@@ -42,6 +42,35 @@ export const loginSchema = z.object({
 
 export type LogInType = z.infer<typeof loginSchema>;
 
+export const transferSchema = z.object({
+  email: z.email().nullable().optional(),
+  walletlyAccountNumber: z
+    .string()
+    .min(1, "This field is required")
+    .length(10)
+    .nullable()
+    .optional(),
+  phoneNumber: z
+    .string()
+    .min(1, "This field is required")
+    .length(11)
+    .nullable()
+    .optional(),
+
+  bankName: z.string().min(1, "This field is required").nullable().optional(),
+  accountNumber: z
+    .string()
+    .min(1, "This field is required")
+    .length(10)
+    .nullable()
+    .optional(),
+
+  amount: z.string().min(1, "This field is required"),
+  narration: z.string(),
+});
+
+export type TransferType = z.infer<typeof transferSchema>;
+
 declare global {
   interface Window {
     FlutterwaveCheckout: (payload: object) => null;

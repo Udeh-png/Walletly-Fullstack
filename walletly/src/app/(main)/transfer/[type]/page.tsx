@@ -1,34 +1,52 @@
+"use client";
+
 import { ExternalTransferFormFields } from "@/sections/transfer/ExternalTransferFormFields";
 import { InternalTransferFormFields } from "@/sections/transfer/InternalTransferFormFields";
 import { FaArrowRight } from "react-icons/fa6";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { transferSchema, TransferType } from "@/types";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-export default async function TransferForm({
-  params,
-}: {
-  params: Promise<{ type: "internal" | "external" }>;
-}) {
-  const type = (await params).type;
+export default function TransferForm() {
+  const { type } = useParams();
 
   if (type !== "external" && type !== "internal") {
     notFound();
   }
 
-  // import z from "zod";
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    getValues,
+    formState: { errors },
+  } = useForm<TransferType>({
+    resolver: zodResolver(transferSchema),
+  });
 
-  // const zodSchema = z.object({
-  //   email_add: z.email(),
-  //   acc_no: z.string().min(10),
-  //   phone_no: z.string().min(11),
-  // });
-
-  // type IdentifierType = z.infer<typeof zodSchema>;
+  const formatter = Intl.NumberFormat("en-US");
 
   return (
-    <>
-      {type === "internal" && <InternalTransferFormFields />}
+    <form
+      className="contents"
+      onSubmit={handleSubmit(
+        (data) => {
+          console.log("data", data);
+          console.log(errors);
+        },
+        (data) => {
+          console.log("error", data);
+        },
+      )}
+    >
+      {type === "internal" && (
+        <InternalTransferFormFields register={register} errors={errors} />
+      )}
 
-      {type === "external" && <ExternalTransferFormFields />}
+      {type === "external" && (
+        <ExternalTransferFormFields register={register} errors={errors} />
+      )}
 
       <div className="border-2 border-white/10 rounded-2xl px-3 py-4 sm:p-5 h-fit sm:space-y-7 space-y-7 bg-slate-500/5">
         <div className="input-container">
@@ -38,12 +56,34 @@ export default async function TransferForm({
 
           <div className="flex items-center gap-x-3 border-2 rounded-xl border-white/10 p-3 relative">
             <span className="text-primary">₦</span>
-            <input placeholder="0.00" className="w-full outline-none" />
+            <input
+              {...register("amount", {
+                onChange: () => {
+                  const value = getValues("amount");
+
+                  const valueToNum = Number(value.replace(/[^0-9.]/g, ""));
+
+                  setValue(
+                    "amount",
+                    valueToNum == 0 ? "" : formatter.format(valueToNum),
+                  );
+                },
+              })}
+              placeholder="0.00"
+              className="w-full outline-none"
+              inputMode="numeric"
+              maxLength={7}
+            />
           </div>
           <div className="w-full flex justify-between px-2 mt-1">
             <p className="text-white/60 text-sm">Fee: ₦0.00</p>
             <p className="text-white/60 text-sm">Total: ₦0.00</p>
           </div>
+          {errors.amount && (
+            <p className="ml-2 text-sm text-red-500 mt-0.5">
+              {errors.amount?.message}
+            </p>
+          )}
         </div>
 
         <div className="input-container">
@@ -52,11 +92,18 @@ export default async function TransferForm({
           </label>
 
           <div className="flex items-center gap-x-3 border-2 rounded-xl border-white/10 p-3 relative">
-            <textarea
+            <input
+              {...register("narration")}
               className="w-full outline-none"
               placeholder="What is this transfer for?"
             />
           </div>
+
+          {errors.narration && (
+            <p className="ml-2 text-sm text-red-500 mt-0.5">
+              {errors.narration?.message}
+            </p>
+          )}
         </div>
 
         <div>
@@ -66,6 +113,6 @@ export default async function TransferForm({
           </button>
         </div>
       </div>
-    </>
+    </form>
   );
 }

@@ -1,7 +1,11 @@
+"use client";
+
 import { LuSearch } from "react-icons/lu";
 import { FaEllipsisVertical, FaRegUser } from "react-icons/fa6";
+import { useState } from "react";
 
 export const BeneficiariesSidebar = () => {
+  const [beneficiaryTab, setBeneficiaryTab] = useState(1);
   return (
     <div>
       <div className="border-2 border-white/10 rounded-2xl p-4 sm:p-3 items-center mb-5 gap-x-2 sm:flex hidden">
@@ -170,19 +174,27 @@ export const BeneficiariesSidebar = () => {
       </div>
 
       <div className="border-2 border-white/10 rounded-2xl px-3 py-4 sm:p-5 h-fit bg-slate-500/5 sm:hidden">
-        <div className="flex justify-between items-center border-b border-white/10 pb-2 px-2">
+        <div className="flex justify-between items-center border-b border-white/10 px-2 pb-2.5">
           <div className="flex gap-x-7">
-            <h3 className="relative after:absolute after:bottom-0 after:left text-primary">
+            <button
+              className={`relative after:absolute after:-bottom-[11.3px] after:left-1/2 after:-translate-x-1/2 after:h-0.5 after:rounded-full after:w-5 ${beneficiaryTab == 0 ? "text-primary after:bg-primary" : ""}`}
+              onClick={() => setBeneficiaryTab(0)}
+            >
               Saved
-            </h3>
+            </button>
 
-            <h3 className="">Recents</h3>
+            <button
+              className={`relative after:absolute after:-bottom-[11.3px] after:left-1/2 after:-translate-x-1/2 after:h-0.5 after:rounded-full after:w-5 ${beneficiaryTab == 1 ? "text-primary after:bg-primary" : ""}`}
+              onClick={() => setBeneficiaryTab(1)}
+            >
+              Recents
+            </button>
           </div>
 
           <LuSearch />
         </div>
 
-        <div className="mt-3 grid gap-y-5 h-full">
+        <div className="mt-4 grid gap-y-5 h-full">
           <div className="grid grid-cols-[auto_1fr] gap-x-3 rounded-xl">
             <div className="p-3 bg-gray-700 size-fit rounded-full">
               <FaRegUser />

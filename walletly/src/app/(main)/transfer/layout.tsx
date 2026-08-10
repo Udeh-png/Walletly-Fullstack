@@ -9,15 +9,13 @@ export default function TransferPageLayout({
 }) {
   return (
     <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-      <form>
-        <div className="grid gap-5">
-          <BalanceSection />
+      <div className="grid gap-5">
+        <BalanceSection />
 
-          <TransferTabButtons />
+        <TransferTabButtons />
 
-          {children}
-        </div>
-      </form>
+        {children}
+      </div>
 
       <BeneficiariesSidebar />
     </div>

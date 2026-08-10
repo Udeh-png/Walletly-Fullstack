@@ -10,25 +10,45 @@ import {
 } from "react-icons/fa6";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { FieldErrors, UseFormRegister } from "react-hook-form";
+import { TransferType } from "@/types";
+import { IconType } from "react-icons";
 
-export const InternalTransferFormFields = () => {
-  const dropDownData = [
+type IdentifierId = Extract<
+  keyof TransferType,
+  "walletlyAccountNumber" | "phoneNumber" | "email"
+>;
+
+export const InternalTransferFormFields = ({
+  register,
+  errors,
+}: {
+  register: UseFormRegister<TransferType>;
+  errors: FieldErrors<TransferType>;
+}) => {
+  const dropDownData: Array<{
+    id: IdentifierId;
+    name: string;
+    Icon: IconType;
+    title: string;
+    subTitle: string;
+  }> = [
     {
-      id: "acc_no",
+      id: "walletlyAccountNumber",
       name: "Walletly account number",
       Icon: FaRegCreditCard,
       title: "Walletly Account Number",
       subTitle: "Send money using a Walletly account number",
     },
     {
-      id: "phone_no",
+      id: "phoneNumber",
       name: "phone number",
       Icon: LuPhone,
       title: "Phone Number",
       subTitle: "Send money using a phone number",
     },
     {
-      id: "email_add",
+      id: "email",
       name: "email address",
       Icon: FaRegEnvelope,
       title: "Email Address",
@@ -37,7 +57,9 @@ export const InternalTransferFormFields = () => {
   ];
 
   const [dropDownSummoned, setDropDownSummoned] = useState(false);
-  const [identifierId, setIdentifierId] = useState<string | null>(null);
+  const [identifierId, setIdentifierId] = useState<IdentifierId>(
+    "walletlyAccountNumber",
+  );
   const selectedIdentifier =
     dropDownData.find(({ id }) => id == identifierId) || dropDownData[0];
   return (
@@ -135,28 +157,47 @@ export const InternalTransferFormFields = () => {
 
           <input
             placeholder={`Enter user's ${selectedIdentifier.name}`}
+            {...register(identifierId)}
             className="w-full outline-none"
           />
 
           <MdOutlineQrCodeScanner className="text-2xl cursor-pointer" />
 
-          {/* <div
-                      className="rounded-xl w-full py-3 absolute top-[115%] left-0 bg-background"
-                      style={{
-                        boxShadow: "0 0 30px 5px rgba(0,0,0,0.35)",
-                      }}
-                    >
-                      <div className="grid grid-cols-[auto_1fr] gap-x-3 p-1 px-2 rounded-xl items-start">
-                        <div className="bg-gray-700 animate-pulse size-10 rounded-full" />
-    
-                        <div className="space-y-2">
-                          <div className="w-30 bg-gray-700 animate-pulse h-4" />
-                          <div className="w-50 bg-gray-700 animate-pulse h-2" />
-                          <div className="w-20 bg-gray-700 animate-pulse h-2" />
-                        </div>
-                      </div>
-                    </div> */}
+          {/*<div
+              className="rounded-xl w-full py-3 absolute top-[115%] left-0 bg-background"
+              style={{
+                boxShadow: "0 0 30px 5px rgba(0,0,0,0.35)",
+              }}
+            >
+              <div className="grid grid-cols-[auto_1fr] gap-x-3 p-1 px-2 rounded-xl items-start">
+                <div className="bg-gray-700 animate-pulse size-10 rounded-full" />
+
+                <div className="space-y-2">
+                  <div className="w-30 bg-gray-700 animate-pulse h-4" />
+                  <div className="w-50 bg-gray-700 animate-pulse h-2" />
+                  <div className="w-20 bg-gray-700 animate-pulse h-2" />
+                </div>
+              </div>
+            </div> 
+          */}
         </div>
+        {errors.email && (
+          <p className="ml-2 text-sm text-red-500 mt-0.5">
+            {errors.email?.message}
+          </p>
+        )}
+
+        {errors.walletlyAccountNumber && (
+          <p className="ml-2 text-sm text-red-500 mt-0.5">
+            {errors.walletlyAccountNumber?.message}
+          </p>
+        )}
+
+        {errors.phoneNumber && (
+          <p className="ml-2 text-sm text-red-500 mt-0.5">
+            {errors.phoneNumber?.message}
+          </p>
+        )}
       </div>
     </div>
   );
