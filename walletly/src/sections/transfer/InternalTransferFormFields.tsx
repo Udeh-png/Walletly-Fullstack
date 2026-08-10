@@ -1,0 +1,163 @@
+"use client";
+
+import { LuPhone, LuSearch } from "react-icons/lu";
+import { MdOutlineQrCodeScanner } from "react-icons/md";
+import {
+  FaCheck,
+  FaChevronDown,
+  FaRegCreditCard,
+  FaRegEnvelope,
+} from "react-icons/fa6";
+import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+
+export const InternalTransferFormFields = () => {
+  const dropDownData = [
+    {
+      id: "acc_no",
+      name: "Walletly account number",
+      Icon: FaRegCreditCard,
+      title: "Walletly Account Number",
+      subTitle: "Send money using a Walletly account number",
+    },
+    {
+      id: "phone_no",
+      name: "phone number",
+      Icon: LuPhone,
+      title: "Phone Number",
+      subTitle: "Send money using a phone number",
+    },
+    {
+      id: "email_add",
+      name: "email address",
+      Icon: FaRegEnvelope,
+      title: "Email Address",
+      subTitle: "Send money using an Email address",
+    },
+  ];
+
+  const [dropDownSummoned, setDropDownSummoned] = useState(false);
+  const [identifierId, setIdentifierId] = useState<string | null>(null);
+  const selectedIdentifier =
+    dropDownData.find(({ id }) => id == identifierId) || dropDownData[0];
+  return (
+    <div className="border-2 border-white/10 rounded-2xl px-3 py-4 sm:p-5 h-fit sm:space-y-7 space-y-7 bg-slate-500/5">
+      <div className="input-container relative cursor-pointer">
+        <label htmlFor="accountNumber" className="input-label mb-1 ml-1">
+          Select Identifier
+        </label>
+
+        <div
+          className="flex items-center gap-x-3 border-2 rounded-xl border-white/10 sm:p-3 px-2 py-3 caret-transparent"
+          onClick={() => setDropDownSummoned((prev) => !prev)}
+        >
+          <div className="text-primary bg-primary/20 rounded-lg p-2">
+            <LuSearch />
+          </div>
+          <input
+            placeholder="Walletly Account No. / phone No. / Email"
+            value={selectedIdentifier.title}
+            type="text"
+            readOnly
+            className="cursor-pointer w-full outline-none"
+          />
+        </div>
+
+        <FaChevronDown className="text-sm absolute right-3 top-[53%] translate-y-1/2" />
+
+        <AnimatePresence>
+          {dropDownSummoned && (
+            <motion.div
+              initial={{
+                height: 0,
+                opacity: 0,
+              }}
+              animate={{
+                height: "auto",
+                opacity: 1,
+              }}
+              exit={{
+                height: 0,
+                opacity: 0,
+              }}
+              transition={{
+                type: "tween",
+              }}
+              className="bg-[#161224] w-full absolute rounded-xl top-[105%] z-10 cursor-default overflow-clip"
+              style={{
+                boxShadow: "0 0 30px 5px rgba(0,0,0,0.35)",
+              }}
+            >
+              <ul className="p-2 flex flex-col gap-y-2">
+                {dropDownData.map(({ id, Icon, title, subTitle }) => (
+                  <li key={id}>
+                    <button
+                      type="button"
+                      className="w-full text-left py-2 px-2 hover:bg-background rounded-lg transition-colors flex gap-x-4 relative"
+                      onClick={() => {
+                        setIdentifierId(id);
+                        setDropDownSummoned(false);
+                      }}
+                    >
+                      <div className="text-primary bg-primary/20 rounded-lg p-2 size-fit">
+                        <Icon />
+                      </div>
+                      <div>
+                        <p>{title}</p>
+                        <p className="text-xs text-white/70 font-light">
+                          {subTitle}
+                        </p>
+                      </div>
+
+                      {identifierId == id && (
+                        <span className="p-1 bg-primary/80 rounded-full size-fit text-xs absolute sm:right-5 right-0 top-1/2 -translate-y-1/2">
+                          <FaCheck />
+                        </span>
+                      )}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div className="input-container">
+        <label htmlFor="accountNumber" className="input-label mb-1 ml-1">
+          User Identifier
+        </label>
+
+        <div className="flex items-center gap-x-3 border-2 rounded-xl border-white/10 sm:p-3 px-2 py-3 relative">
+          <div className="text-primary bg-primary/20 rounded-lg p-2">
+            <selectedIdentifier.Icon />
+          </div>
+
+          <input
+            placeholder={`Enter user's ${selectedIdentifier.name}`}
+            className="w-full outline-none"
+          />
+
+          <MdOutlineQrCodeScanner className="text-2xl cursor-pointer" />
+
+          {/* <div
+                      className="rounded-xl w-full py-3 absolute top-[115%] left-0 bg-background"
+                      style={{
+                        boxShadow: "0 0 30px 5px rgba(0,0,0,0.35)",
+                      }}
+                    >
+                      <div className="grid grid-cols-[auto_1fr] gap-x-3 p-1 px-2 rounded-xl items-start">
+                        <div className="bg-gray-700 animate-pulse size-10 rounded-full" />
+    
+                        <div className="space-y-2">
+                          <div className="w-30 bg-gray-700 animate-pulse h-4" />
+                          <div className="w-50 bg-gray-700 animate-pulse h-2" />
+                          <div className="w-20 bg-gray-700 animate-pulse h-2" />
+                        </div>
+                      </div>
+                    </div> */}
+        </div>
+      </div>
+    </div>
+  );
+};

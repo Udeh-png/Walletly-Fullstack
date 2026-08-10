@@ -88,7 +88,7 @@ export const BalanceSection = () => {
         </button>
       </p>
 
-      <p className="text-3xl sm:text-4xl md:text-5xl font-semibold mt-2 wrap-break-word relative">
+      <p className="text-4xl md:text-5xl font-semibold mt-2 wrap-break-word relative">
         {hideBalance ? "****" : "₦394,434.00"}
       </p>
 
