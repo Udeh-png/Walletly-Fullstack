@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { TabChangeContext } from "@/contexts/TransferTabChangeContext";
+import { useContext } from "react";
 
 export const TransferTabButtons = () => {
-  const pathname = usePathname();
+  const { transferType, setTransferType } = useContext(TabChangeContext);
   return (
     <div className="border-2 border-white/10 rounded-2xl p-2 h-fit bg-slate-500/5 flex">
       <div className={`relative flex justify-between w-full`}>
@@ -12,22 +12,22 @@ export const TransferTabButtons = () => {
           className="absolute top-0 w-1/2 h-full rounded-lg bg-primary -z-10"
           style={{
             // transition: "left 0.5s",
-            left: pathname.includes("internal") ? "50%" : "0",
+            left: transferType == "internal" ? "50%" : "0",
           }}
         />
-        <Link
-          href={"/transfer/external"}
-          className={`rounded-lg py-3 w-full text-center transition-colors flex-1`}
+        <button
+          className={`rounded-lg py-3 w-full text-center transition-colors flex-1 cursor-pointer`}
+          onClick={() => setTransferType("external")}
         >
           Bank Account
-        </Link>
+        </button>
 
-        <Link
-          href={"/transfer/internal"}
-          className={`rounded-lg py-3 w-full text-center transition-colors flex-1`}
+        <button
+          className={`rounded-lg py-3 w-full text-center transition-colors flex-1 cursor-pointer`}
+          onClick={() => setTransferType("internal")}
         >
           Walletly User
-        </Link>
+        </button>
       </div>
     </div>
   );

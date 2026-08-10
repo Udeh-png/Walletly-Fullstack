@@ -3,18 +3,13 @@
 import { ExternalTransferFormFields } from "@/sections/transfer/ExternalTransferFormFields";
 import { InternalTransferFormFields } from "@/sections/transfer/InternalTransferFormFields";
 import { FaArrowRight } from "react-icons/fa6";
-import { notFound, useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { transferSchema, TransferType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { TabChangeContext } from "@/contexts/TransferTabChangeContext";
+import { useContext } from "react";
 
 export default function TransferForm() {
-  const { type } = useParams();
-
-  if (type !== "external" && type !== "internal") {
-    notFound();
-  }
-
   const {
     register,
     handleSubmit,
@@ -26,6 +21,8 @@ export default function TransferForm() {
   });
 
   const formatter = Intl.NumberFormat("en-US");
+
+  const { transferType } = useContext(TabChangeContext);
 
   return (
     <form
@@ -40,11 +37,11 @@ export default function TransferForm() {
         },
       )}
     >
-      {type === "internal" && (
+      {transferType === "internal" && (
         <InternalTransferFormFields register={register} errors={errors} />
       )}
 
-      {type === "external" && (
+      {transferType === "external" && (
         <ExternalTransferFormFields register={register} errors={errors} />
       )}
 

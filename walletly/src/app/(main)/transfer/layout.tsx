@@ -1,3 +1,4 @@
+import { TabChangeContextProvider } from "@/contexts/TransferTabChangeContext";
 import { BalanceSection } from "@/sections/transfer/BalanceSection";
 import { BeneficiariesSidebar } from "@/sections/transfer/BeneficiariesSidebar";
 import { TransferTabButtons } from "@/sections/transfer/TransferTabButtons";
@@ -8,16 +9,18 @@ export default function TransferPageLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-      <div className="grid gap-5">
-        <BalanceSection />
+    <TabChangeContextProvider>
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
+        <div className="grid gap-5">
+          <BalanceSection />
 
-        <TransferTabButtons />
+          <TransferTabButtons />
 
-        {children}
+          {children}
+        </div>
+
+        <BeneficiariesSidebar />
       </div>
-
-      <BeneficiariesSidebar />
-    </div>
+    </TabChangeContextProvider>
   );
 }
