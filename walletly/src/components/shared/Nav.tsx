@@ -1,3 +1,5 @@
+"use client";
+
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable @next/next/no-img-element */
 
@@ -17,6 +19,7 @@ import Link from "next/link";
 import { MdOutlineQrCodeScanner } from "react-icons/md";
 import { RiHistoryFill } from "react-icons/ri";
 import { IoWalletOutline } from "react-icons/io5";
+import { usePathname } from "next/navigation";
 
 const DesktopNav = () => {
   return (
@@ -93,17 +96,21 @@ const DesktopNav = () => {
 };
 
 const MobileNav = () => {
+  const pathname = usePathname();
   return (
     <div className="fixed bottom-0 left-0 w-full px-5 py-3 bg-[#161224] z-50">
       <div className="flex items-center justify-between relative after:content-[''] after:absolute after:left-[51%] after:-top-9 after:bg-[#161224] after:-z-10 after:-translate-x-1/2 after:size-18 after:rounded-full">
         <ul className="contents">
           <li>
-            <div className="flex flex-col items-center text-primary w-fit text-[0.65rem] font-semibold">
-              <div className="rounded-xl">
+            <Link
+              href={"/dashboard"}
+              className={`flex flex-col items-center w-fit text-[0.65rem] font-semibold transition-colors ${pathname.includes("dashboard") ? "text-primary" : "text-white/80"}`}
+            >
+              <span className="rounded-xl">
                 <LuHouse className="text-[1.35rem]" />
-              </div>
-              <p>Home</p>
-            </div>
+              </span>
+              <span>Home</span>
+            </Link>
           </li>
 
           <li>
