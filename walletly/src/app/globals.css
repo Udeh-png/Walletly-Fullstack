@@ -217,11 +217,14 @@ iframe {
 }
 
 .material-spinner {
+  --r: 50%;
+  --one-deg: calc((2 * 3.14159 * var(--r)) / 360);
   animation: rotate 2s linear infinite;
 }
 
 .material-spinner .path {
-  stroke: var(--primary-color);
+  stroke: white;
+  stroke-width: 2px;
   stroke-linecap: round;
   animation: dash 1.5s ease-in-out infinite;
 }
@@ -234,15 +237,15 @@ iframe {
 
 @keyframes dash {
   0% {
-    stroke-dasharray: 1, 150;
+    stroke-dasharray: var(--one-deg), calc(355 * var(--one-deg));
     stroke-dashoffset: 0;
   }
   50% {
-    stroke-dasharray: 100, 150;
-    stroke-dashoffset: -35;
+    stroke-dasharray: calc(300 * var(--one-deg)), calc(100 * var(--one-deg));
+    stroke-dashoffset: calc(-40 * var(--one-deg));
   }
   100% {
-    stroke-dasharray: 90, 150;
-    stroke-dashoffset: -124;
+    stroke-dasharray: calc(3 * var(--one-deg)), calc(357 * var(--one-deg));
+    stroke-dashoffset: calc(-360 * var(--one-deg));
   }
 }

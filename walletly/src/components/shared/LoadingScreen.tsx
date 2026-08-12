@@ -1,19 +1,10 @@
-"use client"
+"use client";
 
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect } from "react";
 import { MaterialSpinner } from "./MaterialSpinner";
 
 export const LoadingScreen = ({ isLoading }: { isLoading: boolean }) => {
-  useEffect(() => {
-    if (isLoading) {
-      document.body.classList.add("no-scroll");
-    }
-
-    return () => {
-      document.body.classList.remove("no-scroll");
-    };
-  }, [isLoading]);
   return (
     <AnimatePresence>
       {isLoading && (

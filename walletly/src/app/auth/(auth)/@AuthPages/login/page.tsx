@@ -6,9 +6,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { loginSchema, LogInType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoadingScreen } from "@/components/shared/LoadingScreen";
 import { ErrorMessage } from "@/components/auth/ErrorMessage";
 import { FormWrapper } from "@/components/auth/FormWrapper";
+import { MaterialSpinner } from "@/components/shared/MaterialSpinner";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
@@ -43,7 +44,6 @@ export default function Login() {
   }; // displaying error message
   return (
     <FormWrapper>
-      <LoadingScreen isLoading={isSubmitting} />
       <form
         onSubmit={handleSubmit(handleOnSubmit)}
         className="px-1 md:px-0 md:space-y-7 space-y-5"
@@ -74,7 +74,7 @@ export default function Login() {
             )}
           </div>
 
-          <div className={`input-container`}>
+          <div className="input-container">
             <label htmlFor="password" className="input-label">
               Password
             </label>
@@ -116,10 +116,25 @@ export default function Login() {
         <div>
           <button
             type="submit"
-            className="button-primary"
+            className="button-primary flex items-center justify-center gap-x-2 disabled:brightness-75 disabled:cursor-default!"
             disabled={isSubmitting}
           >
-            Log In
+            <p className="relative">
+              Log In
+              <AnimatePresence>
+                {isSubmitting && (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.1 }}
+                    className="size-3.75 absolute left-[120%] top-1/2 -translate-y-1/2"
+                  >
+                    <MaterialSpinner sizeInPx={15} />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </p>
           </button>
         </div>
 
