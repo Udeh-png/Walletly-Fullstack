@@ -6,7 +6,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { loginSchema, LogInType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { LoadingScreen } from "@/components/shared/LoadingScreen";
 import { ErrorMessage } from "@/components/auth/ErrorMessage";
 import { FormWrapper } from "@/components/auth/FormWrapper";
 
@@ -43,7 +43,7 @@ export default function Login() {
   }; // displaying error message
   return (
     <FormWrapper>
-      <LoadingSpinner isLoading={isSubmitting} />
+      <LoadingScreen isLoading={isSubmitting} />
       <form
         onSubmit={handleSubmit(handleOnSubmit)}
         className="px-1 md:px-0 md:space-y-7 space-y-5"

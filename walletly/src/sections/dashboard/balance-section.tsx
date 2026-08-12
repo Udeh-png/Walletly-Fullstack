@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa6";
 import { LuCirclePlus } from "react-icons/lu";
 import { AnimatePresence, motion } from "framer-motion";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { LoadingScreen } from "@/components/shared/LoadingScreen";
 import { FundWalletModal } from "@/components/dashboard/FundWalletModal";
 import { FundWalletModalContext } from "@/contexts/DepositContext";
 import Link from "next/link";
@@ -43,7 +43,7 @@ export const BalanceSection = () => {
     <section
       className={`bg-[linear-gradient(to_bottom,var(--primary-color),#0d0d1a)] rounded-2xl p-4 sm:p-5 md:p-6 mt-5 relative lg:overflow-visible overflow-clip ${modalOpen && "bg-red-500!"}`}
     >
-      <LoadingSpinner isLoading={loading} />
+      <LoadingScreen isLoading={loading} />
       <AnimatePresence>
         {modalOpen && (
           <FundWalletModal

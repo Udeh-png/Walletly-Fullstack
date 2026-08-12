@@ -11,7 +11,7 @@ export const TransferTabButtons = () => {
         <div
           className="absolute top-0 w-1/2 h-full rounded-lg bg-primary -z-10"
           style={{
-            // transition: "left 0.5s",
+            transition: "left 0.5s",
             left: transferType == "internal" ? "50%" : "0",
           }}
         />

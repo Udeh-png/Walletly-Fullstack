@@ -7,7 +7,7 @@ import { GoPlusCircle } from "react-icons/go";
 import { motion } from "framer-motion";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "@/hooks/UseMediaQuery";
-import { LoadingSpinner } from "../shared/LoadingSpinner";
+import { LoadingScreen } from "../shared/LoadingScreen";
 import Script from "next/script";
 
 const FundWalletFormContent = ({
@@ -84,7 +84,7 @@ const FundWalletFormContent = ({
   return (
     <form className="md:h-full h-fit flex flex-col" onSubmit={initiateDeposit}>
       <Script src="https://checkout.flutterwave.com/v3.js"></Script>
-      <LoadingSpinner isLoading={isSubmitting} />
+      <LoadingScreen isLoading={isSubmitting} />
 
       {!isMobile && (
         <button

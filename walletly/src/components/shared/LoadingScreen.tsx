@@ -1,7 +1,10 @@
+"use client"
+
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect } from "react";
+import { MaterialSpinner } from "./MaterialSpinner";
 
-export const LoadingSpinner = ({ isLoading }: { isLoading: boolean }) => {
+export const LoadingScreen = ({ isLoading }: { isLoading: boolean }) => {
   useEffect(() => {
     if (isLoading) {
       document.body.classList.add("no-scroll");
@@ -27,9 +30,9 @@ export const LoadingSpinner = ({ isLoading }: { isLoading: boolean }) => {
           transition={{
             duration: 0.15,
           }}
-          className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-10"
+          className="fixed inset-0 w-full h-full bg-black/50 flex items-center justify-center z-100000000"
         >
-          <span className="loader" />
+          <MaterialSpinner sizeInPx={50} />
         </motion.div>
       )}
     </AnimatePresence>

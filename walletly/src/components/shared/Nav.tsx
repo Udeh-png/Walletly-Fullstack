@@ -9,7 +9,6 @@ import {
   LuCircleHelp,
   LuEllipsis,
   LuHistory,
-  LuHouse,
   LuLayoutDashboard,
   LuLogOut,
   LuSettings,
@@ -20,76 +19,111 @@ import { MdOutlineQrCodeScanner } from "react-icons/md";
 import { RiHistoryFill } from "react-icons/ri";
 import { IoWalletOutline } from "react-icons/io5";
 import { usePathname } from "next/navigation";
+import { FaRegPaperPlane, FaRegTrashCan, FaRegUser } from "react-icons/fa6";
 
 const DesktopNav = () => {
+  const pathname = usePathname();
+  const activeLinkStyle =
+    "bg-white/10 after:content-[''] after:absolute after:top-1/2 after:-translate-y-1/2 after:-left-0.5 after:w-1 after:h-[70%] after:bg-primary after:rounded-full";
   return (
-    <div className="block h-screen w-65 border-r border-r-white/10 fixed top-0 left-0 bg-[rgba(21,20,31,0.5)] py-5 px-3">
-      <div className="flex items-center gap-x-3">
-        <img src={"/images/logo.png"} className="w-8" />
-        <p className="text-lg font-semibold">Walletly</p>
+    <div className="h-screen w-65 border-r border-r-white/10 fixed top-0 left-0 bg-[rgba(21,20,31,0.5)] py-5 px-3 flex flex-col justify-between">
+      <div>
+        <div className="flex items-center gap-x-3">
+          <img src={"/images/logo.png"} className="w-8" />
+          <p className="text-lg font-semibold">Walletly</p>
+        </div>
+
+        <div className="mt-7">
+          <ul className="flex flex-col gap-y-2 mt-1">
+            <li>
+              <Link
+                href={"/dashboard"}
+                className={`flex items-center gap-x-2 text-white/90 overflow-clip p-2 relative rounded-lg transition-colors duration-100 ${pathname.includes("dashboard") && activeLinkStyle}`}
+              >
+                <LuLayoutDashboard className="text-lg" />
+                <p className="">Dashboard</p>
+              </Link>
+            </li>
+
+            <li>
+              <Link
+                href={"/transfer"}
+                className={`flex items-center gap-x-2 text-white/90 overflow-clip p-2 relative rounded-lg transition-colors duration-100 ${pathname.includes("transfer") && activeLinkStyle}`}
+              >
+                <FaRegPaperPlane className="" />
+                <span>Send Money</span>
+              </Link>
+            </li>
+
+            <li>
+              <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
+                <LuHistory className="text-lg" />
+                <p className="">Transactions</p>
+              </div>
+            </li>
+
+            <li>
+              <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
+                <CiCreditCard1 className="text-xl" />
+                <p className="">Payment methods</p>
+              </div>
+            </li>
+
+            <li>
+              <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
+                <LuBell className="text-lg" />
+                <p className="">Notifications</p>
+              </div>
+            </li>
+
+            <li>
+              <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
+                <LuChartArea className="text-lg" />
+                <p className="">Analytics</p>
+              </div>
+            </li>
+
+            <li>
+              <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
+                <LuSettings className="text-lg" />
+                <p className="">Settings</p>
+              </div>
+            </li>
+
+            <li>
+              <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
+                <LuCircleHelp className="text-lg" />
+                <p className="">Help desk</p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
+      <div className="space-y-3">
+        <div className="flex items-center gap-x-3 border-b border-white/10 pb-3 -mx-3 px-2">
+          <div className="p-2.5 bg-gray-700 size-fit rounded-full">
+            <FaRegUser />
+          </div>
 
-      <div className="mt-7">
-        <ul className="flex flex-col gap-y-2 mt-1">
-          <li>
-            <Link
-              href={"/dashboard"}
-              className="flex items-center gap-x-2 text-white/90 overflow-clip font-semibold bg-white/10 p-2 relative rounded-lg after:content-[''] after:absolute after:top-1/2 after:-translate-y-1/2 after:-left-0.5 after:w-1 after:h-[70%] after:bg-primary after:rounded-full"
-            >
-              <LuLayoutDashboard className="text-lg" />
-              <p className="">Dashboard</p>
-            </Link>
-          </li>
+          <div>
+            <p className="font-light">Udeh Chisom</p>
+            <p className="text-xs font-light text-white/60">
+              leonwokedichisom@gmail.com
+            </p>
+          </div>
+        </div>
 
-          <li>
-            <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
-              <LuHistory className="text-lg" />
-              <p className="">Transactions</p>
-            </div>
-          </li>
+        <div className="pl-1 -mb-3 space-y-4">
+          <div className="flex items-center gap-x-2 overflow-clip text-white/60">
+            <LuLogOut className="text-lg" />
+            <p className="">Logout</p>
+          </div>
 
-          <li>
-            <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
-              <CiCreditCard1 className="text-xl" />
-              <p className="">Payment methods</p>
-            </div>
-          </li>
-
-          <li>
-            <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
-              <LuBell className="text-lg" />
-              <p className="">Notifications</p>
-            </div>
-          </li>
-
-          <li>
-            <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
-              <LuChartArea className="text-lg" />
-              <p className="">Analytics</p>
-            </div>
-          </li>
-
-          <li>
-            <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
-              <LuSettings className="text-lg" />
-              <p className="">Settings</p>
-            </div>
-          </li>
-
-          <li>
-            <div className="flex items-center gap-x-2 text-white/90 overflow-clip p-2">
-              <LuCircleHelp className="text-lg" />
-              <p className="">Help desk</p>
-            </div>
-          </li>
-
-          <li>
-            <div className="flex items-center gap-x-2 overflow-clip p-2 text-red-500">
-              <LuLogOut className="text-lg" />
-              <p className="">Logout</p>
-            </div>
-          </li>
-        </ul>
+          <div className="flex items-center gap-x-2 overflow-clip text-red-500">
+            <FaRegTrashCan className="text-lg" />
+            <p className="">Delete Account</p>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -107,7 +141,7 @@ const MobileNav = () => {
               className={`flex flex-col items-center w-fit text-[0.65rem] font-semibold transition-colors ${pathname.includes("dashboard") ? "text-primary" : "text-white/80"}`}
             >
               <span className="rounded-xl">
-                <LuHouse className="text-[1.35rem]" />
+                <LuLayoutDashboard className="text-[1.35rem]" />
               </span>
               <span>Home</span>
             </Link>

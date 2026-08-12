@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import { PasswordListItem } from "@/components/auth/PasswordStrengthListItem";
 import { passwordCriteria } from "@/data";
 import { SignupFormType, signupSchema } from "@/types";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { LoadingScreen } from "@/components/shared/LoadingScreen";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FormWrapper } from "@/components/auth/FormWrapper";
@@ -87,7 +87,7 @@ export default function Signup() {
   return (
     <div className="lg:mt-0 mt-5">
       <FormWrapper>
-        <LoadingSpinner isLoading={isSubmitting} />
+        <LoadingScreen isLoading={isSubmitting} />
         <form
           action=""
           className="flex flex-col md:gap-7 gap-5 md:px-0 px-1"

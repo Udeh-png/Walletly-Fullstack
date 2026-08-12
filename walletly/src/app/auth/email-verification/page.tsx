@@ -7,7 +7,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { IoIosMailUnread } from "react-icons/io";
 import { motion } from "framer-motion";
-import { LoadingSpinner } from "@/components/shared/LoadingSpinner";
+import { LoadingScreen } from "@/components/shared/LoadingScreen";
 import { redirect } from "next/navigation";
 import { ErrorMessage } from "@/components/auth/ErrorMessage";
 
@@ -245,7 +245,7 @@ export default function EmailVerificationPage() {
   return (
     <div className="flex items-center justify-center md:h-dvh md:-my-10">
       <div className="form-wrapper2 md:p-10 md:w-fit w-full">
-        <LoadingSpinner isLoading={isLoading} />
+        <LoadingScreen isLoading={isLoading} />
 
         <form
           action="javascript:void(0)"
