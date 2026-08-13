@@ -48,7 +48,7 @@ export default function Login() {
         onSubmit={handleSubmit(handleOnSubmit)}
         className="px-1 md:px-0 md:space-y-7 space-y-5"
       >
-        <div className="">
+        <div>
           <p className="text-3xl font-bold">Welcome back!</p>
           <p className="text-gray-400">
             Enter your details to get back to your finances.
@@ -58,7 +58,7 @@ export default function Login() {
         <div className="flex flex-col md:gap-7 gap-5">
           <div className="input-container w-full">
             <label htmlFor="email" className="input-label">
-              Email
+              Email Address
             </label>
             <input
               autoComplete="email"
@@ -99,17 +99,14 @@ export default function Login() {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
+            <p className="input-error-text">{errors.password?.message}</p>
 
-            <div className="flex justify-between">
-              <p className="input-error-text">{errors.password?.message}</p>
-
-              <Link
-                href="/"
-                className="text-primary font-small text-sm underline text-right"
-              >
-                Forgotten Password?
-              </Link>
-            </div>
+            <Link
+              href="/auth/reset-password"
+              className="text-primary font-small text-sm underline mt-3 block"
+            >
+              Forgotten Password?
+            </Link>
           </div>
         </div>
 

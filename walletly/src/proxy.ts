@@ -7,9 +7,9 @@ export const proxy = async (req: NextRequest) => {
     const hasActiveRegSession = (await cookies()).get("regId");
 
     if (!hasActiveRegSession) {
-      return NextResponse.redirect(
-        new URL("/auth/register?no-cookie-value", req.url),
-      );
+      // return NextResponse.redirect(
+      //   new URL("/auth/register?no-cookie-value", req.url),
+      // );
     }
   }
 

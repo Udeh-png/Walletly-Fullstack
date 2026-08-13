@@ -1,7 +1,6 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect } from "react";
 import { MaterialSpinner } from "./MaterialSpinner";
 
 export const LoadingScreen = ({ isLoading }: { isLoading: boolean }) => {

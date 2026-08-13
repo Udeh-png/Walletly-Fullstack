@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 export const FormWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <motion.div
-      className="form-wrapper"
+      className="form-wrapper w-full"
       initial={{
         translateX: "var(--slide-in-offset)",
         opacity: 0,

@@ -40,7 +40,7 @@ body.no-scroll {
 }
 
 .input-label {
-  @apply text-[0.9rem] font-medium;
+  @apply font-medium;
 }
 
 .input-container {

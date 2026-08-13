@@ -18,7 +18,7 @@ export default function Layout({
           <AuthLeftSide />
         </div>
 
-        <div>{AuthPages}</div>
+        <div className="flex items-center justify-center">{AuthPages}</div>
       </div>
 
       <div className="fixed size-120 blur-3xl rounded-full md:-bottom-50 -bottom-100 -right-10 bg-primary -z-10 opacity-10" />
