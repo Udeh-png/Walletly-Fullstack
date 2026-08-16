@@ -17,7 +17,7 @@ export const ExternalTransferFormFields = ({
           Account Number
         </label>
 
-        <div className="flex items-center gap-x-3 border-2 rounded-xl border-white/10 p-3 relative">
+        <label className="form-input-wrapper sm:p-3.5! px-3! py-4!">
           <div className="text-primary bg-primary/20 rounded-lg p-2">
             <FaRegCreditCard />
           </div>
@@ -26,7 +26,7 @@ export const ExternalTransferFormFields = ({
             placeholder="Enter 10 Digit Account Number"
             className="w-full outline-none"
           />
-        </div>
+        </label>
 
         {errors.accountNumber && (
           <p className="ml-2 text-sm text-red-500 mt-0.5">
@@ -40,7 +40,7 @@ export const ExternalTransferFormFields = ({
           Bank Name
         </label>
 
-        <div className="flex items-center gap-x-3 border-2 rounded-xl border-white/10 p-3 relative">
+        <label className="form-input-wrapper sm:p-3.5! px-3! py-4!">
           <div className="text-primary bg-primary/20 rounded-lg p-2">
             <LuSearch />
           </div>
@@ -50,8 +50,8 @@ export const ExternalTransferFormFields = ({
             type="text"
             className="cursor-pointer w-full outline-none"
           />
-          <FaChevronDown className="text-sm absolute right-3 top-[50%] -translate-y-1/2" />
-        </div>
+          <FaChevronDown className="text-sm" />
+        </label>
 
         {errors.bankName && (
           <p className="ml-2 text-sm text-red-500 mt-0.5">

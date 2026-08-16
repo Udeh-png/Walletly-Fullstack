@@ -69,13 +69,13 @@ export const InternalTransferFormFields = ({
           Select Identifier
         </label>
 
-        <div
-          className="flex items-center gap-x-3 border-2 rounded-xl border-white/10 sm:p-3 px-2 py-3 caret-transparent"
+        <label
+          className="form-input-wrapper sm:p-3.5! px-3! py-4!"
           onClick={() => setDropDownSummoned((prev) => !prev)}
         >
-          <div className="text-primary bg-primary/20 rounded-lg p-2">
+          <span className="text-primary bg-primary/20 rounded-lg p-2">
             <LuSearch />
-          </div>
+          </span>
           <input
             placeholder="Walletly Account No. / phone No. / Email"
             value={selectedIdentifier.title}
@@ -83,9 +83,8 @@ export const InternalTransferFormFields = ({
             readOnly
             className="cursor-pointer w-full outline-none"
           />
-        </div>
-
-        <FaChevronDown className="text-sm absolute right-3 top-[53%] translate-y-1/2" />
+          <FaChevronDown className="text-sm" />
+        </label>
 
         <AnimatePresence>
           {dropDownSummoned && (
@@ -150,15 +149,15 @@ export const InternalTransferFormFields = ({
           User Identifier
         </label>
 
-        <div className="flex items-center gap-x-3 border-2 rounded-xl border-white/10 sm:p-3 px-2 py-3 relative">
+        <label className="form-input-wrapper sm:p-3.5! px-3! py-4!">
           <div className="text-primary bg-primary/20 rounded-lg p-2">
             <selectedIdentifier.Icon />
           </div>
 
           <input
+            className="w-full outline-none"
             placeholder={`Enter user's ${selectedIdentifier.name}`}
             {...register(identifierId)}
-            className="w-full outline-none"
           />
 
           <MdOutlineQrCodeScanner className="text-2xl cursor-pointer" />
@@ -180,7 +179,7 @@ export const InternalTransferFormFields = ({
               </div>
             </div> 
           */}
-        </div>
+        </label>
         {errors.email && (
           <p className="ml-2 text-sm text-red-500 mt-0.5">
             {errors.email?.message}

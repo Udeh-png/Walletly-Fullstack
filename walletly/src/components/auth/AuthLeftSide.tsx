@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 
 export const AuthLeftSide = () => {
   const path = usePathname();
-  console.log(path);
   return (
     <div className="flex items-start flex-col gap-6">
       <motion.div
@@ -17,7 +16,7 @@ export const AuthLeftSide = () => {
         <div className="absolute size-full rounded-full blur-2xl top-0 bg-primary/30 -z-10" />
         <img src="/images/logo.png" alt="" className="md:max-w-80 max-w-40" />
       </motion.div>
-      <div className={`${path === "/auth/login" ? "lg:block hidden" : ""}`}>
+      <div className={`${path !== "/auth/register" ? "lg:block hidden" : ""}`}>
         <motion.p
           className="text-5xl font-bold"
           initial={{ translateY: 100, opacity: 0 }}
@@ -27,7 +26,7 @@ export const AuthLeftSide = () => {
           Take <span className="text-primary">Control</span> Of Your Finance
         </motion.p>
         <motion.p
-          className="text-xl text-gray-500 mt-4"
+          className="text-xl text-gray-500 mt-4 sm:flex hidden"
           initial={{ translateY: 100, opacity: 0 }}
           animate={{ translateY: 0, opacity: 1 }}
           transition={{ type: "tween", delay: 0.4 }}
@@ -38,7 +37,7 @@ export const AuthLeftSide = () => {
       </div>
 
       <div
-        className={`flex items-center gap-5 ${path === "/auth/login" ? "lg:flex hidden" : ""}`}
+        className={`flex items-center gap-5 ${path !== "/auth/register" ? "lg:flex hidden" : ""}`}
       >
         <motion.div
           className="flex"

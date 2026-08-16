@@ -1,8 +1,6 @@
 "use client";
 
 import { useForm } from "react-hook-form";
-import { FaEye, FaEyeSlash } from "react-icons/fa6";
-import { useState } from "react";
 import Link from "next/link";
 import { loginSchema, LogInType } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,9 +8,9 @@ import { ErrorMessage } from "@/components/auth/ErrorMessage";
 import { FormWrapper } from "@/components/auth/FormWrapper";
 import { MaterialSpinner } from "@/components/shared/MaterialSpinner";
 import { AnimatePresence, motion } from "framer-motion";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 
 export default function Login() {
-  const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
@@ -60,14 +58,17 @@ export default function Login() {
             <label htmlFor="email" className="input-label">
               Email Address
             </label>
-            <input
-              autoComplete="email"
-              type="email"
-              id="email"
-              className={`form-input ${errors.email ? "ring-red-500! ring-2!" : ""}`}
-              placeholder="name@example.com"
-              {...register("email")}
-            />
+            <label
+              className={`form-input-wrapper ${errors.email ? "ring-red-500! ring-2!" : ""}`}
+            >
+              <input
+                autoComplete="email"
+                type="email"
+                id="email"
+                placeholder="name@example.com"
+                {...register("email")}
+              />
+            </label>
 
             {errors.email && (
               <p className="input-error-text">{errors.email.message}</p>
@@ -78,31 +79,17 @@ export default function Login() {
             <label htmlFor="password" className="input-label">
               Password
             </label>
-            <div className="relative">
-              <input
-                autoComplete="new-password"
-                type={showPassword ? "text" : "password"}
-                id="password"
-                className={`form-input ${errors.password ? "ring-red-500! ring-2!" : ""}`}
-                placeholder="•••••••••••"
-                {...register("password")}
-              />
-
-              <button
-                onClick={() => {
-                  setShowPassword((prev) => !prev);
-                  document.getElementById("password")?.focus();
-                }}
-                type="button"
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
+            <PasswordInput
+              elementId="password"
+              error={Boolean(errors.password)}
+              id="password"
+              autoComplete="new-password"
+              {...register("password")}
+            />
             <p className="input-error-text">{errors.password?.message}</p>
 
             <Link
-              href="/auth/reset-password"
+              href="/auth/forgot-password"
               className="text-primary font-small text-sm underline mt-3 block"
             >
               Forgotten Password?

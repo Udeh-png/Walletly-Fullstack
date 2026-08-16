@@ -50,8 +50,9 @@ export const TransferForm = () => {
             Amount
           </label>
 
-          <div className="flex items-center gap-x-3 border-2 rounded-xl border-white/10 p-3 relative">
+          <label className="form-input-wrapper gap-x-2">
             <span className="text-primary">₦</span>
+
             <input
               {...register("amount", {
                 onChange: () => {
@@ -70,7 +71,7 @@ export const TransferForm = () => {
               inputMode="numeric"
               maxLength={7}
             />
-          </div>
+          </label>
           <div className="w-full flex justify-between px-2 mt-1">
             <p className="text-white/60 text-sm">Fee: ₦0.00</p>
             <p className="text-white/60 text-sm">Total: ₦0.00</p>
@@ -87,13 +88,13 @@ export const TransferForm = () => {
             Narration <span className="text-white/50">(optional)</span>
           </label>
 
-          <div className="flex items-center gap-x-3 border-2 rounded-xl border-white/10 p-3 relative">
+          <label className="form-input-wrapper">
             <input
               {...register("narration")}
               className="w-full outline-none"
               placeholder="What is this transfer for?"
             />
-          </div>
+          </label>
 
           {errors.narration && (
             <p className="ml-2 text-sm text-red-500 mt-0.5">

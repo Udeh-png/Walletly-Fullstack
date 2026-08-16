@@ -1,22 +1,18 @@
 "use client";
 
-import { FaEye, FaEyeSlash } from "react-icons/fa";
-import { MultipleFieldErrors, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect, useRef } from "react";
-import { PasswordListItem } from "@/components/auth/PasswordStrengthListItem";
-import { passwordCriteria } from "@/data";
 import { SignupFormType, signupSchema } from "@/types";
 import { LoadingScreen } from "@/components/shared/LoadingScreen";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FormWrapper } from "@/components/auth/FormWrapper";
 import { ErrorMessage } from "@/components/auth/ErrorMessage";
+import { PasswordFieldWithChecks } from "@/components/auth/PasswordFieldWIthChecks";
+import { PasswordInput } from "@/components/auth/PasswordInput";
 
 export default function Signup() {
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isTouched, setIsTouched] = useState(false);
   const errMsgRef = useRef<HTMLDivElement | null>(null);
   const [, setTime] = useState<string | null>(null);
 
@@ -36,22 +32,6 @@ export default function Signup() {
       errMsgRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [errors.root]);
-
-  const passwordMeetsCriteria = (criteria: string) => {
-    if (!isTouched) return false;
-
-    const errorTypesArray: MultipleFieldErrors | undefined =
-      errors?.password?.types;
-    const errorType: string = errors?.password?.type || "";
-    return !(
-      (Array.isArray(errorTypesArray?.invalid_format) &&
-        errorTypesArray?.invalid_format?.includes(criteria)) ||
-      errorTypesArray?.invalid_format === criteria ||
-      errorTypesArray?.[errorType] === criteria ||
-      (Array.isArray(errorTypesArray?.[errorType]) &&
-        (errorTypesArray?.[errorType] as string[]).includes(criteria))
-    );
-  };
 
   const onSubmit = async (data: SignupFormType) => {
     const response = await fetch(
@@ -103,14 +83,17 @@ export default function Signup() {
               <label htmlFor="first name" className="input-label">
                 First Name
               </label>
-              <input
-                autoComplete=""
-                type="text"
-                id="first name"
-                className={`form-input ${errors.firstName ? "ring-red-500! ring-2!" : ""}`}
-                placeholder="John"
-                {...register("firstName")}
-              />
+              <label
+                className={`form-input-wrapper ${errors.firstName ? "ring-red-500! ring-2!" : ""}`}
+              >
+                <input
+                  autoComplete=""
+                  type="text"
+                  id="first name"
+                  placeholder="John"
+                  {...register("firstName")}
+                />
+              </label>
 
               {errors.firstName && (
                 <p className="input-error-text">{errors.firstName.message}</p>
@@ -121,14 +104,17 @@ export default function Signup() {
               <label htmlFor="last name" className="input-label">
                 Last Name
               </label>
-              <input
-                autoComplete=""
-                type="text"
-                id="last name"
-                className={`form-input ${errors.lastName ? "ring-red-500! ring-2!" : ""}`}
-                placeholder="Doe"
-                {...register("lastName")}
-              />
+              <label
+                className={`form-input-wrapper ${errors.lastName ? "ring-red-500! ring-2!" : ""}`}
+              >
+                <input
+                  autoComplete=""
+                  type="text"
+                  id="last name"
+                  placeholder="Doe"
+                  {...register("lastName")}
+                />
+              </label>
 
               {errors.lastName && (
                 <p className="input-error-text">{errors.lastName.message}</p>
@@ -140,89 +126,40 @@ export default function Signup() {
             <label htmlFor="email" className="input-label">
               Email
             </label>
-            <input
-              autoComplete="email"
-              type="email"
-              id="email"
-              className={`form-input ${errors.email ? "ring-red-500! ring-2!" : ""}`}
-              placeholder="name@example.com"
-              {...register("email")}
-            />
+            <label
+              className={`form-input-wrapper ${errors.lastName ? "ring-red-500! ring-2!" : ""}`}
+            >
+              <input
+                autoComplete="email"
+                type="email"
+                id="email"
+                placeholder="name@example.com"
+                {...register("email")}
+              />
+            </label>
             {errors.email && (
               <p className="input-error-text">{errors.email.message}</p>
             )}
           </div>
 
-          <div className={`input-container`}>
-            <label htmlFor="password" className="input-label">
-              Password
-            </label>
-            <div className="relative">
-              <input
-                autoComplete="new-password"
-                type={showPassword ? "text" : "password"}
-                id="password"
-                className={`form-input ${!passwordMeetsCriteria("REQUIRED") && isSubmitted ? "ring-red-500! ring-2!" : ""}`}
-                placeholder="•••••••••••"
-                {...register("password", {
-                  onChange: () => {
-                    if (!isTouched) setIsTouched(true);
-                    trigger("password");
-                  },
-                })}
-              />
-
-              <button
-                onClick={() => {
-                  setShowPassword((prev) => !prev);
-                  document.getElementById("password")?.focus();
-                }}
-                type="button"
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
-
-            {!passwordMeetsCriteria("REQUIRED") && isSubmitted && (
-              <p className="input-error-text">Password is Required</p>
-            )}
-            <div className="grid md:grid-cols-2 md:gap-2.5 gap-2 mt-2 text-sm">
-              {passwordCriteria.map((criteria) => (
-                <PasswordListItem
-                  key={criteria.id}
-                  criteria={criteria}
-                  isValid={passwordMeetsCriteria(criteria.id)}
-                />
-              ))}
-            </div>
-          </div>
+          <PasswordFieldWithChecks
+            isSubmitted={isSubmitted}
+            passwordErrors={errors.password}
+            register={register}
+            trigger={trigger}
+          />
 
           <div className="input-container">
             <label htmlFor="confirm-password" className="input-label">
               Confirm Password
             </label>
-            <div className="relative">
-              <input
-                autoComplete="new-password"
-                type={showConfirmPassword ? "text" : "password"}
-                id="confirm-password"
-                className={`form-input ${errors.confirmPassword ? "ring-red-500! ring-2!" : ""}`}
-                placeholder="•••••••••••"
-                {...register("confirmPassword")}
-              />
-
-              <button
-                onClick={() => {
-                  setShowConfirmPassword((prev) => !prev);
-                  document.getElementById("confirm-password")?.focus();
-                }}
-                type="button"
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 cursor-pointer"
-              >
-                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
+            <PasswordInput
+              elementId="confirm-password"
+              error={Boolean(errors.confirmPassword)}
+              autoComplete="password"
+              id="confirm-password"
+              {...register("confirmPassword")}
+            />
 
             {errors.confirmPassword && (
               <p className="input-error-text">
