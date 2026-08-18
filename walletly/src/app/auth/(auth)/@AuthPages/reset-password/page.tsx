@@ -4,26 +4,66 @@ import { FormWrapper } from "@/components/auth/FormWrapper";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { PasswordFieldWithChecks } from "@/components/auth/PasswordFieldWIthChecks";
 
-import { SignupFormType, signupSchema } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
 import { MaterialSpinner } from "@/components/shared/MaterialSpinner";
+import z from "zod";
+
+const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(1, { message: "REQUIRED" })
+      .min(8, "MIN_LENGTH")
+      .regex(/[A-Z]/, "UPPERCASE")
+      .regex(/[a-z]/, "LOWERCASE")
+      .regex(/[0-9]/, "NUMBER")
+      .regex(/[^A-Za-z0-9]/, "SPECIAL_CHARACTER"),
+    confirmPassword: z
+      .string()
+      .min(1, { message: "Confirm password is required" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type ResetPasswordType = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPassword() {
   const {
+    handleSubmit,
     register,
     trigger,
-    formState: { errors, isSubmitted },
-  } = useForm<SignupFormType>({
-    resolver: zodResolver(signupSchema),
+    formState: { errors, isSubmitted, isSubmitting },
+  } = useForm<ResetPasswordType>({
+    resolver: zodResolver(resetPasswordSchema),
     criteriaMode: "all",
   });
 
   return (
     <FormWrapper>
       <h1 className="text-3xl  font-semibold mb-5">Reset your password</h1>
-      <form className="md:px-0 px-1 pb-5">
+      <form
+        className="md:px-0 px-1 pb-5"
+        onSubmit={handleSubmit(
+          async (data) => {
+            console.log("submitted");
+            await fetch("http://localhost:8080/api/auth/reset-password", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({ password: data.password }),
+            });
+          },
+          (e) => {
+            console.log(e);
+          },
+        )}
+      >
         <div className="space-y-5">
           <PasswordFieldWithChecks
             passwordErrors={errors.password}
@@ -33,13 +73,13 @@ export default function ResetPassword() {
           />
 
           <div className="input-container">
-            <label htmlFor="confirm-password" className="input-label">
+            <label htmlFor="confirmPassword" className="input-label">
               Confirm Password
             </label>
 
             <PasswordInput
-              id="confirm-password"
-              elementId="confirm-password"
+              id="confirmPassword"
+              elementId="confirmPassword"
               error={Boolean(errors.confirmPassword)}
               {...register("confirmPassword")}
             />
@@ -55,12 +95,12 @@ export default function ResetPassword() {
             <button
               type="submit"
               className="button-primary flex items-center justify-center gap-x-2 disabled:brightness-75 disabled:cursor-default!"
-              disabled={false}
+              disabled={isSubmitting}
             >
               <p className="relative">
                 Reset Password
                 <AnimatePresence>
-                  {false && (
+                  {isSubmitting && (
                     <motion.span
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}

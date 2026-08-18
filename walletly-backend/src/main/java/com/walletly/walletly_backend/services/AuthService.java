@@ -1,6 +1,5 @@
 package com.walletly.walletly_backend.services;
 
-import com.resend.core.exception.ResendException;
 import com.walletly.walletly_backend.dtos.requests.LoginRequest;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.CreatePsaResponse;
 import com.walletly.walletly_backend.mappers.Mapper;
@@ -13,18 +12,20 @@ import com.walletly.walletly_backend.repos.WalletRepo;
 import com.walletly.walletly_backend.security.MyUserDetails;
 import com.walletly.walletly_backend.modals.User;
 import com.walletly.walletly_backend.repos.UserRepo;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.ObjectMapper;
 
 import javax.security.auth.login.AccountLockedException;
-import java.nio.charset.StandardCharsets;
+import java.io.UnsupportedEncodingException;
 import java.time.Instant;
 import java.util.Objects;
 import java.util.Optional;
@@ -54,21 +55,19 @@ public class AuthService {
 	
 	static final Long SESSION_TTL = 30L;
 	
-	public String initiateRegistration (RegistrationRequest regInfo) throws ResendException, AccountLockedException {
+	public String initiateRegistration (RegistrationRequest regInfo) throws AccountLockedException {
 		String regReqEmail = regInfo.getEmail();
-		String id = Optional.ofNullable(getRegId(regReqEmail)).orElseGet(this::generateId);
 		
 		if (userRepo.existsByEmail(regReqEmail))
 			throw new UserEmailAlreadyExists(regReqEmail);
+		
+		String id = Optional.ofNullable(getRegId(regReqEmail)).orElseGet(this::generateId);
 		
 		regInfo.setPassword(Objects.requireNonNull(passwordEncoder.encode(regInfo.getPassword())));
 		
 		storeRegSession(id, regInfo);
 		
-		String otp = otpService.generateOtp();
-
-		otpService.sendOtp(regReqEmail, otp);
-		otpService.storeOtp(otp, regReqEmail);
+		issueOtp(regReqEmail);
 		
 		return id;
 	}
@@ -113,21 +112,77 @@ public class AuthService {
 		return Mapper.userToUserResponse(userDetails.getUser());
 	}
 	
-	public void resendOtp (String id) throws ResendException, AccountLockedException {
+	public void resendOtp (String id) throws AccountLockedException {
 		RegistrationRequest regInfo = getRegInfo(id);
 		
 		if (regInfo == null) throw new SessionNotFoundException();
 		
 		String email = regInfo.getEmail();
+		
+		issueOtp(email);
+	}
+	
+	public String forgotPassword (String email) throws AccountLockedException {
+		if (!userRepo.existsByEmail(email)) throw new RuntimeException();
+		
+		String id = generateId();
+		
+		redisTemplate.opsForValue().set(
+				"password:reset:otp"+ id,
+				email,
+				SESSION_TTL,
+				TimeUnit.MINUTES
+		);
+		
+		issueOtp(email);
+		
+		return id;
+	}
+	
+	public void resendPasswordOtp (String id) throws AccountLockedException {
+		String email = redisTemplate.opsForValue().get("password:reset:otp"+ id);
+		
+		issueOtp(email);
+	}
+	
+	public UserResponse verifyOtp (String id, String otp) throws AccountLockedException {
+		String email = redisTemplate.opsForValue().get("password:reset:otp"+ id);
+		otpService.verifyOtp(email, otp);
+		
+		Optional<User> userOpt = userRepo.findByEmail(email);
+		
+		if (userOpt.isEmpty()) throw new UsernameNotFoundException("User with " + email + " does not exist");
+		
+		User user = userOpt.get();
+		
+		
+		redisTemplate.delete("password:reset:otp"+id);
+		otpService.resetRedisOtpKeys(email);
+		return Mapper.userToUserResponse(user);
+	}
+	
+	public void resetPassword (String password, String id) throws AccountLockedException {
+		Optional<User> userOpt = userRepo.findById(id);
+		
+		if (userOpt.isEmpty()) throw new RuntimeException();
+		
+		User user = userOpt.get();
+		
+		user.setPassword(Objects.requireNonNull(passwordEncoder.encode(password)));
+		
+		userRepo.save(user);
+	}
+	
+	public void issueOtp (String email) throws AccountLockedException {
 		String otp = otpService.generateOtp();
 		
 		try {
 			otpService.sendOtp(email, otp);
-		} catch (AccountLockedException e) {
-			throw new AccountLockedException(e.getMessage());
-		}finally {
-			otpService.storeOtp(otp, email);
+		} catch (MessagingException | UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
 		}
+		
+		otpService.storeOtp(otp, email);
 	}
 	
 	public String generateId () {

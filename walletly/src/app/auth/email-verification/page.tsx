@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { IoIosMailUnread } from "react-icons/io";
 import { motion } from "framer-motion";
 import { LoadingScreen } from "@/components/shared/LoadingScreen";
-import { redirect } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { ErrorMessage } from "@/components/auth/ErrorMessage";
 
 const fields = [
@@ -38,6 +38,9 @@ export default function EmailVerificationPage() {
   const [mins, setMins] = useState("00");
   const [secs, setSecs] = useState("00");
   const [expired, setExpired] = useState(false);
+
+  const param = useSearchParams();
+
   const {
     register,
     handleSubmit,
@@ -83,18 +86,25 @@ export default function EmailVerificationPage() {
   };
 
   const verifyOtp = async (value: string) => {
-    return await fetch("http://localhost:8080/api/auth/registration/verify", {
+    const apiEndpoint =
+      param.get("context") == "verify" ? "registration/verify" : "verify-otp";
+    return await fetch(`http://localhost:8080/api/auth/${apiEndpoint}`, {
       method: "POST",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ otp: value }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        otp: value,
+      }),
     });
   };
 
   const resendOtp = async () => {
-    return await fetch("http://localhost:8080/api/auth/resend-otp", {
+    const apiEndpoint =
+      param.get("context") == "verify"
+        ? "registration/resend-otp"
+        : "resend-otp";
+    return await fetch(`http://localhost:8080/api/auth/${apiEndpoint}`, {
+      method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
@@ -104,7 +114,6 @@ export default function EmailVerificationPage() {
 
   const handleOnSubmit = async () => {
     const inputContainer = inputContainerRef.current;
-    console.log("called handleOnSubmit");
     if (inputContainer) {
       const children = Array.from(inputContainer.children);
 
@@ -116,10 +125,14 @@ export default function EmailVerificationPage() {
       const response = await verifyOtp(values);
       setIsLoading(false);
 
+      console.log(response);
       if (response.status === 200) {
         localStorage.removeItem("userEmail");
-        localStorage.removeItem("otpRequestTimestamp");
-        redirect("/dashboard");
+
+        console.log("otp is valid");
+        if (param.get("context") == "verify") redirect("/dashboard");
+
+        redirect("/auth/reset-password");
       }
 
       const error = await response.json();
@@ -131,15 +144,11 @@ export default function EmailVerificationPage() {
   };
 
   const handleResendOtp = async () => {
+    // TODO:Make resend reset form state
     setIsLoading(true);
     const response = await resendOtp();
 
     setOtpTimestamp(new Date().getTime());
-
-    localStorage.setItem(
-      "otpRequestTimestamp",
-      new Date().getTime().toString(),
-    );
 
     setIsLoading(false);
 
@@ -246,7 +255,6 @@ export default function EmailVerificationPage() {
     <div className="flex items-center justify-center md:h-dvh md:-my-10">
       <div className="form-wrapper2 md:p-10 md:w-fit w-full">
         <LoadingScreen isLoading={isLoading} />
-
         <form
           action="javascript:void(0)"
           className="space-y-7"

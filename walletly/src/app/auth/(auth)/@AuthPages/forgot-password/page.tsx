@@ -4,6 +4,7 @@ import { FormWrapper } from "@/components/auth/FormWrapper";
 import { MaterialSpinner } from "@/components/shared/MaterialSpinner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { GoInfo } from "react-icons/go";
 import z from "zod";
@@ -15,10 +16,11 @@ const zodSchema = z.object({
 type FormType = z.infer<typeof zodSchema>;
 
 export default function ResetPassword() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormType>({
     resolver: zodResolver(zodSchema),
   });
@@ -27,7 +29,24 @@ export default function ResetPassword() {
     <FormWrapper>
       <form
         className="px-1 md:px-0 md:space-y-7 space-y-5"
-        onSubmit={handleSubmit(() => {})}
+        onSubmit={handleSubmit(async (data) => {
+          const req = await fetch(
+            "http://localhost:8080/api/auth/forgot-password",
+            {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: data.email,
+              }),
+            },
+          );
+
+          if (req.status === 200) {
+            localStorage.setItem("userEmail", data.email);
+            router.push("/auth/email-verification?context=reset");
+          }
+        })}
       >
         <p className="text-3xl font-bold">Reset your password</p>
 
@@ -40,7 +59,7 @@ export default function ResetPassword() {
             autoComplete="email"
             type="email"
             id="email"
-            className={`form-input-wrapper ${false ? "ring-red-500! ring-2!" : ""}`}
+            className={`form-input-wrapper ${errors.email ? "ring-red-500! ring-2!" : ""}`}
             placeholder="name@example.com"
           />
 
@@ -62,18 +81,18 @@ export default function ResetPassword() {
           <button
             type="submit"
             className="button-primary flex items-center justify-center gap-x-2 disabled:brightness-75 disabled:cursor-default!"
-            disabled={false}
+            disabled={isSubmitting}
           >
             <p className="relative">
               Request Password Reset
               <AnimatePresence>
-                {false && (
+                {isSubmitting && (
                   <motion.span
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.1 }}
-                    className="size-3.75 absolute left-[120%] top-1/2 -translate-y-1/2"
+                    className="size-3.75 absolute left-[105%] top-1/2 -translate-y-1/2"
                   >
                     <MaterialSpinner sizeInPx={15} />
                   </motion.span>

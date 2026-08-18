@@ -4,6 +4,7 @@ import com.resend.Resend;
 import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
 import com.walletly.walletly_backend.exceptions.*;
+import jakarta.mail.MessagingException;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import javax.security.auth.login.AccountLockedException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -24,9 +26,9 @@ import java.util.concurrent.TimeUnit;
 @Service()
 public class OtpService {
 	@Autowired
-	RedisTemplate<String, String> redisTemplate;
+	private RedisTemplate<String, String> redisTemplate;
 	@Autowired
-	MailService mailService;
+	private MailService mailService;
 	
 	static final int OTP_TTL = 5;
 	static final int OTP_REQUESTS_TTL = 30;
@@ -62,6 +64,7 @@ public class OtpService {
 		
 		redisTemplate.opsForValue().set("otp:code:"+email,encodedOtp, OTP_TTL, TimeUnit.MINUTES);
 		redisTemplate.opsForValue().set("otp:salt:"+email,salt, OTP_TTL, TimeUnit.MINUTES);
+		// TODO: storing the salt and value in the same place??
 	}
 	
 	public void invalidateOtp (String email) {
@@ -84,7 +87,7 @@ public class OtpService {
 		);
 	}
 	
-	public void sendOtp (String email, String otp) throws ResendException, AccountLockedException {
+	public void sendOtp (String email, String otp) throws AccountLockedException, MessagingException, UnsupportedEncodingException {
 		if (Boolean.TRUE.equals(redisTemplate.hasKey("otp:requests:locked:" + email))
 				|| Boolean.TRUE.equals(redisTemplate.hasKey("otp:attempts:locked:" + email))) {
 			throw new AccountLockedException("Too many verification code requests");
@@ -108,16 +111,17 @@ public class OtpService {
 		if (currentReqCount > REQUESTS_LIMIT) { // Used > so if a prev request incs the key this catches it
 			throw new TooManyOtpRequestsException();
 		}
-		mailService.sendEmail(email, otp);
+		
+		
+			mailService.sendEmail(email, otp);
+		
 		if (currentReqCount == REQUESTS_LIMIT) {
-			redisTemplate.opsForValue().set("otp:request:locked:" + email, "1", ACCOUNT_LOCK_TTL, TimeUnit.MINUTES);
-			invalidateOtp(email);
+			redisTemplate.opsForValue().set("otp:requests:locked:" + email, "1", ACCOUNT_LOCK_TTL, TimeUnit.MINUTES);
 			resetCounter(requestsKey);
-			throw new TooManyOtpRequestsException();
 		}
 	}
 	
-	public void verifyOtp (String sentOtp, String email) throws AccountLockedException {
+	public void verifyOtp (String email, String otp) throws AccountLockedException {
 		if (Boolean.TRUE.equals(redisTemplate.hasKey(("otp:attempts:locked:" + email))))
 			throw new AccountLockedException("Too many verification code attempts");
 		
@@ -148,8 +152,13 @@ public class OtpService {
 		if (storedOtp == null) throw new OtpHasExpiredException();
 		
 		String salt = redisTemplate.opsForValue().get("otp:salt:" + email);
-		String encodedSentOtp = encodeOtp(sentOtp, salt);
+		String encodedSentOtp = encodeOtp(otp, salt);
 		
+		System.out.println(salt);
+		System.out.println(storedOtp);
+		System.out.println(encodedSentOtp);
+		
+		System.out.println("otp valid");
 		if (!storedOtp.equals(encodedSentOtp)) {
 			throw new OtpMissMatchException();
 		}

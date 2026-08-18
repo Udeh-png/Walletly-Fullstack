@@ -69,9 +69,10 @@ export const InternalTransferFormFields = ({
           Select Identifier
         </label>
 
-        <label
-          className="form-input-wrapper sm:p-3.5! px-3! py-4!"
+        <button
+          className="form-input-wrapper sm:p-3.5! px-3! py-4! cursor-pointer"
           onClick={() => setDropDownSummoned((prev) => !prev)}
+          type="button"
         >
           <span className="text-primary bg-primary/20 rounded-lg p-2">
             <LuSearch />
@@ -81,10 +82,10 @@ export const InternalTransferFormFields = ({
             value={selectedIdentifier.title}
             type="text"
             readOnly
-            className="cursor-pointer w-full outline-none"
+            className="w-full outline-none"
           />
           <FaChevronDown className="text-sm" />
-        </label>
+        </button>
 
         <AnimatePresence>
           {dropDownSummoned && (
