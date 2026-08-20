@@ -63,7 +63,7 @@ body {
 
 .form-wrapper,
 .form-wrapper2 {
-  @apply md:rounded-4xl md:border overflow-clip relative md:bg-gray-700/10 md:px-10 md:py-12 px-0 pt-[10%] border-border-color;
+  @apply md:rounded-4xl md:border overflow-clip relative md:bg-gray-700/10 md:px-10 md:py-12 px-0 border-border-color;
 }
 
 .form-wrapper::after {

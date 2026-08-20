@@ -20,13 +20,100 @@ import { RiHistoryFill } from "react-icons/ri";
 import { IoWalletOutline } from "react-icons/io5";
 import { usePathname } from "next/navigation";
 import { FaRegPaperPlane, FaRegTrashCan, FaRegUser } from "react-icons/fa6";
+import { SetStateAction, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Drawer } from "vaul";
+import { useMediaQuery } from "@/hooks/UseMediaQuery";
 
-const DesktopNav = () => {
+const LogoutModal = ({ onClose }: { onClose: () => void }) => {
+  const handleLogout = async () => {
+    await fetch("http://localhost:8080/api/account/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+  };
+  return (
+    <div className="space-y-5">
+      <div className="text-2xl p-3 bg-red-500/10 rounded-full text-red-500 size-fit">
+        <LuLogOut />
+      </div>
+
+      <div>
+        <p className="text-2xl font-semibold mb-1">Log out?</p>
+        <p className="text-sm text-white/60">
+          You&apos;ll need to sign in again to access your account.
+        </p>
+      </div>
+
+      <div className="flex md:flex-row flex-col-reverse justify-between gap-3">
+        <button
+          className="flex-1 md:py-2 py-3 border border-white/10 rounded-xl cursor-pointer"
+          onClick={onClose}
+        >
+          Cancel
+        </button>
+        <button
+          className="flex-1 md:py-2 py-3 bg-red-800 rounded-xl cursor-pointer"
+          onClick={handleLogout}
+        >
+          Log out
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const DesktopNav = ({
+  openLogoutModal,
+  setOpenLogoutModal,
+}: {
+  openLogoutModal: boolean;
+  setOpenLogoutModal: React.Dispatch<SetStateAction<boolean>>;
+}) => {
   const pathname = usePathname();
   const activeLinkStyle =
     "bg-white/10 after:content-[''] after:absolute after:top-1/2 after:-translate-y-1/2 after:-left-0.5 after:w-1 after:h-[70%] after:bg-primary after:rounded-full";
   return (
     <div className="h-screen w-65 border-r border-r-white/10 fixed top-0 left-0 bg-[rgba(21,20,31,0.5)] py-5 px-3 flex flex-col justify-between">
+      <AnimatePresence>
+        {openLogoutModal && (
+          <div className="fixed inset-0 z-10 flex items-center justify-center">
+            <motion.div
+              className="absolute inset-0 bg-black/40"
+              initial={{
+                opacity: 0,
+              }}
+              animate={{
+                opacity: 1,
+              }}
+              exit={{
+                opacity: 0,
+              }}
+              onClick={() => setOpenLogoutModal(false)}
+            />
+            <motion.div
+              className="p-6 bg-[#161224] rounded-2xl space-y-5 border border-primary/20 relative"
+              style={{
+                boxShadow: "0 0 15px 10px rgba(0,0,0,0.08)",
+              }}
+              initial={{
+                scale: 0.5,
+                opacity: 0,
+              }}
+              animate={{
+                scale: 1,
+                opacity: 1,
+              }}
+              exit={{
+                scale: 0.5,
+                opacity: 0,
+              }}
+            >
+              <LogoutModal onClose={() => setOpenLogoutModal(false)} />
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       <div>
         <div className="flex items-center gap-x-3">
           <img src={"/images/logo.png"} className="w-8" />
@@ -114,10 +201,13 @@ const DesktopNav = () => {
         </div>
 
         <div className="pl-1 -mb-3 space-y-4">
-          <div className="flex items-center gap-x-2 overflow-clip text-white/60">
+          <button
+            className="flex items-center gap-x-2 overflow-clip text-white/60 w-full text-left cursor-pointer"
+            onClick={() => setOpenLogoutModal(true)}
+          >
             <LuLogOut className="text-lg" />
             <p className="">Logout</p>
-          </div>
+          </button>
 
           <div className="flex items-center gap-x-2 overflow-clip text-red-500">
             <FaRegTrashCan className="text-lg" />
@@ -129,11 +219,98 @@ const DesktopNav = () => {
   );
 };
 
-const MobileNav = () => {
+const MobileNav = ({
+  openLogoutModal,
+  setOpenLogoutModal,
+}: {
+  openLogoutModal: boolean;
+  setOpenLogoutModal: React.Dispatch<SetStateAction<boolean>>;
+}) => {
   const pathname = usePathname();
+  const [showMore, setShowMore] = useState(false);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
   return (
     <div className="fixed bottom-0 left-0 w-full px-5 py-3 bg-[#161224] z-50">
       <div className="flex items-center justify-between relative after:content-[''] after:absolute after:left-[51%] after:-top-9 after:bg-[#161224] after:-z-10 after:-translate-x-1/2 after:size-18 after:rounded-full">
+        {!isDesktop && (
+          <Drawer.Root
+            open={openLogoutModal}
+            onClose={() => setOpenLogoutModal(false)}
+          >
+            <Drawer.Portal>
+              <Drawer.Content className="fixed z-100 rounded-t-3xl h-fit bottom-0! mb-0! left-0 w-full bg-[#161224] py-3 px-3 overflow-hidden">
+                <Drawer.Handle />
+                <div className="py-3 px-2 rounded-2xl">
+                  <LogoutModal onClose={() => setOpenLogoutModal(false)} />
+                </div>
+              </Drawer.Content>
+            </Drawer.Portal>
+          </Drawer.Root>
+        )}
+        <AnimatePresence mode="wait">
+          {showMore && (
+            <motion.div
+              initial={{
+                opacity: 0,
+              }}
+              animate={{
+                opacity: 1,
+              }}
+              exit={{
+                opacity: 0,
+              }}
+              className="absolute -right-3 bottom-[160%] flex flex-col items-end gap-y-3"
+            >
+              <div
+                className="fixed -inset-15 bg-black/40 z-10"
+                onClick={() => setShowMore(false)}
+              />
+
+              <motion.button
+                initial={{
+                  translateX: "100%",
+                }}
+                animate={{
+                  translateX: "0",
+
+                  transition: { delay: 0.1 },
+                }}
+                exit={{
+                  translateX: "100%",
+
+                  transition: { delay: 0 },
+                }}
+                className="flex rounded-full bg-[#161224] py-2 px-4 items-center gap-x-2 text-sm relative z-50 font-semibold w-fit text-white/80"
+                onClick={() => setOpenLogoutModal(true)}
+              >
+                <LuLogOut className="text-[1.35rem]" />
+
+                <p>Logout</p>
+              </motion.button>
+
+              <motion.div
+                initial={{
+                  translateX: "100%",
+                }}
+                animate={{
+                  translateX: "0",
+
+                  transition: { delay: 0 },
+                }}
+                exit={{
+                  translateX: "100%",
+
+                  transition: { delay: 0.1 },
+                }}
+                className="flex rounded-full bg-[#161224] py-2 px-4 items-center gap-x-2 text-sm relative z-50 font-semibold text-red-800 w-fit"
+              >
+                <FaRegTrashCan className="text-[1.35rem]" />
+
+                <p>Delete account</p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
         <ul className="contents">
           <li>
             <Link
@@ -184,10 +361,13 @@ const MobileNav = () => {
           </li>
 
           <li>
-            <div className="flex flex-col items-center text-white/80 w-fit text-[0.65rem] font-semibold">
+            <button
+              className="flex flex-col items-center text-white/80 w-fit text-[0.65rem] font-semibold relative z-10"
+              onClick={() => setShowMore((prev) => !prev)}
+            >
               <LuEllipsis className="text-[1.35rem]" />
               <p>More</p>
-            </div>
+            </button>
           </li>
         </ul>
       </div>
@@ -196,14 +376,21 @@ const MobileNav = () => {
 };
 
 export const Nav = () => {
+  const [openLogoutModal, setOpenLogoutModal] = useState(false);
   return (
     <nav>
       <div className="min-[768px]:block hidden">
-        <DesktopNav />
+        <DesktopNav
+          openLogoutModal={openLogoutModal}
+          setOpenLogoutModal={setOpenLogoutModal}
+        />
       </div>
 
       <div className="min-[768px]:hidden">
-        <MobileNav />
+        <MobileNav
+          openLogoutModal={openLogoutModal}
+          setOpenLogoutModal={setOpenLogoutModal}
+        />
       </div>
     </nav>
   );

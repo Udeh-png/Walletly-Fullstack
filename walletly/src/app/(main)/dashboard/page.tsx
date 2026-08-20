@@ -1,3 +1,4 @@
+import { PasswordResetToast } from "@/components/dashboard/PasswordResetToast";
 import DepositModalProvider from "@/contexts/DepositContext";
 import { BalanceSection } from "@/sections/dashboard/balance-section";
 import { MoneyFlowCard } from "@/sections/dashboard/money_flow-section";
@@ -15,6 +16,8 @@ export default function Page() {
       <p className="text-white/65 text-sm md:mt-2">
         Broke ahh nigg no be your mate get 7 figures
       </p>
+
+      <PasswordResetToast />
 
       <BalanceSection />
 

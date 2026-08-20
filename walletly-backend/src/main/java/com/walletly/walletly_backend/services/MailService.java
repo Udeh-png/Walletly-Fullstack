@@ -14,14 +14,14 @@ import java.io.UnsupportedEncodingException;
 @Service
 public class MailService {
 	@Autowired
-	JavaMailSender mailSender;
+	private JavaMailSender mailSender;
 	
-	public void sendEmail (String to, String text) throws MessagingException, UnsupportedEncodingException {
+	public void sendEmail (String to, String text, String subject) throws MessagingException, UnsupportedEncodingException {
 		MimeMessage message = mailSender.createMimeMessage();
 		MimeMessageHelper helper = new MimeMessageHelper(message, "UTF-8");
 		helper.setTo(to);
 		helper.setText(text);
-		helper.setSubject("OTP Verification " + System.currentTimeMillis());
+		helper.setSubject(subject);
 		helper.setFrom(new InternetAddress("udehschisom001@gmail.com", "Walletly"));
 		
 		mailSender.send(message);

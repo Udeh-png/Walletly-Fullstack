@@ -35,23 +35,25 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class AuthService {
 	@Autowired
-	OtpService otpService;
+	private OtpService otpService;
 	@Autowired
-	FlutterWaveService flutterService;
+	private FlutterWaveService flutterService;
 	
 	@Autowired
-	UserRepo userRepo;
+	private UserRepo userRepo;
 	@Autowired
-	WalletRepo walletRepo;
+	private WalletRepo walletRepo;
 	
 	@Autowired
-	BCryptPasswordEncoder passwordEncoder;
+	private BCryptPasswordEncoder passwordEncoder;
 	@Autowired
-	RedisTemplate<String, String> redisTemplate;
+	private RedisTemplate<String, String> redisTemplate;
 	@Autowired
-	ObjectMapper objectMapper;
+	private ObjectMapper objectMapper;
 	@Autowired
-	AuthenticationManager authManager;
+	private AuthenticationManager authManager;
+	@Autowired
+	private MailService mailService;
 	
 	static final Long SESSION_TTL = 30L;
 	
@@ -80,7 +82,7 @@ public class AuthService {
 		User user = Mapper.regRequestToUser(regRequest);
 		String userEmail = user.getEmail();
 		
-		otpService.verifyOtp(otp, userEmail);
+		otpService.verifyOtp(userEmail, otp);
 		
 		user.setCreatedAt(Instant.now());
 		
@@ -128,7 +130,7 @@ public class AuthService {
 		String id = generateId();
 		
 		redisTemplate.opsForValue().set(
-				"password:reset:otp"+ id,
+				"forgot:password:email:address:"+ id,
 				email,
 				SESSION_TTL,
 				TimeUnit.MINUTES
@@ -140,29 +142,31 @@ public class AuthService {
 	}
 	
 	public void resendPasswordOtp (String id) throws AccountLockedException {
-		String email = redisTemplate.opsForValue().get("password:reset:otp"+ id);
+		String email = redisTemplate.opsForValue().get("forgot:password:email:address:"+ id);
 		
 		issueOtp(email);
 	}
 	
-	public UserResponse verifyOtp (String id, String otp) throws AccountLockedException {
-		String email = redisTemplate.opsForValue().get("password:reset:otp"+ id);
+	public String verifyOtp (String id, String otp) throws AccountLockedException {
+		String email = redisTemplate.opsForValue().get("forgot:password:email:address:"+ id);
 		otpService.verifyOtp(email, otp);
 		
-		Optional<User> userOpt = userRepo.findByEmail(email);
+		if (email == null) throw new UsernameNotFoundException("Session not found");
 		
-		if (userOpt.isEmpty()) throw new UsernameNotFoundException("User with " + email + " does not exist");
+		String resetPasswordId = generateId();
 		
-		User user = userOpt.get();
+		redisTemplate.opsForValue().set("reset:password:email:address:" + resetPasswordId, email);
 		
-		
-		redisTemplate.delete("password:reset:otp"+id);
+		redisTemplate.delete("forgot:password:email:address:"+id);
 		otpService.resetRedisOtpKeys(email);
-		return Mapper.userToUserResponse(user);
+		
+		return resetPasswordId;
 	}
 	
-	public void resetPassword (String password, String id) throws AccountLockedException {
-		Optional<User> userOpt = userRepo.findById(id);
+	public UserResponse resetPassword (String password, String id) throws AccountLockedException, MessagingException, UnsupportedEncodingException {
+		String email = redisTemplate.opsForValue().get("reset:password:email:address:" + id);
+		
+		Optional<User> userOpt = userRepo.findByEmail(email);
 		
 		if (userOpt.isEmpty()) throw new RuntimeException();
 		
@@ -171,6 +175,11 @@ public class AuthService {
 		user.setPassword(Objects.requireNonNull(passwordEncoder.encode(password)));
 		
 		userRepo.save(user);
+		
+		redisTemplate.delete("reset:password:email:address:"+id);
+		
+		mailService.sendEmail(email, "You password has been reset", "Password Reset");
+		return Mapper.userToUserResponse(user);
 	}
 	
 	public void issueOtp (String email) throws AccountLockedException {

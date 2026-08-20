@@ -53,7 +53,7 @@ export default function Signup() {
         localStorage.setItem("otpRequestTimestamp", time || "0");
         return time;
       });
-      redirect("/email-verification");
+      redirect("/auth/email-verification?context=verify");
     }
 
     const error = await response.json();

@@ -7,9 +7,8 @@ export default function MainLayout({
 }>) {
   return (
     <div className="flex">
-      <Nav />
-
       <div className="w-full md:ml-65 min-[768px]:pb-0 pb-19">{children}</div>
+      <Nav />
     </div>
   );
 }

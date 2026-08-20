@@ -14,7 +14,7 @@ export const AuthLeftSide = () => {
         className="relative"
       >
         <div className="absolute size-full rounded-full blur-2xl top-0 bg-primary/30 -z-10" />
-        <img src="/images/logo.png" alt="" className="md:max-w-80 max-w-40" />
+        <img src="/images/logo.png" alt="" className="md:max-w-80 max-w-20" />
       </motion.div>
       <div className={`${path !== "/auth/register" ? "lg:block hidden" : ""}`}>
         <motion.p

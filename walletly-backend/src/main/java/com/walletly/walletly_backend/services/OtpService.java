@@ -113,7 +113,7 @@ public class OtpService {
 		}
 		
 		
-			mailService.sendEmail(email, otp);
+			mailService.sendEmail(email, otp, "OTP Verification");
 		
 		if (currentReqCount == REQUESTS_LIMIT) {
 			redisTemplate.opsForValue().set("otp:requests:locked:" + email, "1", ACCOUNT_LOCK_TTL, TimeUnit.MINUTES);

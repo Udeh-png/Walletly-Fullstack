@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { motion, AnimatePresence } from "framer-motion";
 import { MaterialSpinner } from "@/components/shared/MaterialSpinner";
 import z from "zod";
+import { useRouter } from "next/navigation";
 
 const resetPasswordSchema = z
   .object({
@@ -32,6 +33,8 @@ const resetPasswordSchema = z
 type ResetPasswordType = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPassword() {
+  const router = useRouter();
+
   const {
     handleSubmit,
     register,
@@ -42,27 +45,34 @@ export default function ResetPassword() {
     criteriaMode: "all",
   });
 
+  const handleFormSubmit = async (data: ResetPasswordType) => {
+    console.log("submitted");
+    const request = await fetch(
+      "http://localhost:8080/api/auth/reset-password",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ password: data.password }),
+      },
+    );
+
+    if (request.status == 200) {
+      router.push("/dashboard");
+      window.sessionStorage.setItem("passwordResetSuccess", "1");
+    }
+  };
+
   return (
     <FormWrapper>
-      <h1 className="text-3xl  font-semibold mb-5">Reset your password</h1>
+      <h1 className="md:text-3xl text-2xl font-semibold mb-5 mt-2">
+        Reset your password
+      </h1>
       <form
         className="md:px-0 px-1 pb-5"
-        onSubmit={handleSubmit(
-          async (data) => {
-            console.log("submitted");
-            await fetch("http://localhost:8080/api/auth/reset-password", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              body: JSON.stringify({ password: data.password }),
-            });
-          },
-          (e) => {
-            console.log(e);
-          },
-        )}
+        onSubmit={handleSubmit(handleFormSubmit)}
       >
         <div className="space-y-5">
           <PasswordFieldWithChecks
