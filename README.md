@@ -37,7 +37,6 @@ Walletly's backend is built around a few deliberate engineering decisions, chose
 
 And on the frontend:
 - **Responsive, mobile-first patterns** — components like the transfer flow shift from a bottom sheet on mobile to a centered modal at the 768px breakpoint, rather than just scaling a desktop layout down.
-- **Portal-based overlays** — modals and overlays use `createPortal` to render outside ancestor DOM stacking contexts, avoiding z-index conflicts introduced by Framer Motion's transform-based animations.
 - **Animated, dark-themed UI system** — a consistent dark purple, glassmorphism-inspired design language across transfer flows, toasts, and confirmation screens, built with Framer Motion for transitions.
 
 ## Getting Started
