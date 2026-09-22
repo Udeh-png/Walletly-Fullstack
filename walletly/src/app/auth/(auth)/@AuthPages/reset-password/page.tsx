@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { MaterialSpinner } from "@/components/shared/MaterialSpinner";
 import z from "zod";
 import { useRouter } from "next/navigation";
+import { Config } from "@/config";
 
 const resetPasswordSchema = z
   .object({
@@ -34,6 +35,7 @@ type ResetPasswordType = z.infer<typeof resetPasswordSchema>;
 
 export default function ResetPassword() {
   const router = useRouter();
+  const backendHostname = Config.API_URL;
 
   const {
     handleSubmit,
@@ -47,20 +49,17 @@ export default function ResetPassword() {
 
   const handleFormSubmit = async (data: ResetPasswordType) => {
     console.log("submitted");
-    const request = await fetch(
-      "http://localhost:8080/api/auth/reset-password",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ password: data.password }),
+    const request = await fetch(`${backendHostname}/api/auth/reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    );
+      credentials: "include",
+      body: JSON.stringify({ password: data.password }),
+    });
 
     if (request.status == 200) {
-      router.push("/dashboard");
+      router.push("/home");
       window.sessionStorage.setItem("passwordResetSuccess", "1");
     }
   };

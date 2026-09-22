@@ -1,6 +1,6 @@
 package com.walletly.walletly_backend.security;
 
-import com.walletly.walletly_backend.modals.User;
+import com.walletly.walletly_backend.models.User;
 import lombok.Getter;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;

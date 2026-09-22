@@ -2,6 +2,7 @@
 
 import { FormWrapper } from "@/components/auth/FormWrapper";
 import { MaterialSpinner } from "@/components/shared/MaterialSpinner";
+import { Config } from "@/config";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -16,6 +17,7 @@ const zodSchema = z.object({
 type FormType = z.infer<typeof zodSchema>;
 
 export default function ResetPassword() {
+  const backendHostname = Config.API_URL;
   const router = useRouter();
   const {
     register,
@@ -31,7 +33,7 @@ export default function ResetPassword() {
         className="px-1 md:px-0 md:space-y-7 space-y-5"
         onSubmit={handleSubmit(async (data) => {
           const req = await fetch(
-            "http://localhost:8080/api/auth/forgot-password",
+            `${backendHostname}/api/auth/forgot-password`,
             {
               method: "POST",
               credentials: "include",

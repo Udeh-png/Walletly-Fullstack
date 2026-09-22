@@ -6,15 +6,18 @@ import { useState, useEffect, useRef } from "react";
 import { SignupFormType, signupSchema } from "@/types";
 import { LoadingScreen } from "@/components/shared/LoadingScreen";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { FormWrapper } from "@/components/auth/FormWrapper";
 import { ErrorMessage } from "@/components/auth/ErrorMessage";
 import { PasswordFieldWithChecks } from "@/components/auth/PasswordFieldWIthChecks";
 import { PasswordInput } from "@/components/auth/PasswordInput";
+import { useRouter } from "next/navigation";
+import { Config } from "@/config";
 
 export default function Signup() {
   const errMsgRef = useRef<HTMLDivElement | null>(null);
   const [, setTime] = useState<string | null>(null);
+  const router = useRouter();
+  const backendHostname = Config.API_URL;
 
   const {
     register,
@@ -35,7 +38,7 @@ export default function Signup() {
 
   const onSubmit = async (data: SignupFormType) => {
     const response = await fetch(
-      "http://localhost:8080/api/auth/registration/initiate",
+      `${backendHostname}/api/auth/registration/initiate`,
       {
         method: "POST",
         credentials: "include",
@@ -53,7 +56,8 @@ export default function Signup() {
         localStorage.setItem("otpRequestTimestamp", time || "0");
         return time;
       });
-      redirect("/auth/email-verification?context=verify");
+      router.push("/auth/email-verification?context=register");
+      return;
     }
 
     const error = await response.json();

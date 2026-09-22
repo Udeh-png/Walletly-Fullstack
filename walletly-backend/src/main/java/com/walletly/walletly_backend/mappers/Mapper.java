@@ -4,8 +4,8 @@ import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
 import com.walletly.walletly_backend.integration.flutterwave.dto.requests.CreatePsaRequest;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.CreatePsaResponse;
-import com.walletly.walletly_backend.modals.User;
-import com.walletly.walletly_backend.modals.Wallet;
+import com.walletly.walletly_backend.models.User;
+import com.walletly.walletly_backend.models.Wallet;
 import lombok.NonNull;
 
 public class Mapper {

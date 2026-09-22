@@ -10,7 +10,12 @@ import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisHashCommands;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -20,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -57,22 +63,25 @@ public class OtpService {
 		return Base64.getEncoder().encodeToString(hash);
 	}
 	
-	public void storeOtp(String otp, String email) {
+	public void storeOtp(String encodedOtp, String email) {
 		String salt = UUID.randomUUID().toString();
 		
-		String encodedOtp = encodeOtp(otp, salt);
+		Map<String, String> otpMap = Map.of("code", encodedOtp, "salt", salt);
 		
-		redisTemplate.opsForValue().set("otp:code:"+email,encodedOtp, OTP_TTL, TimeUnit.MINUTES);
-		redisTemplate.opsForValue().set("otp:salt:"+email,salt, OTP_TTL, TimeUnit.MINUTES);
-		// TODO: storing the salt and value in the same place??
+		redisTemplate.opsForHash()
+				.putAndExpire(
+						"otp:code:salt:" + email,
+						otpMap,
+						RedisHashCommands.HashFieldSetOption.UPSERT,
+						Expiration.from(Duration.ofMinutes(OTP_TTL))
+				);
 	}
 	
 	public void invalidateOtp (String email) {
-		redisTemplate.delete("otp:code:"+email);
-		redisTemplate.delete("otp:salt:"+email);
+		redisTemplate.delete("otp:code:salt:"+email);
 	}
 	
-	public void resetCounter (String counterKey) {
+	public void resetRedisKey (String counterKey) {
 		redisTemplate.delete(counterKey);
 	}
 	
@@ -88,15 +97,31 @@ public class OtpService {
 	}
 	
 	public void sendOtp (String email, String otp) throws AccountLockedException, MessagingException, UnsupportedEncodingException {
-		if (Boolean.TRUE.equals(redisTemplate.hasKey("otp:requests:locked:" + email))
-				|| Boolean.TRUE.equals(redisTemplate.hasKey("otp:attempts:locked:" + email))) {
+		final String requestsKey = "otp:requests:" + email;
+		final String requestCooldownKey = "otp:requests:cooldown:" + email;
+		final String requestLockedKey = "otp:requests:locked:" + email;
+		
+		List<Object> results = redisTemplate.executePipelined(new SessionCallback<Object>() {
+			@Override
+			@SuppressWarnings("unchecked")
+			public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
+				operations.hasKey((K) requestLockedKey);
+				operations.hasKey((K) ("otp:attempts:locked:" + email));
+				
+				operations.opsForValue().setIfAbsent(
+						(K) requestCooldownKey,
+						(V) "1",
+						Expiration.from(Duration.ofSeconds(70))
+				);
+				return null;
+			}
+		});
+		
+		if (Boolean.TRUE.equals(results.getFirst()) || Boolean.TRUE.equals(results.get(1))) {
 			throw new AccountLockedException("Too many verification code requests");
 		}
 		
-		final String requestsKey = "otp:requests:" + email;
-		final String requestCooldownKey = "otp:requests:cooldown:" + email;
-		
-		Boolean createdCooldown = redisTemplate.opsForValue().setIfAbsent(requestCooldownKey, "1", 1, TimeUnit.MINUTES);
+		Boolean createdCooldown = (Boolean) results.getLast();
 		
 		if (Boolean.FALSE.equals(createdCooldown)) throw new CooldownActiveException(redisTemplate.getExpire(requestCooldownKey));
 		
@@ -105,19 +130,23 @@ public class OtpService {
 		long currentReqCount = requests == null ? 0 : requests;
 		
 		if (currentReqCount == 1) {
-			redisTemplate.expire(requestsKey, OTP_REQUESTS_TTL, TimeUnit.MINUTES); // if the key was created add the TTL
+			redisTemplate.expire(requestsKey, Expiration.from(Duration.ofMinutes(OTP_REQUESTS_TTL))); // if the key was created add the TTL
 		}
 		
 		if (currentReqCount > REQUESTS_LIMIT) { // Used > so if a prev request incs the key this catches it
 			throw new TooManyOtpRequestsException();
 		}
 		
-		
-			mailService.sendEmail(email, otp, "OTP Verification");
+		mailService.sendEmail(email, otp, "OTP Verification");
 		
 		if (currentReqCount == REQUESTS_LIMIT) {
-			redisTemplate.opsForValue().set("otp:requests:locked:" + email, "1", ACCOUNT_LOCK_TTL, TimeUnit.MINUTES);
-			resetCounter(requestsKey);
+			redisTemplate.opsForValue().set(
+				requestLockedKey,
+				"1",
+				Expiration.from(Duration.ofMinutes(ACCOUNT_LOCK_TTL))
+			);
+
+			resetRedisKey(requestsKey);
 		}
 	}
 	
@@ -133,32 +162,46 @@ public class OtpService {
 			redisTemplate.expire("otp:attempts:" + email, OTP_REQUESTS_TTL, TimeUnit.MINUTES);
 		}
 		
-		long currentAttemptsCount = attempts == null ? 0 : attempts;
+		long currentAttempts = attempts == null ? 0 : attempts;
 		
-		if (currentAttemptsCount > ATTEMPTS_LIMIT) {
+		if (currentAttempts > ATTEMPTS_LIMIT) {
 			throw new TooManyAttemptsException();
 		}
 		
-		if (currentAttemptsCount == ATTEMPTS_LIMIT) {
-			redisTemplate.opsForValue().set("otp:attempts:locked:" + email, "1", ACCOUNT_LOCK_TTL, TimeUnit.MINUTES);
-			redisTemplate.opsForValue().set("otp:requests:locked:" + email, "1", ACCOUNT_LOCK_TTL, TimeUnit.MINUTES);
+		if (currentAttempts == ATTEMPTS_LIMIT) {
+			redisTemplate.executePipelined(new SessionCallback<Object>() {
+				@Override
+				@SuppressWarnings("unchecked")
+				public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
+					operations.opsForValue().set(
+							(K) ("otp:attempts:locked:" + email),
+							(V) ("1"),
+							Expiration.from(Duration.ofMinutes(ACCOUNT_LOCK_TTL))
+					);
+					
+					operations.opsForValue().set(
+							(K) ("otp:requests:locked:" + email),
+							(V) ("1"),
+							Expiration.from(Duration.ofMinutes(ACCOUNT_LOCK_TTL))
+					);
+					return null;
+				}
+			});
 			invalidateOtp(email);
-			resetCounter(attemptsKey);
+			resetRedisKey(attemptsKey);
 			throw new TooManyAttemptsException();
 		}
 		
-		String storedOtp = redisTemplate.opsForValue().get("otp:code:" + email);
+		Map<Object, Object> otpEntries = redisTemplate.opsForHash().entries("otp:code:salt:" + email);
+		
+		String storedOtp = (String) otpEntries.get("code");
 		
 		if (storedOtp == null) throw new OtpHasExpiredException();
 		
-		String salt = redisTemplate.opsForValue().get("otp:salt:" + email);
+		String salt = (String) otpEntries.get("salt");
+		
 		String encodedSentOtp = encodeOtp(otp, salt);
 		
-		System.out.println(salt);
-		System.out.println(storedOtp);
-		System.out.println(encodedSentOtp);
-		
-		System.out.println("otp valid");
 		if (!storedOtp.equals(encodedSentOtp)) {
 			throw new OtpMissMatchException();
 		}

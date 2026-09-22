@@ -7,30 +7,35 @@ import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
 import com.walletly.walletly_backend.exceptions.SessionNotFoundException;
 import com.walletly.walletly_backend.exceptions.UserEmailAlreadyExists;
-import com.walletly.walletly_backend.modals.Wallet;
+import com.walletly.walletly_backend.models.Wallet;
 import com.walletly.walletly_backend.repos.WalletRepo;
 import com.walletly.walletly_backend.security.MyUserDetails;
-import com.walletly.walletly_backend.modals.User;
+import com.walletly.walletly_backend.models.User;
 import com.walletly.walletly_backend.repos.UserRepo;
 import jakarta.mail.MessagingException;
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisHashCommands;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.ObjectMapper;
 
 import javax.security.auth.login.AccountLockedException;
 import java.io.UnsupportedEncodingException;
+import java.time.Duration;
 import java.time.Instant;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 @Service
 public class AuthService {
@@ -74,6 +79,7 @@ public class AuthService {
 		return id;
 	}
 	
+	@Transactional
 	public UserResponse verifyRegistration (String otp, String sessionId) throws AccountLockedException {
 		RegistrationRequest regRequest = getRegInfo(sessionId);
 		
@@ -94,7 +100,7 @@ public class AuthService {
 		walletRepo.save(newWallet);
 		
 		otpService.resetRedisOtpKeys(userEmail);
-		resetRedisRegKeys(sessionId, userEmail);
+		resetRedisRegKeys(sessionId, userEmail); //TODO
 		
 		return Mapper.userToUserResponse(user);
 	}
@@ -124,21 +130,20 @@ public class AuthService {
 		issueOtp(email);
 	}
 	
-	public String forgotPassword (String email) throws AccountLockedException {
+	public String forgotPassword (String email, String id) throws AccountLockedException {
 		if (!userRepo.existsByEmail(email)) throw new RuntimeException();
 		
-		String id = generateId();
+		String currentId = id == null ? generateId() : id;
 		
 		redisTemplate.opsForValue().set(
 				"forgot:password:email:address:"+ id,
 				email,
-				SESSION_TTL,
-				TimeUnit.MINUTES
+				Duration.ofMinutes(SESSION_TTL)
 		);
 		
 		issueOtp(email);
 		
-		return id;
+		return currentId;
 	}
 	
 	public void resendPasswordOtp (String id) throws AccountLockedException {
@@ -147,7 +152,7 @@ public class AuthService {
 		issueOtp(email);
 	}
 	
-	public String verifyOtp (String id, String otp) throws AccountLockedException {
+	public String verifyPasswordResetOtp (String id, String otp) throws AccountLockedException {
 		String email = redisTemplate.opsForValue().get("forgot:password:email:address:"+ id);
 		otpService.verifyOtp(email, otp);
 		
@@ -155,9 +160,25 @@ public class AuthService {
 		
 		String resetPasswordId = generateId();
 		
-		redisTemplate.opsForValue().set("reset:password:email:address:" + resetPasswordId, email);
+		redisTemplate.executePipelined(new SessionCallback<Object>() {
+			@Override
+			@SuppressWarnings("unchecked")
+			public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
+				String setKey = "reset:password:email:address:" + resetPasswordId;
+				String deleteKey = "forgot:password:email:address:" + id;
+				
+				operations.opsForValue().set(
+						(K) setKey,
+						(V) email,
+						Duration.ofMinutes(SESSION_TTL)
+				);
+				
+				operations.delete((K) deleteKey);
+				
+				return null;
+			}
+		});
 		
-		redisTemplate.delete("forgot:password:email:address:"+id);
 		otpService.resetRedisOtpKeys(email);
 		
 		return resetPasswordId;
@@ -198,34 +219,52 @@ public class AuthService {
 		return UUID.randomUUID().toString();
 	}
 	
-	public void storeRegSession (String id, RegistrationRequest regInfo) {
-		redisTemplate.opsForValue().set(
-				"otp:userInfo:"+ id,
-				objectMapper.writeValueAsString(regInfo),
-				SESSION_TTL,
-				TimeUnit.MINUTES
-		);
-		redisTemplate.opsForValue().set("otp:sessionId:"+regInfo.getEmail(), id, SESSION_TTL, TimeUnit.MINUTES);
+	public void storeRegSession(String id, RegistrationRequest regInfo) {
+		redisTemplate.executePipelined(new SessionCallback<Object>() {
+			@Override
+			@SuppressWarnings("unchecked")
+			public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
+				
+				String hashKey = "reg:info:" + id;
+				
+				Map<Object, Object> regInfoMap = Map.of("data", regInfo);
+				
+				operations.opsForHash().putAndExpire(
+						(K) hashKey,
+						regInfoMap,
+						RedisHashCommands.HashFieldSetOption.UPSERT,
+						Expiration.from(Duration.ofMinutes(SESSION_TTL))
+				);
+				
+				String sessionKey = "reg:session:id:" + regInfo.getEmail();
+				operations.opsForValue().set(
+						(K) sessionKey,
+						(V) id,
+						Duration.ofMinutes(SESSION_TTL)
+				);
+				
+				return null;
+			}
+		});
 	}
 	
+	
 	public void resetRedisRegKeys (String id, String email) {
-		redisTemplate.delete("otp:userInfo:"+ id);
-		redisTemplate.delete("otp:sessionId:"+email);
+		redisTemplate.executePipelined(new SessionCallback<>() {
+			@Override
+			public <K, V> Object execute(@NonNull RedisOperations<K, V> operations) throws DataAccessException {
+				redisTemplate.delete("reg:info:" + id);
+				redisTemplate.delete("reg:session:id:" + email);
+				return null;
+			}
+		});
 	}
 	
 	public RegistrationRequest getRegInfo (String sessionId) {
-		String userInfoJson = redisTemplate.opsForValue().get("otp:userInfo:"+sessionId);
-		
-		if (userInfoJson == null) throw new SessionNotFoundException();
-		
-		JsonParser parser = objectMapper.createParser(userInfoJson);
-		RegistrationRequest userInfo = parser.readValueAs(RegistrationRequest.class);
-		parser.close();
-		
-		return userInfo;
+		return (RegistrationRequest) redisTemplate.opsForHash().get("reg:info:"+sessionId, "data");
 	}
 	
 	public String getRegId (String email) {
-		return redisTemplate.opsForValue().get("otp:sessionId:"+email);
+		return redisTemplate.opsForValue().get("reg:session:id:"+email);
 	}
 }

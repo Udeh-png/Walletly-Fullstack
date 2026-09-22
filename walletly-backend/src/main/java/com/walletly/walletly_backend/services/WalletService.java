@@ -5,7 +5,7 @@ import com.walletly.walletly_backend.integration.flutterwave.dto.response.Verify
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.TransferResponse;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.VerifyTransferResponse;
 import com.walletly.walletly_backend.modals.Transaction;
-import com.walletly.walletly_backend.modals.Wallet;
+import com.walletly.walletly_backend.models.Wallet;
 import com.walletly.walletly_backend.repos.TransactionRepo;
 import com.walletly.walletly_backend.repos.WalletRepo;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -124,8 +124,8 @@ const DesktopNav = ({
           <ul className="flex flex-col gap-y-2 mt-1">
             <li>
               <Link
-                href={"/dashboard"}
-                className={`flex items-center gap-x-2 text-white/90 overflow-clip p-2 relative rounded-lg transition-colors duration-100 ${pathname.includes("dashboard") && activeLinkStyle}`}
+                href={"/home"}
+                className={`flex items-center gap-x-2 text-white/90 overflow-clip p-2 relative rounded-lg transition-colors duration-100 ${pathname.includes("home") && activeLinkStyle}`}
               >
                 <LuLayoutDashboard className="text-lg" />
                 <p className="">Dashboard</p>
@@ -314,8 +314,8 @@ const MobileNav = ({
         <ul className="contents">
           <li>
             <Link
-              href={"/dashboard"}
-              className={`flex flex-col items-center w-fit text-[0.65rem] font-semibold transition-colors ${pathname.includes("dashboard") ? "text-primary" : "text-white/80"}`}
+              href={"/home"}
+              className={`flex flex-col items-center w-fit text-[0.65rem] font-semibold transition-colors ${pathname.includes("home") ? "text-primary" : "text-white/80"}`}
             >
               <span className="rounded-xl">
                 <LuLayoutDashboard className="text-[1.35rem]" />

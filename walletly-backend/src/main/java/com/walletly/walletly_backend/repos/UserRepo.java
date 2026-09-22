@@ -1,6 +1,6 @@
 package com.walletly.walletly_backend.repos;
 
-import com.walletly.walletly_backend.modals.User;
+import com.walletly.walletly_backend.models.User;
 import lombok.NonNull;
 import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;

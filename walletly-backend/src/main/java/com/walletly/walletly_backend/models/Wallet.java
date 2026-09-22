@@ -1,4 +1,4 @@
-package com.walletly.walletly_backend.modals;
+package com.walletly.walletly_backend.models;
 
 import lombok.Getter;
 import lombok.NonNull;
