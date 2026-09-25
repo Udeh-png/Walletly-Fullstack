@@ -90,8 +90,12 @@ public class AuthController {
 	}
 	
 	@PostMapping("/forgot-password")
-	public ResponseEntity<?> forgotPassword (@RequestBody Map<String, String> userEmail) throws AccountLockedException {
-		String forgotPasswordId = authService.forgotPassword(userEmail.get("email"));
+	public ResponseEntity<?> forgotPassword (@RequestBody Map<String, String> userEmail, HttpServletRequest request) throws AccountLockedException {
+		Cookie forgotPasswordCookieResponse = WebUtils.getCookie(request, CookieType.FORGOT_PASSWORD_SESSION_ID.getName());
+		
+		String forgotPasswordCookieVal = forgotPasswordCookieResponse == null ?  null : forgotPasswordCookieResponse.getValue();
+		
+		String forgotPasswordId = authService.forgotPassword(userEmail.get("email"), forgotPasswordCookieVal);
 		
 		ResponseCookie forgotPasswordIdCookie = CookiesUtil.createCookie(CookieType.FORGOT_PASSWORD_SESSION_ID, forgotPasswordId);
 		
