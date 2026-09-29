@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.data.mongodb.repository.Update;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Repository
@@ -15,5 +16,5 @@ public interface WalletRepo extends MongoRepository<@NonNull  Wallet, @NonNull S
 	
 	@Query("{ '_id': ?0 }")
 	@Update("{ '$inc': { 'balance': ?1 } }")
-	void incrementWalletBalance (String wallerId, double incBy);
+	void incrementWalletBalance (String wallerId, BigDecimal incBy);
 }

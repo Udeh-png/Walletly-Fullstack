@@ -1,8 +1,10 @@
 package com.walletly.walletly_backend.integration.flutterwave.dto.response.data;
 
-import com.walletly.walletly_backend.integration.flutterwave.dto.response.data.common.CardResponse;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.data.common.Meta;
+import com.walletly.walletly_backend.utils.CardInfo;
 import lombok.*;
+
+import java.math.BigDecimal;
 
 @EqualsAndHashCode
 @ToString
@@ -15,10 +17,10 @@ public class TransactionResponseData {
 	private String currency;
 	private String narration;
 	private String status;
-	private double charge_amount;
-	private double app_fee;
-	private double merchant_fee;
-	private CardResponse card;
+	private BigDecimal charge_amount;
+	private BigDecimal app_fee;
+	private BigDecimal merchant_fee;
+	private CardInfo cardinfo;
 	private Meta meta;
-	private double amount_settled;
+	private BigDecimal amount_settled;
 }

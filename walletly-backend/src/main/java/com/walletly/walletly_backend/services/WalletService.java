@@ -4,10 +4,11 @@ import com.walletly.walletly_backend.integration.flutterwave.dto.requests.Flutte
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.VerifyTransactionResponse;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.TransferResponse;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.VerifyTransferResponse;
-import com.walletly.walletly_backend.modals.Transaction;
+import com.walletly.walletly_backend.models.Transaction;
 import com.walletly.walletly_backend.models.Wallet;
 import com.walletly.walletly_backend.repos.TransactionRepo;
 import com.walletly.walletly_backend.repos.WalletRepo;
+import com.walletly.walletly_backend.utils.CardInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.mongodb.core.FindAndModifyOptions;
@@ -16,7 +17,9 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -44,12 +47,6 @@ public class WalletService {
 		return walletOpt.orElseThrow(RuntimeException::new);
 	}
 	
-	public void creditWallet (String walletId, double amount) {
-		Wallet wallet = getWalletWithId(walletId);
-		
-		walletRepo.incrementWalletBalance(wallet.getId(), amount);
-	}
-	
 	public Transaction verifyChargeAndFundWallet(String cardTxRef, String userId, String transaction_id) {
 		Transaction transaction = claimTransaction(cardTxRef);
 		
@@ -73,7 +70,7 @@ public class WalletService {
 		newTransaction.setStatus("NEW");
 		newTransaction.setType("CARD");
 		newTransaction.setDirection("CREDIT");
-		newTransaction.setCardTxRef(txRef);
+		newTransaction.setReference(txRef);
 		newTransaction.setDescription("Card Deposit"); // create the transaction, since the reference field is indexed it won't get created twice by another thread (worker)
 		
 		try {
@@ -81,7 +78,7 @@ public class WalletService {
 		}catch (DuplicateKeyException ignored) {
 		}
 		
-		Query query = new Query(Criteria.where("card_tx_ref").is(txRef).and("status").is("NEW"));
+		Query query = new Query(Criteria.where("reference").is(txRef).and("status").is("NEW"));
 		
 		return mongoTemplate.findAndModify(
 				query,
@@ -93,7 +90,7 @@ public class WalletService {
 	}
 	
 	public Transaction merchantToWallet (Transaction processingTransaction, VerifyTransactionResponse cardTransaction, String userId) {
-		double amount = cardTransaction.getData().getAmount_settled();
+		BigDecimal amount = cardTransaction.getData().getAmount_settled();
 		
 		Wallet wallet = getWalletWithUserId(userId);
 		String toWalletTxRef = "WLTY-" + System.currentTimeMillis() + "-" + UUID.randomUUID();
@@ -115,14 +112,22 @@ public class WalletService {
 		
 		String toWalletTransferStatus = toWalletTransResponse.getData().getStatus();
 		
+		processingTransaction.setDepositDetails(
+				new Transaction.DepositDetails(
+						toWalletTxRef,
+						cardTransaction.getData()
+								.getCardinfo()
+				)
+		);
+		
 		if (toWalletTransferStatus.equalsIgnoreCase("FAILED")) {
 			processingTransaction.setStatus("FAILED");
 		} else {
 			processingTransaction.setStatus("SUCCESS");
-			creditWallet(wallet.getId(), amount);
+			walletRepo.incrementWalletBalance(wallet.getId(), amount);
 		}
 		
-		processingTransaction.setToWalletTxRef(toWalletTransResponse.getData().getReference());
+		processingTransaction.getDepositDetails().setToWalletTxRef(toWalletTransResponse.getData().getReference());
 		processingTransaction.setCreatedAt(Instant.now());
 		transactionRepo.save(processingTransaction);
 		

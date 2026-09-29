@@ -1,59 +1,70 @@
-package com.walletly.walletly_backend.modals;
+package com.walletly.walletly_backend.models;
 
+import com.walletly.walletly_backend.utils.CardInfo;
 import lombok.*;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.Map;
 
 @NoArgsConstructor
 @RequiredArgsConstructor
-@Getter
+@Data
 @Document("Transactions")
+
 public class Transaction {
+	@Id
 	private String id;
-	
-	@NonNull
-	@Setter
 	@Indexed(unique = true)
-	@Field(name = "card_tx_ref")
-	private String cardTxRef;
+	private String reference;
 	
 	@NonNull
-	@Setter
-	@Field(name = "to_wallet_tx_ref")
-	String toWalletTxRef;
-	
-	@NonNull
-	@Setter
 	private String type;
-	
 	@NonNull
-	@Setter
 	private String direction;
 	
 	@NonNull
-	@Setter
-	@Field(name = "settled_amount")
 	private BigDecimal settledAmount;
 	
 	@NonNull
-	@Setter
 	private String status;
-	
-	
 	@NonNull
-	@Setter
 	private String description;
 	
 	@NonNull
-	@Setter
 	private Instant createdAt;
+	@NonNull
+	private Instant updatedAt;
 	
-	@Setter
-	private Map<String, Object> metaData;
+	private P2PDetails p2PDetails;
+	private DepositDetails depositDetails;
 	
+	@Data
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class P2PDetails {
+		private String senderWalletId;
+		private String senderAccountName;
+		private String senderAccountNumber;
+		
+		private String receiverWalletId;
+		private String receiverAccountName;
+		private String receiverAccountNumber;
+		
+		private BigDecimal fee;
+	}
+	
+	@Data
+	@AllArgsConstructor
+	@NoArgsConstructor
+	public static class DepositDetails {
+		@Field(name = "to_wallet_tx_ref")
+		private String toWalletTxRef;
+		
+		private CardInfo cardInfo;
+	}
 }
+

@@ -184,6 +184,7 @@ public class AuthService {
 		return resetPasswordId;
 	}
 	
+	@Transactional
 	public UserResponse resetPassword (String password, String id) throws AccountLockedException, MessagingException, UnsupportedEncodingException {
 		String email = redisTemplate.opsForValue().get("reset:password:email:address:" + id);
 		

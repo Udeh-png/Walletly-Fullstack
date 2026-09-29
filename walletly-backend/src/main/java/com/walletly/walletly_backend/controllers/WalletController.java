@@ -1,6 +1,6 @@
 package com.walletly.walletly_backend.controllers;
 
-import com.walletly.walletly_backend.modals.Transaction;
+import com.walletly.walletly_backend.models.Transaction;
 import com.walletly.walletly_backend.services.JwtService;
 import com.walletly.walletly_backend.services.WalletService;
 import com.walletly.walletly_backend.utils.CookieType;
