@@ -1,5 +1,8 @@
 package com.walletly.walletly_backend.models;
 
+import com.walletly.walletly_backend.emuns.TransactionDirection;
+import com.walletly.walletly_backend.emuns.TransactionStatus;
+import com.walletly.walletly_backend.emuns.TransactionType;
 import com.walletly.walletly_backend.utils.CardInfo;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -22,15 +25,15 @@ public class Transaction {
 	private String reference;
 	
 	@NonNull
-	private String type;
+	private TransactionType type;
 	@NonNull
-	private String direction;
+	private TransactionDirection direction;
 	
 	@NonNull
 	private BigDecimal settledAmount;
 	
 	@NonNull
-	private String status;
+	private TransactionStatus status;
 	@NonNull
 	private String description;
 	
