@@ -1,0 +1,131 @@
+package com.walletly.walletly_backend.services;
+
+import com.walletly.walletly_backend.emuns.TransactionDirection;
+import com.walletly.walletly_backend.emuns.TransactionStatus;
+import com.walletly.walletly_backend.emuns.TransactionType;
+import com.walletly.walletly_backend.integration.flutterwave.dto.requests.FlutterwaveTransferRequest;
+import com.walletly.walletly_backend.integration.flutterwave.dto.response.TransferResponse;
+import com.walletly.walletly_backend.integration.flutterwave.dto.response.VerifyTransactionResponse;
+import com.walletly.walletly_backend.integration.flutterwave.dto.response.VerifyTransferResponse;
+import com.walletly.walletly_backend.models.Transaction;
+import com.walletly.walletly_backend.models.Wallet;
+import com.walletly.walletly_backend.repos.TransactionRepo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.mongodb.core.FindAndModifyOptions;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
+
+@Service
+public class CashFlowService {
+	
+	@Autowired
+	WalletService walletService;
+	
+	@Autowired
+	FlutterWaveService flutterWaveService;
+	@Autowired
+	MongoTemplate mongoTemplate;
+	@Autowired
+	TransactionRepo transactionRepo;
+	
+	public Transaction claimTransaction (String txRef) {
+		Transaction newTransaction = new Transaction();
+		newTransaction.setStatus(TransactionStatus.NEW);
+		newTransaction.setType(TransactionType.DEPOSIT);
+		newTransaction.setDirection(TransactionDirection.CREDIT);
+		newTransaction.setReference(txRef);
+		newTransaction.setDescription("Card Deposit"); // create the transaction, since the reference field is indexed it won't get created twice by another thread (worker)
+		
+		try {
+			transactionRepo.insert(newTransaction);
+		}catch (DuplicateKeyException ignored) {
+		}
+		
+		Query query = new Query(new Criteria().andOperator(
+				Criteria.where("reference").is(txRef),
+				new Criteria().orOperator(
+						Criteria.where("status").is(TransactionStatus.NEW),
+						Criteria.where("status").is(TransactionStatus.FAILED)
+				)
+		));
+		
+		return mongoTemplate.findAndModify(
+				query,
+				new Update().set("status", TransactionStatus.PROCESSING),
+				new FindAndModifyOptions().upsert(false),
+				Transaction.class,
+				"Transactions"
+		);
+	}
+	
+	public Transaction merchantToWallet (Transaction processingTransaction, VerifyTransactionResponse cardTransaction, String userId) {
+		BigDecimal amount = cardTransaction.getData().getAmount_settled();
+		
+		Wallet wallet = walletService.getWalletWithUserId(userId);
+		String toWalletTxRef = "WLTY-" + System.currentTimeMillis() + "-" + UUID.randomUUID();
+		
+		TransferResponse toWalletResponse = flutterWaveService.sendMoney(new FlutterwaveTransferRequest(
+				"flutterwave",
+				wallet.getBarterId(),
+				amount,
+				"NGN",
+				"NGN",
+				null,
+				toWalletTxRef,
+				""
+		));
+		
+		if (toWalletResponse == null) throw new RuntimeException();
+		
+		VerifyTransferResponse toWalletTransResponse = flutterWaveService.verifyTransfer(toWalletResponse.getData().getId());
+		
+		String toWalletTransferStatus = toWalletTransResponse.getData().getStatus();
+		
+		processingTransaction.setDepositDetails(
+				new Transaction.DepositDetails(
+						toWalletTxRef,
+						cardTransaction.getData()
+								.getCardinfo()
+				)
+		);
+		
+		if (toWalletTransferStatus.equalsIgnoreCase("FAILED")) {
+			processingTransaction.setStatus(TransactionStatus.FAILED);
+		} else {
+			processingTransaction.setStatus(TransactionStatus.SUCCESSFUL);
+			walletService.creditWallet(wallet.getId(), amount);
+		}
+		
+		processingTransaction.getDepositDetails().setToWalletTxRef(toWalletTransResponse.getData().getReference());
+		processingTransaction.setCreatedAt(Instant.now());
+		transactionRepo.save(processingTransaction);
+		
+		return processingTransaction;
+	}
+	
+	public Transaction verifyChargeAndFundWallet(String cardTxRef, String userId, String transaction_id) {
+		Transaction transaction = claimTransaction(cardTxRef);
+		
+		if (transaction == null) throw new RuntimeException("Transaction is being processed or has been completed");
+		
+		VerifyTransactionResponse cardTransactionResponse = flutterWaveService.verifyTransaction(transaction_id);
+		
+		if (!cardTransactionResponse.getData().getStatus().equalsIgnoreCase("successful")) {
+			transaction.setStatus(TransactionStatus.FAILED);
+			transaction.setCreatedAt(Instant.now());
+			
+			transactionRepo.save(transaction);
+			throw new RuntimeException(String.valueOf(transaction));
+		}
+		
+		return merchantToWallet(transaction, cardTransactionResponse, userId);
+	}
+}

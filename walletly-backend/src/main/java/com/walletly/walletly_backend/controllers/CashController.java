@@ -2,7 +2,7 @@ package com.walletly.walletly_backend.controllers;
 
 import com.walletly.walletly_backend.models.Transaction;
 import com.walletly.walletly_backend.services.JwtService;
-import com.walletly.walletly_backend.services.WalletService;
+import com.walletly.walletly_backend.services.CashFlowService;
 import com.walletly.walletly_backend.utils.CookieType;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
@@ -19,9 +19,9 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/wallet")
-public class WalletController {
+public class CashController {
 	@Autowired
-	WalletService walletService;
+	CashFlowService cashFlowService;
 	@Autowired
 	JwtService jwtService;
 	
@@ -46,7 +46,7 @@ public class WalletController {
 		assert accessTokenCookie != null;
 		String userId = jwtService.extractClaim(accessTokenCookie.getValue(), Claims::getSubject);
 		
-		Transaction processedTransaction = walletService.verifyChargeAndFundWallet(cardTxRef, userId, transaction_id);
+		Transaction processedTransaction = cashFlowService.verifyChargeAndFundWallet(cardTxRef, userId, transaction_id);
 		
 		return ResponseEntity.ok(processedTransaction);
 	}

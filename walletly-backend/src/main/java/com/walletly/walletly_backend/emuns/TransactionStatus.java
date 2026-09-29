@@ -2,7 +2,7 @@ package com.walletly.walletly_backend.emuns;
 
 public enum TransactionStatus {
 	NEW,
-	PENDING,
+	PROCESSING,
 	SUCCESSFUL,
 	FAILED,
 	REVERSED

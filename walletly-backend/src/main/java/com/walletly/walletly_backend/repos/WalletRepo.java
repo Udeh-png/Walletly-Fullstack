@@ -16,5 +16,5 @@ public interface WalletRepo extends MongoRepository<@NonNull  Wallet, @NonNull S
 	
 	@Query("{ '_id': ?0 }")
 	@Update("{ '$inc': { 'balance': ?1 } }")
-	void incrementWalletBalance (String wallerId, BigDecimal incBy);
+	void incrementWalletBalance (String walletId, BigDecimal incBy);
 }
