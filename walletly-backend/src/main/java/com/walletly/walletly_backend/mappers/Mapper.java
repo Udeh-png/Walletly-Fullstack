@@ -8,6 +8,8 @@ import com.walletly.walletly_backend.models.User;
 import com.walletly.walletly_backend.models.Wallet;
 import lombok.NonNull;
 
+import java.math.BigDecimal;
+
 public class Mapper {
 	public static UserResponse userToUserResponse (@NonNull User user) {
 		return new UserResponse(
@@ -33,7 +35,8 @@ public class Mapper {
 				registrationRequest.getFirstName() + " " + registrationRequest.getLastName(),
 				registrationRequest.getEmail(),
 				"NG",
-				"035"
+				"035",
+				"08081169830"
 		);
 	}
 	
@@ -41,8 +44,9 @@ public class Mapper {
 		return new Wallet(
 				user.getId(),
 				createPsaResponse.getData().getAccount_name(),
-				0,
+				new BigDecimal("0.0"),
 				createPsaResponse.getData().getNuban(),
+				user.getEmail(),
 				createPsaResponse.getData().getBank_name(),
 				createPsaResponse.getData().getBarter_id(),
 				createPsaResponse.getData().getAccount_reference(),

@@ -1,8 +1,9 @@
 package com.walletly.walletly_backend.services;
 
-import com.walletly.walletly_backend.emuns.TransactionDirection;
+import com.walletly.walletly_backend.dtos.requests.InternalTransferRequest;
 import com.walletly.walletly_backend.emuns.TransactionStatus;
 import com.walletly.walletly_backend.emuns.TransactionType;
+import com.walletly.walletly_backend.emuns.TransferIdentifierType;
 import com.walletly.walletly_backend.integration.flutterwave.dto.requests.FlutterwaveTransferRequest;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.TransferResponse;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.VerifyTransactionResponse;
@@ -18,6 +19,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -28,6 +30,8 @@ public class CashFlowService {
 	
 	@Autowired
 	WalletService walletService;
+	@Autowired
+	TransferSettlementService settlementService;
 	
 	@Autowired
 	FlutterWaveService flutterWaveService;
@@ -36,12 +40,11 @@ public class CashFlowService {
 	@Autowired
 	TransactionRepo transactionRepo;
 	
-	public Transaction claimTransaction (String txRef) {
+	public Transaction claimTransaction (String reference, TransactionType transactionType) {
 		Transaction newTransaction = new Transaction();
 		newTransaction.setStatus(TransactionStatus.NEW);
-		newTransaction.setType(TransactionType.DEPOSIT);
-		newTransaction.setDirection(TransactionDirection.CREDIT);
-		newTransaction.setReference(txRef);
+		newTransaction.setType(transactionType);
+		newTransaction.setReference(reference);
 		newTransaction.setDescription("Card Deposit"); // create the transaction, since the reference field is indexed it won't get created twice by another thread (worker)
 		
 		try {
@@ -50,7 +53,7 @@ public class CashFlowService {
 		}
 		
 		Query query = new Query(new Criteria().andOperator(
-				Criteria.where("reference").is(txRef),
+				Criteria.where("reference").is(reference),
 				new Criteria().orOperator(
 						Criteria.where("status").is(TransactionStatus.NEW),
 						Criteria.where("status").is(TransactionStatus.FAILED)
@@ -93,10 +96,10 @@ public class CashFlowService {
 				new Transaction.DepositDetails(
 						toWalletTxRef,
 						cardTransaction.getData()
-								.getCardinfo()
+								.getCard()
 				)
 		);
-		
+		processingTransaction.setSettledAmount(amount);
 		if (toWalletTransferStatus.equalsIgnoreCase("FAILED")) {
 			processingTransaction.setStatus(TransactionStatus.FAILED);
 		} else {
@@ -112,20 +115,67 @@ public class CashFlowService {
 	}
 	
 	public Transaction verifyChargeAndFundWallet(String cardTxRef, String userId, String transaction_id) {
-		Transaction transaction = claimTransaction(cardTxRef);
+		Transaction transaction = claimTransaction(cardTxRef, TransactionType.DEPOSIT);
 		
 		if (transaction == null) throw new RuntimeException("Transaction is being processed or has been completed");
 		
 		VerifyTransactionResponse cardTransactionResponse = flutterWaveService.verifyTransaction(transaction_id);
 		
+		transaction.setUpdatedAt(Instant.now());
+		
 		if (!cardTransactionResponse.getData().getStatus().equalsIgnoreCase("successful")) {
 			transaction.setStatus(TransactionStatus.FAILED);
-			transaction.setCreatedAt(Instant.now());
+			transaction.setUpdatedAt(Instant.now());
 			
 			transactionRepo.save(transaction);
 			throw new RuntimeException(String.valueOf(transaction));
 		}
 		
 		return merchantToWallet(transaction, cardTransactionResponse, userId);
+	}
+	
+	public void handleInternalTransfer (InternalTransferRequest transferRequest, String senderUserId) {
+		Transaction transaction2Process = claimTransaction("", TransactionType.TRANSFER);
+		
+		if (transaction2Process == null) throw new RuntimeException("Transaction is being processed or has been completed");
+		
+		BigDecimal amount = transferRequest.getAmount();
+		
+		TransferIdentifierType identifierType = transferRequest.getIdentifierType();
+		String identifier = transferRequest.getIdentifier();
+		Wallet receiverWallet = switch (identifierType) {
+			case TransferIdentifierType.WALLETLY_ACC_NUMBER -> walletService.getWalletWithAccountNumber(identifier);
+			case TransferIdentifierType.PHONE_NUMBER -> walletService.getWalletWithPhoneNumber(identifier);
+			case TransferIdentifierType.EMAIL_ADDRESS -> walletService.getWalletWithEmailAddress(identifier);
+		};
+		
+		Wallet senderWallet = walletService.getWalletWithUserId(senderUserId);
+		
+		settlementService.settleInternalTransfer(senderWallet.getId(), receiverWallet.getId(), amount);
+		
+		transaction2Process.setP2PDetails(new Transaction.P2PDetails(
+				senderWallet.getId(),
+				senderWallet.getAccountName(),
+				senderWallet.getVirtualAccountNumber(),
+				receiverWallet.getId(),
+				receiverWallet.getAccountName(),
+				receiverWallet.getVirtualAccountNumber(),
+				null
+		));
+		
+		transaction2Process.setUpdatedAt(Instant.now());
+	}
+	
+	@Service
+	public static class TransferSettlementService {
+		@Autowired
+		private WalletService walletService;
+		
+		@Transactional
+		public void settleInternalTransfer (String senderWalletId, String receiverWalletId, BigDecimal amount) {
+			walletService.debitWallet(senderWalletId, amount);
+			
+			walletService.creditWallet(receiverWalletId, amount);
+		}
 	}
 }

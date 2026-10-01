@@ -1,6 +1,5 @@
 package com.walletly.walletly_backend.models;
 
-import com.walletly.walletly_backend.emuns.TransactionDirection;
 import com.walletly.walletly_backend.emuns.TransactionStatus;
 import com.walletly.walletly_backend.emuns.TransactionType;
 import com.walletly.walletly_backend.utils.CardInfo;
@@ -26,15 +25,12 @@ public class Transaction {
 	
 	@NonNull
 	private TransactionType type;
-	@NonNull
-	private TransactionDirection direction;
 	
 	@NonNull
 	private BigDecimal settledAmount;
 	
 	@NonNull
 	private TransactionStatus status;
-	@NonNull
 	private String description;
 	
 	@NonNull

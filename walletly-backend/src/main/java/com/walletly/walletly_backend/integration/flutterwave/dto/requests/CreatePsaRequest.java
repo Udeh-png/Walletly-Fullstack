@@ -8,7 +8,8 @@ import lombok.*;
 @NoArgsConstructor
 public class CreatePsaRequest {
 	@NonNull
-	private String account_name;
+	@JsonProperty("account_name")
+	private String accountName;
 	
 	@NonNull
 	private String email;
@@ -17,6 +18,10 @@ public class CreatePsaRequest {
 	private String country;
 	
 	@NonNull
-	private String bank_code;
+	@JsonProperty("bank_code")
+	private String bankCode;
+	
+	@NonNull
+	private String mobilenumber;
 	
 }

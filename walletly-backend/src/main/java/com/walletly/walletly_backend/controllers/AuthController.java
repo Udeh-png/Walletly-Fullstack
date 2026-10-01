@@ -6,7 +6,7 @@ import com.walletly.walletly_backend.dtos.requests.VerifyEmailRequest;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
 import com.walletly.walletly_backend.exceptions.SessionNotFoundException;
 import com.walletly.walletly_backend.services.*;
-import com.walletly.walletly_backend.utils.CookieType;
+import com.walletly.walletly_backend.emuns.CookieType;
 import com.walletly.walletly_backend.utils.CookiesUtil;
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.Cookie;
@@ -148,7 +148,6 @@ public class AuthController {
 		ResponseCookie accessTokenCookie = CookiesUtil.createJwtCookies(CookieType.ACCESS_TOKEN, jwtService.generateAccessToken(userResponse));
 		ResponseCookie refreshTokenCookie = CookiesUtil.createJwtCookies( CookieType.REFRESH_TOKEN, jwtService.generateRefreshToken(userResponse));
 		
-		System.out.println("password reset");
 		return ResponseEntity.ok()
 				.header(HttpHeaders.SET_COOKIE, removedResetPasswordIdCookie.toString())
 				.header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())

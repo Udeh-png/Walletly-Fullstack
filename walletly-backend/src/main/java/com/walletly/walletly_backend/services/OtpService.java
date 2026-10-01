@@ -63,8 +63,9 @@ public class OtpService {
 		return Base64.getEncoder().encodeToString(hash);
 	}
 	
-	public void storeOtp(String encodedOtp, String email) {
+	public void storeOtp(String otp, String email) {
 		String salt = UUID.randomUUID().toString();
+		String encodedOtp = encodeOtp(otp, salt);
 		
 		Map<String, String> otpMap = Map.of("code", encodedOtp, "salt", salt);
 		

@@ -1,6 +1,6 @@
 package com.walletly.walletly_backend.controllers;
 
-import com.walletly.walletly_backend.utils.CookieType;
+import com.walletly.walletly_backend.emuns.CookieType;
 import com.walletly.walletly_backend.utils.CookiesUtil;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;

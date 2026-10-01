@@ -20,7 +20,7 @@ public class TransactionResponseData {
 	private BigDecimal charge_amount;
 	private BigDecimal app_fee;
 	private BigDecimal merchant_fee;
-	private CardInfo cardinfo;
+	private CardInfo card;
 	private Meta meta;
 	private BigDecimal amount_settled;
 }

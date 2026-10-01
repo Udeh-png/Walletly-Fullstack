@@ -1,6 +1,6 @@
 package com.walletly.walletly_backend.utils;
 
-import jakarta.servlet.http.HttpServletResponse;
+import com.walletly.walletly_backend.emuns.CookieType;
 import org.springframework.http.ResponseCookie;
 
 public class CookiesUtil {

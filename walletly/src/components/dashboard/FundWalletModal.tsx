@@ -32,7 +32,7 @@ const FundWalletFormContent = ({
 
     try {
       const initiateDepositReq = await fetch(
-        "http://localhost:8080/api/wallet/deposit/initiate",
+        "http://localhost:8080/api/cash-flow/deposit/initiate",
         {
           method: "POST",
           headers: {
@@ -49,7 +49,7 @@ const FundWalletFormContent = ({
       window.FlutterwaveCheckout({
         public_key: "FLWPUBK_TEST-1ea28c499a322bc644a73047a2d9fd12-X",
         tx_ref,
-        amount,
+        amount: amountSettled,
         currency: "NGN",
         payment_options: "card",
         meta: {
@@ -66,7 +66,7 @@ const FundWalletFormContent = ({
         callback: function (data: { transaction_id: string; tx_ref: string }) {
           console.log("Payment success details:", data);
           fetch(
-            `http://localhost:8080/api/wallet/deposit/process?transaction_id=${data.transaction_id}&tx_ref=${tx_ref}`,
+            `http://localhost:8080/api/cash-flow/deposit/process?transaction_id=${data.transaction_id}&tx_ref=${tx_ref}`,
             {
               method: "POST",
               credentials: "include",

@@ -137,6 +137,8 @@ export const EmailVerificationContent = () => {
         setError("root", {
           message: error.message,
         });
+
+        return;
       }
 
       localStorage.removeItem("userEmail");

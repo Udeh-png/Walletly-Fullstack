@@ -1,9 +1,10 @@
 package com.walletly.walletly_backend.controllers;
 
+import com.walletly.walletly_backend.dtos.requests.InternalTransferRequest;
 import com.walletly.walletly_backend.models.Transaction;
 import com.walletly.walletly_backend.services.JwtService;
 import com.walletly.walletly_backend.services.CashFlowService;
-import com.walletly.walletly_backend.utils.CookieType;
+import com.walletly.walletly_backend.emuns.CookieType;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,7 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/wallet")
+@RequestMapping("/api/cash-flow")
 public class CashController {
 	@Autowired
 	CashFlowService cashFlowService;
@@ -26,7 +27,7 @@ public class CashController {
 	JwtService jwtService;
 	
 	@PostMapping("/deposit/initiate")
-	public ResponseEntity<@NonNull Map<String, String>> generateTxRef () {
+	public ResponseEntity<@NonNull Map<String, String>> generateTxRefHandler () {
 		String txRef = "WLTY-" + System.currentTimeMillis() + "-" + UUID.randomUUID();
 		
 		Map<String, String> responseMap = new HashMap<>();
@@ -36,7 +37,7 @@ public class CashController {
 	}
 	
 	@PostMapping("/deposit/process")
-	public ResponseEntity<?> verifyCardDeposit (
+	public ResponseEntity<?> verifyCardDepositHandler (
 			HttpServletRequest request,
 			@RequestParam String transaction_id,
 			@RequestParam(name = "tx_ref") String cardTxRef
@@ -49,5 +50,11 @@ public class CashController {
 		Transaction processedTransaction = cashFlowService.verifyChargeAndFundWallet(cardTxRef, userId, transaction_id);
 		
 		return ResponseEntity.ok(processedTransaction);
+	}
+	
+	@PostMapping("/transfer/internal")
+	public ResponseEntity<?> internalTransferHandler (@RequestBody InternalTransferRequest transferRequest) {
+		
+		return null;
 	}
 }

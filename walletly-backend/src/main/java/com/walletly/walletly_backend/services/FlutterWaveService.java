@@ -23,7 +23,6 @@ public class FlutterWaveService {
 	MediaType jsonType = MediaType.APPLICATION_JSON;
 	public CreatePsaResponse createPayoutSubaccount (RegistrationRequest regReq) {
 		CreatePsaRequest createPsaRequest = Mapper.registrationRequestToCreatePsaRequest(regReq);
-		System.out.println(createPsaRequest);
 		return restClient.post()
 				.uri("/payout-subaccounts")
 				.contentType(jsonType)

@@ -1,9 +1,6 @@
 package com.walletly.walletly_backend.models;
 
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -13,6 +10,7 @@ import java.time.Instant;
 
 @Document("Wallets")
 @RequiredArgsConstructor
+@NoArgsConstructor
 @Getter
 public class Wallet {
 	@Id
@@ -34,6 +32,10 @@ public class Wallet {
 	@Setter
 	@NonNull
 	private String virtualAccountNumber;
+	
+	@Setter
+	@NonNull
+	private String emailAddress;
 	
 	@Setter
 	@NonNull

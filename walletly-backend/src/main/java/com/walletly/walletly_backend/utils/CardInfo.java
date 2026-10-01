@@ -13,6 +13,5 @@ public class CardInfo {
 	private String issuer;
 	private String country;
 	private String type;
-	private String token;
 	private String expiry;
 }

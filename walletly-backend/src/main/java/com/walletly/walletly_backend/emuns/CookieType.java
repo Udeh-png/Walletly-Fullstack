@@ -1,4 +1,4 @@
-package com.walletly.walletly_backend.utils;
+package com.walletly.walletly_backend.emuns;
 
 import lombok.Getter;
 

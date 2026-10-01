@@ -14,7 +14,17 @@ import java.util.Optional;
 public interface WalletRepo extends MongoRepository<@NonNull  Wallet, @NonNull String> {
 	Optional<Wallet> findByUserId(String userId);
 	
+	Optional<Wallet> findByVirtualAccountNumber (String accountNumber);
+	
+	Optional<Wallet> findByMobileNumber (String phoneNumber);
+	
+	Optional<Wallet> findByEmailAddress (String emailAddress);
+	
 	@Query("{ '_id': ?0 }")
 	@Update("{ '$inc': { 'balance': ?1 } }")
 	void incrementWalletBalance (String walletId, BigDecimal incBy);
+	
+	@Query("{ '_id': ?0, 'balance': { '$gt': ?1 } } ")
+	@Update("{ '$inc': { 'balance': ?1 } }")
+	void decrementWalletBalance (String walletId, BigDecimal decBy);
 }
