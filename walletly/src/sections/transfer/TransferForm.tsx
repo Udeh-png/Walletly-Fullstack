@@ -19,7 +19,6 @@ export const TransferForm = () => {
     handleSubmit,
     setValue,
     getValues,
-    clearErrors,
     formState: { errors },
   } = useForm<TransferType>({
     resolver: zodResolver(transferSchema),
@@ -38,11 +37,7 @@ export const TransferForm = () => {
       )}
     >
       {transferType === "internal" && (
-        <InternalTransferFormFields
-          register={register}
-          errors={errors}
-          clearErrors={clearErrors}
-        />
+        <InternalTransferFormFields register={register} errors={errors} />
       )}
 
       {transferType === "external" && (

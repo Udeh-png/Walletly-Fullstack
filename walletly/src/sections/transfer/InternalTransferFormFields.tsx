@@ -19,11 +19,9 @@ type IdentifierId = "ACCOUNT_NUMBER" | "PHONE_NUMBER" | "EMAIL_aDDRESS";
 export const InternalTransferFormFields = ({
   register,
   errors,
-  clearErrors,
 }: {
   register: UseFormRegister<TransferType>;
   errors: FieldErrors<TransferType>;
-  clearErrors: (name?: keyof TransferType | undefined) => void;
 }) => {
   const dropDownData: Array<{
     id: IdentifierId;
