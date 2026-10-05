@@ -11,7 +11,7 @@ export default function Page() {
   return (
     <DepositModalProvider>
       <p className="md:text-3xl text-2xl md:font-semibold font-bold">
-        Hello, Chisom! 👋
+        Hello, User! 👋
       </p>
       <p className="text-white/65 text-sm md:mt-2">
         Broke ahh nigg no be your mate get 7 figures

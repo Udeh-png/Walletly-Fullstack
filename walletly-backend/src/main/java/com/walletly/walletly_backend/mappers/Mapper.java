@@ -2,6 +2,7 @@ package com.walletly.walletly_backend.mappers;
 
 import com.walletly.walletly_backend.dtos.requests.RegistrationRequest;
 import com.walletly.walletly_backend.dtos.response.UserResponse;
+import com.walletly.walletly_backend.dtos.response.WalletResponse;
 import com.walletly.walletly_backend.integration.flutterwave.dto.requests.CreatePsaRequest;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.CreatePsaResponse;
 import com.walletly.walletly_backend.models.User;
@@ -55,6 +56,17 @@ public class Mapper {
 				createPsaResponse.getData().getCountry(),
 				createPsaResponse.getStatus(),
 				createPsaResponse.getData().getCreated_at()
+		);
+	}
+	
+	public static WalletResponse wallerToWalletResponse(Wallet receiverWallet) {
+		
+		return new WalletResponse(
+				receiverWallet.getId(),
+				receiverWallet.getAccountName(),
+				receiverWallet.getVirtualAccountNumber(),
+				receiverWallet.getEmail(),
+				receiverWallet.getMobileNumber()
 		);
 	}
 }

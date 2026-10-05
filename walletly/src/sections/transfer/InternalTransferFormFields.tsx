@@ -14,17 +14,16 @@ import { FieldErrors, UseFormRegister } from "react-hook-form";
 import { TransferType } from "@/types";
 import { IconType } from "react-icons";
 
-type IdentifierId = Extract<
-  keyof TransferType,
-  "walletlyAccountNumber" | "phoneNumber" | "email"
->;
+type IdentifierId = "ACCOUNT_NUMBER" | "PHONE_NUMBER" | "EMAIL_aDDRESS";
 
 export const InternalTransferFormFields = ({
   register,
   errors,
+  clearErrors,
 }: {
   register: UseFormRegister<TransferType>;
   errors: FieldErrors<TransferType>;
+  clearErrors: (name?: keyof TransferType | undefined) => void;
 }) => {
   const dropDownData: Array<{
     id: IdentifierId;
@@ -34,21 +33,21 @@ export const InternalTransferFormFields = ({
     subTitle: string;
   }> = [
     {
-      id: "walletlyAccountNumber",
+      id: "ACCOUNT_NUMBER",
       name: "Walletly account number",
       Icon: FaRegCreditCard,
       title: "Walletly Account Number",
       subTitle: "Send money using a Walletly account number",
     },
     {
-      id: "phoneNumber",
+      id: "PHONE_NUMBER",
       name: "phone number",
       Icon: LuPhone,
       title: "Phone Number",
       subTitle: "Send money using a phone number",
     },
     {
-      id: "email",
+      id: "EMAIL_aDDRESS",
       name: "email address",
       Icon: FaRegEnvelope,
       title: "Email Address",
@@ -57,9 +56,8 @@ export const InternalTransferFormFields = ({
   ];
 
   const [dropDownSummoned, setDropDownSummoned] = useState(false);
-  const [identifierId, setIdentifierId] = useState<IdentifierId>(
-    "walletlyAccountNumber",
-  );
+  const [identifierId, setIdentifierId] =
+    useState<IdentifierId>("ACCOUNT_NUMBER");
   const selectedIdentifier =
     dropDownData.find(({ id }) => id == identifierId) || dropDownData[0];
   return (
@@ -158,7 +156,7 @@ export const InternalTransferFormFields = ({
           <input
             className="w-full outline-none"
             placeholder={`Enter user's ${selectedIdentifier.name}`}
-            {...register(identifierId)}
+            {...register("identifier")}
           />
 
           <MdOutlineQrCodeScanner className="text-2xl cursor-pointer" />
@@ -181,21 +179,27 @@ export const InternalTransferFormFields = ({
             </div> 
           */}
         </label>
-        {errors.email && (
+        {errors.identifier?.message?.includes("EMAIL_ADDRESS") && (
+          <p className="ml-2 text-sm text-red-500 mt-0.5">{""}</p>
+        )}
+
+        {errors.identifier?.message?.includes("ACCOUNT_NUMBER") && (
           <p className="ml-2 text-sm text-red-500 mt-0.5">
-            {errors.email?.message}
+            {errors.identifier?.message?.replace(
+              "ACCOUNT_NUMBER",
+              "Account number",
+            )}
           </p>
         )}
 
-        {errors.walletlyAccountNumber && (
+        {errors.identifier?.message?.includes("PHONE") && (
           <p className="ml-2 text-sm text-red-500 mt-0.5">
-            {errors.walletlyAccountNumber?.message}
-          </p>
-        )}
+            {"Phone number is required"}
 
-        {errors.phoneNumber && (
-          <p className="ml-2 text-sm text-red-500 mt-0.5">
-            {errors.phoneNumber?.message}
+            {errors.identifier?.message?.replace(
+              "ACCOUNT_NUMBER",
+              "Account number",
+            )}
           </p>
         )}
       </div>

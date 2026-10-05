@@ -22,8 +22,20 @@ const FundWalletFormContent = ({
   const [rememberCard, setRememberCard] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fee = 0;
-  const amountSettled = Number(amount.replaceAll(",", "")) - fee;
+  const baseChargePercentage = 0.014;
+  const vatPercentage = 0.075;
+  const totalFeePercentage = baseChargePercentage * vatPercentage;
+
+  const amountFormatted = Number(amount.replaceAll(",", ""));
+
+  const actualFee = amountFormatted * baseChargePercentage;
+  const vat = actualFee * vatPercentage;
+  const feeWithTax = (actualFee + vat).toFixed(2);
+
+  const actualAmountCharged = (amountFormatted + Number(feeWithTax)).toFixed(2);
+
+  const feeVat = amountFormatted * totalFeePercentage;
+  const amountToSend = (amountFormatted + feeVat + 0.01).toFixed(2);
 
   const initiateDeposit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -49,7 +61,7 @@ const FundWalletFormContent = ({
       window.FlutterwaveCheckout({
         public_key: "FLWPUBK_TEST-1ea28c499a322bc644a73047a2d9fd12-X",
         tx_ref,
-        amount: amountSettled,
+        amount: amountToSend,
         currency: "NGN",
         payment_options: "card",
         meta: {
@@ -126,13 +138,13 @@ const FundWalletFormContent = ({
 
           <div className="flex justify-between items-center">
             <p className="text-sm text-white/60">Fee</p>
-            <p className="font-semibold">₦{fee}</p>
+            <p className="font-semibold">₦{feeWithTax}</p>
           </div>
 
           <div className="flex justify-between items-center border-t pt-3 border-white/10 mt-5">
-            <p className="text-sm text-white/60">You&apos;ll receive</p>
+            <p className="text-sm text-white/60">You&apos;ll be charged</p>
             <p className="font-semibold text-lg">
-              ₦{amountSettled.toLocaleString("en-US")}
+              ₦{Number(actualAmountCharged).toLocaleString("en-US")}
             </p>
           </div>
         </div>
@@ -284,3 +296,4 @@ export const FundWalletModal = ({
 };
 
 // TODO: Remove Nav at width 768px
+//  4187427415564246

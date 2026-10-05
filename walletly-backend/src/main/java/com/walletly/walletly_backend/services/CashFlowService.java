@@ -1,6 +1,7 @@
 package com.walletly.walletly_backend.services;
 
 import com.walletly.walletly_backend.dtos.requests.InternalTransferRequest;
+import com.walletly.walletly_backend.dtos.response.WalletResponse;
 import com.walletly.walletly_backend.emuns.TransactionStatus;
 import com.walletly.walletly_backend.emuns.TransactionType;
 import com.walletly.walletly_backend.emuns.TransferIdentifierType;
@@ -8,6 +9,7 @@ import com.walletly.walletly_backend.integration.flutterwave.dto.requests.Flutte
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.TransferResponse;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.VerifyTransactionResponse;
 import com.walletly.walletly_backend.integration.flutterwave.dto.response.VerifyTransferResponse;
+import com.walletly.walletly_backend.mappers.Mapper;
 import com.walletly.walletly_backend.models.Transaction;
 import com.walletly.walletly_backend.models.Wallet;
 import com.walletly.walletly_backend.repos.TransactionRepo;
@@ -18,6 +20,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -117,6 +121,7 @@ public class CashFlowService {
 	public Transaction verifyChargeAndFundWallet(String cardTxRef, String userId, String transaction_id) {
 		Transaction transaction = claimTransaction(cardTxRef, TransactionType.DEPOSIT);
 		
+		// TODO: Create custom exception
 		if (transaction == null) throw new RuntimeException("Transaction is being processed or has been completed");
 		
 		VerifyTransactionResponse cardTransactionResponse = flutterWaveService.verifyTransaction(transaction_id);
@@ -134,21 +139,27 @@ public class CashFlowService {
 		return merchantToWallet(transaction, cardTransactionResponse, userId);
 	}
 	
-	public void handleInternalTransfer (InternalTransferRequest transferRequest, String senderUserId) {
-		Transaction transaction2Process = claimTransaction("", TransactionType.TRANSFER);
-		
-		if (transaction2Process == null) throw new RuntimeException("Transaction is being processed or has been completed");
-		
-		BigDecimal amount = transferRequest.getAmount();
-		
-		TransferIdentifierType identifierType = transferRequest.getIdentifierType();
-		String identifier = transferRequest.getIdentifier();
-		Wallet receiverWallet = switch (identifierType) {
+	public Wallet getWalletEntityWithIdentifier (TransferIdentifierType identifierType, String identifier) {
+		return switch (identifierType) {
 			case TransferIdentifierType.WALLETLY_ACC_NUMBER -> walletService.getWalletWithAccountNumber(identifier);
 			case TransferIdentifierType.PHONE_NUMBER -> walletService.getWalletWithPhoneNumber(identifier);
 			case TransferIdentifierType.EMAIL_ADDRESS -> walletService.getWalletWithEmailAddress(identifier);
 		};
+	}
+	
+	public WalletResponse getWalletResponseWithIdentifier (TransferIdentifierType identifierType, String identifier) {
+		Wallet wallet = getWalletEntityWithIdentifier(identifierType, identifier);
 		
+		return Mapper.wallerToWalletResponse(wallet);
+	}
+	
+	public void handleInternalTransfer (InternalTransferRequest transferRequest, String senderUserId) {
+		Transaction transaction2Process = claimTransaction("", TransactionType.TRANSFER);
+		if (transaction2Process == null) throw new RuntimeException("Transaction is being processed or has been completed");
+		
+		BigDecimal amount = transferRequest.getAmount();
+		
+		Wallet receiverWallet = getWalletEntityWithIdentifier(transferRequest.getIdentifierType(), transferRequest.getIdentifier());
 		Wallet senderWallet = walletService.getWalletWithUserId(senderUserId);
 		
 		settlementService.settleInternalTransfer(senderWallet.getId(), receiverWallet.getId(), amount);

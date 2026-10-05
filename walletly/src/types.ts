@@ -42,32 +42,48 @@ export const loginSchema = z.object({
 
 export type LogInType = z.infer<typeof loginSchema>;
 
-export const transferSchema = z.object({
-  email: z.email().nullable().optional(),
-  walletlyAccountNumber: z
-    .string()
-    .min(1, "This field is required")
-    .length(10)
-    .nullable()
-    .optional(),
-  phoneNumber: z
-    .string()
-    .min(1, "This field is required")
-    .length(11)
-    .nullable()
-    .optional(),
+export const transferSchema = z
+  .object({
+    email: z.email().nullable().optional(),
+    identifierType: z.enum(["ACCOUNT_NUMBER", "PHONE_NUMBER", "EMAIL_ADDRESS"]),
+    identifier: z.string(),
 
-  bankName: z.string().min(1, "This field is required").nullable().optional(),
-  accountNumber: z
-    .string()
-    .min(1, "This field is required")
-    .length(10)
-    .nullable()
-    .optional(),
+    amount: z.string().min(1, "This field is required"),
+    narration: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    const { identifierType, identifier } = data;
 
-  amount: z.string().min(1, "This field is required"),
-  narration: z.string(),
-});
+    if (identifier == "ACCOUNT_NUMBER") {
+      ctx.addIssue({
+        code: "custom",
+        message: "Account number is required",
+        path: ["identifier"],
+      });
+    }
+
+    if (
+      identifierType === "PHONE_NUMBER" &&
+      !/^\+?\d{10,15}$/.test(identifier)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Enter a valid phone number",
+        path: ["identifier"],
+      });
+    }
+
+    if (
+      identifierType === "EMAIL_ADDRESS" &&
+      !z.string().email().safeParse(identifier).success
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Enter a valid email",
+        path: ["identifier"],
+      });
+    }
+  });
 
 export type TransferType = z.infer<typeof transferSchema>;
 
